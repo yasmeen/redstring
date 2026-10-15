@@ -1,0 +1,50 @@
+{
+ "business": "treble-clef",
+ "researched_at": "2026-10-15",
+ "note": "Real public-web research on the category and audience. The business itself is fictional.",
+ "findings": [
+  {
+   "kind": "audience",
+   "text": "Pew (2015): 54% of parents of kids ages 6-17 said their children took music, dance or art lessons in the past 12 months; about one in three parents of children 5 or younger said the same. Rates were higher in families earning $75k+ (62%) than under $30k (41%).",
+   "source_url": "https://www.pewresearch.org/social-trends/2015/12/17/5-childrens-extracurricular-activities/",
+   "source_title": "Parental attitudes on children\u2019s extracurricular activities"
+  },
+  {
+   "kind": "audience",
+   "text": "Ages 5-11 are the main window: in a Gallup survey for NAMM, 64% of respondents began musical training between ages 5 and 11, and 18% between 12 and 14.",
+   "source_url": "https://www.namm.org/news/press-releases/gallup-organization-reveals-findings-american-attitudes-toward-making-music",
+   "source_title": "Gallup Organization Reveals Findings of \"American Attitudes Toward Making Music\" Survey"
+  },
+  {
+   "kind": "audience",
+   "text": "Parents support starting early: in a 2015 NAMM Foundation survey of 800 parents and 1,000 teachers, 81% of parents said children should have a chance to learn a musical instrument as early as elementary school.",
+   "source_url": "https://www.nammfoundation.org/EDUCATOR-RESOURCES/STRIKING-CHORD-PUBLICS-HOPES-AND-BELIEFS-K-12-EDUCATION-UNITED-STATES-2015",
+   "source_title": "Striking A Chord: The Public's Hopes and Beliefs for K-12 Education in the United States: 2015"
+  },
+  {
+   "kind": "audience",
+   "text": "Word of mouth carries weight: Nielsen's 2015 Global Trust in Advertising survey found 83% of respondents completely or somewhat trust recommendations from friends and family, the most trusted form of advertising.",
+   "source_url": "https://www.nielsen.com/kw/en/press-room/2015/recommendations-from-friends-remain-most-credible-form-of-advertising.html",
+   "source_title": "Recommendations From Friends Remain Most Credible Form of Advertising Among Consumers; Branded Websites Are the Second-Highest-Rated Form"
+  },
+  {
+   "kind": "competitor",
+   "text": "Free trial lessons are a common offer in the category. NAMM recommends lesson programs consider them; a typical trial combines the lesson, a facility tour, and time to answer parents' questions, with sign-up at the end.",
+   "source_url": "https://www.namm.org/lessons/benefits-offering-trial-lessons",
+   "source_title": "The Benefits of Offering Trial Lessons"
+  },
+  {
+   "kind": "competitor",
+   "text": "Recitals double as retention and marketing: music retailers running lesson programs told a NAMM session that recitals are a proven way to keep good students, and that student performance nights are among their busiest nights.",
+   "source_url": "https://namm.org/nammu/lessons/music-lessons-your-big-questions-answered",
+   "source_title": "Music Lessons: Your Big Questions Answered"
+  },
+  {
+   "kind": "channel",
+   "text": "Instagram says Reels are built for discovery: most of what people see in Reels comes from accounts they don't follow. Its top ranking signals are how likely a viewer is to reshare, watch to the end, like, or open the audio page.",
+   "source_url": "https://about.instagram.com/blog/announcements/instagram-ranking-explained",
+   "source_title": "Instagram Ranking Explained"
+  }
+ ],
+ "verification": "Matched from search-result text, not read from the page itself. Spot-check each source_url before the demo."
+}

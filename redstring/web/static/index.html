@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Red String</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2212%22 fill=%22none%22 stroke=%22%23c41e2a%22 stroke-width=%223%22/%3E%3Cpath d=%22M6 28 26 4%22 stroke=%22%23c41e2a%22 stroke-width=%223%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="mark" aria-hidden="true"></span>
+    <div>
+      <h1>Red String</h1>
+      <p class="sub">running <b id="agency">…</b> <span class="muted">(placeholder agency)</span> · every claim traced to FalkorDB</p>
+    </div>
+  </div>
+  <div class="meta" id="meta"></div>
+</header>
+
+<main>
+  <section class="panel" id="runner">
+    <div class="panel-head">
+      <h2>Demo run</h2>
+      <span class="muted" id="mode"></span>
+    </div>
+    <ol class="steps" id="steps"></ol>
+    <pre class="log" id="log" aria-live="polite"></pre>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Pipeline</h2>
+      <span class="muted">13 businesses · synthetic</span>
+    </div>
+    <div class="board" id="board"></div>
+  </section>
+
+  <div class="two">
+    <section class="panel">
+      <div class="panel-head"><h2>Screen a new lead</h2><span class="muted">Q1, live</span></div>
+      <form id="lead-form" class="form">
+        <label>Name <input name="name" required maxlength="60" placeholder="Sprout Dance Studio"></label>
+        <label>Category <input name="category" required maxlength="60" placeholder="Kids dance"></label>
+        <fieldset id="aud-sliders"><legend>Who it targets (0 to 1)</legend></fieldset>
+        <button type="submit">Screen with Scout</button>
+      </form>
+      <div id="lead-result"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>Double Take a draft</h2><span class="muted">Q2, read only</span></div>
+      <form id="draft-form" class="form">
+        <label>For <select name="client" id="draft-client"></select></label>
+        <div class="tech-pick" id="tech-pick"></div>
+        <button type="submit">Run Double Take</button>
+      </form>
+      <div id="draft-result"></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Decisions</h2><span class="muted">every write has a why</span></div>
+    <ul class="feed" id="feed"></ul>
+  </section>
+</main>
+
+<dialog id="drawer"><div class="drawer-body" id="drawer-body"></div></dialog>
+<dialog id="card"><div class="card-body" id="card-body"></div></dialog>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

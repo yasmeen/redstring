@@ -1,0 +1,31 @@
+[project]
+name = "redstring"
+version = "0.1.0"
+description = "Red String: an agent-run creative agency on FalkorDB, with Double Take collision checks and route cards"
+requires-python = ">=3.11"
+dependencies = [
+  "falkordb>=1.0",
+  "anthropic>=1.0",
+  "mcp>=2.0",
+  "fastapi>=0.110",
+  "uvicorn>=0.29",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "falkordblite>=0.10", "httpx>=0.27"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["redstring*"]
+
+[tool.setuptools.package-data]
+redstring = ["web/static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[project.scripts]
+redstring = "redstring.cli:main"

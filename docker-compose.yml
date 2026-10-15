@@ -1,0 +1,16 @@
+# Local stack: FalkorDB (with FalkorDB Browser on :3000) and the Red String app on :8000.
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    ports: ["6379:6379", "3000:3000"]
+    volumes: ["falkordb:/var/lib/falkordb/data"]
+  app:
+    build: .
+    environment:
+      FALKORDB_HOST: falkordb
+      REDSTRING_MODE: ${REDSTRING_MODE:-offline}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports: ["8000:8000"]
+    depends_on: [falkordb]
+volumes:
+  falkordb:

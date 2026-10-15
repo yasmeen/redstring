@@ -1,0 +1,6880 @@
+{
+ "_note": "SYNTHETIC. The neighborhood, all 13 businesses, their posts, and their goals are invented for the demo.",
+ "generated_with_seed": 1015,
+ "world_date": "2026-10-15",
+ "agency": {
+  "name": "Corkboard Studio"
+ },
+ "neighborhood": {
+  "id": "n_linden_hollow",
+  "name": "Linden Hollow"
+ },
+ "audiences": [
+  {
+   "id": "A1",
+   "name": "Parents of kids 3 to 6",
+   "description": "Preschool and kindergarten families"
+  },
+  {
+   "id": "A2",
+   "name": "Parents of kids 7 to 12",
+   "description": "Elementary and middle-school families"
+  },
+  {
+   "id": "A3",
+   "name": "Working parents who need after-school coverage",
+   "description": "Weekday 3 to 6pm problem solvers"
+  },
+  {
+   "id": "A4",
+   "name": "Homeschool families",
+   "description": "Daytime enrichment and co-ops"
+  },
+  {
+   "id": "A5",
+   "name": "Teens 13 to 17 and their parents",
+   "description": "Teens choose, parents pay"
+  },
+  {
+   "id": "A6",
+   "name": "Local adults without kids",
+   "description": "Neighbors, commuters, regulars"
+  }
+ ],
+ "overlaps": [
+  {
+   "a": "A1",
+   "b": "A2",
+   "share": 0.3
+  },
+  {
+   "a": "A1",
+   "b": "A3",
+   "share": 0.5
+  },
+  {
+   "a": "A2",
+   "b": "A3",
+   "share": 0.6
+  },
+  {
+   "a": "A2",
+   "b": "A4",
+   "share": 0.4
+  },
+  {
+   "a": "A2",
+   "b": "A5",
+   "share": 0.2
+  }
+ ],
+ "agents": [
+  {
+   "id": "scout",
+   "name": "Scout",
+   "desk": "New business",
+   "model": "claude-opus-5-5"
+  },
+  {
+   "id": "researcher",
+   "name": "Researcher",
+   "desk": "Research",
+   "model": "claude-opus-5-5"
+  },
+  {
+   "id": "auditor",
+   "name": "Auditor",
+   "desk": "Research",
+   "model": "claude-opus-5-5"
+  },
+  {
+   "id": "style_director",
+   "name": "Style Director",
+   "desk": "Creative",
+   "model": "claude-opus-5-5"
+  },
+  {
+   "id": "strategist",
+   "name": "Strategist",
+   "desk": "Strategy",
+   "model": "claude-opus-5-5"
+  },
+  {
+   "id": "producer",
+   "name": "Producer",
+   "desk": "Creative",
+   "model": "claude-opus-5-5"
+  },
+  {
+   "id": "standards",
+   "name": "Standards",
+   "desk": "Standards",
+   "model": "claude-opus-5-5"
+  },
+  {
+   "id": "account_manager",
+   "name": "Account Manager",
+   "desk": "Accounts",
+   "model": "claude-opus-5-5"
+  },
+  {
+   "id": "board",
+   "name": "Yaz",
+   "desk": "Board",
+   "model": "human"
+  }
+ ],
+ "styles": [
+  {
+   "id": "sty_messy_process",
+   "name": "Messy Process"
+  },
+  {
+   "id": "sty_calm_explainer",
+   "name": "Calm Explainer"
+  },
+  {
+   "id": "sty_nerd_deadpan",
+   "name": "Nerd Deadpan"
+  },
+  {
+   "id": "sty_hype_montage",
+   "name": "Hype Montage"
+  },
+  {
+   "id": "sty_cozy_local",
+   "name": "Cozy Local"
+  },
+  {
+   "id": "sty_kid_pov",
+   "name": "Kid POV"
+  },
+  {
+   "id": "sty_parent_proof",
+   "name": "Parent Proof"
+  },
+  {
+   "id": "sty_night_glow",
+   "name": "Night Glow"
+  }
+ ],
+ "techniques": [
+  {
+   "id": "hook_result_first",
+   "name": "Result first, then process",
+   "category": "hook",
+   "style": "sty_messy_process",
+   "ref_count": 18,
+   "rarity": 0.4443
+  },
+  {
+   "id": "str_overhead_process",
+   "name": "Overhead process build",
+   "category": "structure",
+   "style": "sty_messy_process",
+   "ref_count": 32,
+   "rarity": 0.3401
+  },
+  {
+   "id": "pace_timelapse",
+   "name": "Timelapse",
+   "category": "pacing",
+   "style": "sty_messy_process",
+   "ref_count": 9,
+   "rarity": 0.5654
+  },
+  {
+   "id": "pace_stop_motion",
+   "name": "Stop motion",
+   "category": "pacing",
+   "style": "sty_messy_process",
+   "ref_count": 2,
+   "rarity": 0.7926
+  },
+  {
+   "id": "tr_paint_smear",
+   "name": "Paint smear wipe",
+   "category": "transition",
+   "style": "sty_messy_process",
+   "ref_count": 1,
+   "rarity": 0.8692
+  },
+  {
+   "id": "tr_hand_cover",
+   "name": "Hand over lens",
+   "category": "transition",
+   "style": "sty_messy_process",
+   "ref_count": 6,
+   "rarity": 0.6327
+  },
+  {
+   "id": "txt_handwritten",
+   "name": "Handwritten titles",
+   "category": "text",
+   "style": "sty_messy_process",
+   "ref_count": 2,
+   "rarity": 0.7926
+  },
+  {
+   "id": "col_primary_pop",
+   "name": "Saturated primaries",
+   "category": "color",
+   "style": "sty_messy_process",
+   "ref_count": 24,
+   "rarity": 0.3925
+  },
+  {
+   "id": "aud_asmr_process",
+   "name": "ASMR process sounds",
+   "category": "audio",
+   "style": "sty_messy_process",
+   "ref_count": 45,
+   "rarity": 0.2774
+  },
+  {
+   "id": "fmt_overhead_cam",
+   "name": "Top-down camera",
+   "category": "format",
+   "style": "sty_messy_process",
+   "ref_count": 13,
+   "rarity": 0.5019
+  },
+  {
+   "id": "hook_myth_bust",
+   "name": "Myth-bust opener",
+   "category": "hook",
+   "style": "sty_calm_explainer",
+   "ref_count": 18,
+   "rarity": 0.4443
+  },
+  {
+   "id": "str_tutorial_steps",
+   "name": "Numbered tutorial steps",
+   "category": "structure",
+   "style": "sty_calm_explainer",
+   "ref_count": 24,
+   "rarity": 0.3925
+  },
+  {
+   "id": "pace_slow_reveal",
+   "name": "Slow reveal",
+   "category": "pacing",
+   "style": "sty_calm_explainer",
+   "ref_count": 3,
+   "rarity": 0.7384
+  },
+  {
+   "id": "pace_hold_long",
+   "name": "Long static hold",
+   "category": "pacing",
+   "style": "sty_calm_explainer",
+   "ref_count": 45,
+   "rarity": 0.2774
+  },
+  {
+   "id": "tr_dissolve",
+   "name": "Soft dissolve",
+   "category": "transition",
+   "style": "sty_calm_explainer",
+   "ref_count": 9,
+   "rarity": 0.5654
+  },
+  {
+   "id": "txt_lower_third",
+   "name": "Lower-third labels",
+   "category": "text",
+   "style": "sty_calm_explainer",
+   "ref_count": 2,
+   "rarity": 0.7926
+  },
+  {
+   "id": "txt_checklist",
+   "name": "Checklist ticks",
+   "category": "text",
+   "style": "sty_calm_explainer",
+   "ref_count": 13,
+   "rarity": 0.5019
+  },
+  {
+   "id": "col_aqua_grade",
+   "name": "Aqua color grade",
+   "category": "color",
+   "style": "sty_calm_explainer",
+   "ref_count": 32,
+   "rarity": 0.3401
+  },
+  {
+   "id": "aud_voiceover",
+   "name": "Calm voiceover",
+   "category": "audio",
+   "style": "sty_calm_explainer",
+   "ref_count": 6,
+   "rarity": 0.6327
+  },
+  {
+   "id": "fmt_carousel",
+   "name": "Carousel",
+   "category": "format",
+   "style": "sty_calm_explainer",
+   "ref_count": 1,
+   "rarity": 0.8692
+  },
+  {
+   "id": "hook_mistake_first",
+   "name": "Show the mistake first",
+   "category": "hook",
+   "style": "sty_nerd_deadpan",
+   "ref_count": 18,
+   "rarity": 0.4443
+  },
+  {
+   "id": "hook_pov_text",
+   "name": "POV text overlay",
+   "category": "hook",
+   "style": "sty_nerd_deadpan",
+   "ref_count": 13,
+   "rarity": 0.5019
+  },
+  {
+   "id": "str_bug_hunt",
+   "name": "Bug hunt narrative",
+   "category": "structure",
+   "style": "sty_nerd_deadpan",
+   "ref_count": 25,
+   "rarity": 0.3851
+  },
+  {
+   "id": "pace_jump_cut_talk",
+   "name": "Jump-cut talking head",
+   "category": "pacing",
+   "style": "sty_nerd_deadpan",
+   "ref_count": 1,
+   "rarity": 0.8692
+  },
+  {
+   "id": "pace_freeze_frame",
+   "name": "Freeze-frame callout",
+   "category": "pacing",
+   "style": "sty_nerd_deadpan",
+   "ref_count": 3,
+   "rarity": 0.7384
+  },
+  {
+   "id": "tr_glitch",
+   "name": "Glitch cut",
+   "category": "transition",
+   "style": "sty_nerd_deadpan",
+   "ref_count": 2,
+   "rarity": 0.7926
+  },
+  {
+   "id": "txt_label_callouts",
+   "name": "Arrow label callouts",
+   "category": "text",
+   "style": "sty_nerd_deadpan",
+   "ref_count": 32,
+   "rarity": 0.3401
+  },
+  {
+   "id": "txt_terminal_type",
+   "name": "Terminal typewriter text",
+   "category": "text",
+   "style": "sty_nerd_deadpan",
+   "ref_count": 6,
+   "rarity": 0.6327
+  },
+  {
+   "id": "col_mono_accent",
+   "name": "Monochrome with one accent",
+   "category": "color",
+   "style": "sty_nerd_deadpan",
+   "ref_count": 45,
+   "rarity": 0.2774
+  },
+  {
+   "id": "aud_sfx_blips",
+   "name": "8-bit sound effects",
+   "category": "audio",
+   "style": "sty_nerd_deadpan",
+   "ref_count": 9,
+   "rarity": 0.5654
+  },
+  {
+   "id": "hook_countdown",
+   "name": "Countdown open",
+   "category": "hook",
+   "style": "sty_hype_montage",
+   "ref_count": 3,
+   "rarity": 0.7384
+  },
+  {
+   "id": "str_challenge",
+   "name": "Challenge format",
+   "category": "structure",
+   "style": "sty_hype_montage",
+   "ref_count": 18,
+   "rarity": 0.4443
+  },
+  {
+   "id": "pace_fast_cuts",
+   "name": "Sub-second cuts",
+   "category": "pacing",
+   "style": "sty_hype_montage",
+   "ref_count": 6,
+   "rarity": 0.6327
+  },
+  {
+   "id": "pace_beat_sync",
+   "name": "Cuts on the beat",
+   "category": "pacing",
+   "style": "sty_hype_montage",
+   "ref_count": 9,
+   "rarity": 0.5654
+  },
+  {
+   "id": "tr_whip_pan",
+   "name": "Whip pan",
+   "category": "transition",
+   "style": "sty_hype_montage",
+   "ref_count": 32,
+   "rarity": 0.3401
+  },
+  {
+   "id": "tr_zoom_punch",
+   "name": "Zoom punch-in",
+   "category": "transition",
+   "style": "sty_hype_montage",
+   "ref_count": 45,
+   "rarity": 0.2774
+  },
+  {
+   "id": "tr_spin",
+   "name": "Spin transition",
+   "category": "transition",
+   "style": "sty_hype_montage",
+   "ref_count": 1,
+   "rarity": 0.8692
+  },
+  {
+   "id": "txt_kinetic_captions",
+   "name": "Word-by-word kinetic captions",
+   "category": "text",
+   "style": "sty_hype_montage",
+   "ref_count": 2,
+   "rarity": 0.7926
+  },
+  {
+   "id": "col_teal_orange",
+   "name": "Teal and orange grade",
+   "category": "color",
+   "style": "sty_hype_montage",
+   "ref_count": 13,
+   "rarity": 0.5019
+  },
+  {
+   "id": "aud_trending_sound",
+   "name": "Trending sound",
+   "category": "audio",
+   "style": "sty_hype_montage",
+   "ref_count": 24,
+   "rarity": 0.3925
+  },
+  {
+   "id": "hook_overheard",
+   "name": "Overheard-quote hook",
+   "category": "hook",
+   "style": "sty_cozy_local",
+   "ref_count": 24,
+   "rarity": 0.3925
+  },
+  {
+   "id": "str_day_in_life",
+   "name": "Day in the life",
+   "category": "structure",
+   "style": "sty_cozy_local",
+   "ref_count": 2,
+   "rarity": 0.7926
+  },
+  {
+   "id": "str_behind_scenes",
+   "name": "Behind the counter",
+   "category": "structure",
+   "style": "sty_cozy_local",
+   "ref_count": 18,
+   "rarity": 0.4443
+  },
+  {
+   "id": "pace_slow_mo",
+   "name": "Slow motion detail",
+   "category": "pacing",
+   "style": "sty_cozy_local",
+   "ref_count": 13,
+   "rarity": 0.5019
+  },
+  {
+   "id": "tr_snap_cut",
+   "name": "Finger-snap cut",
+   "category": "transition",
+   "style": "sty_cozy_local",
+   "ref_count": 45,
+   "rarity": 0.2774
+  },
+  {
+   "id": "txt_serif_caption",
+   "name": "Small serif captions",
+   "category": "text",
+   "style": "sty_cozy_local",
+   "ref_count": 6,
+   "rarity": 0.6327
+  },
+  {
+   "id": "col_warm_film",
+   "name": "Warm film grade",
+   "category": "color",
+   "style": "sty_cozy_local",
+   "ref_count": 9,
+   "rarity": 0.5654
+  },
+  {
+   "id": "aud_lofi_bed",
+   "name": "Lo-fi music bed",
+   "category": "audio",
+   "style": "sty_cozy_local",
+   "ref_count": 32,
+   "rarity": 0.3401
+  },
+  {
+   "id": "aud_room_tone",
+   "name": "Natural room tone",
+   "category": "audio",
+   "style": "sty_cozy_local",
+   "ref_count": 1,
+   "rarity": 0.8692
+  },
+  {
+   "id": "fmt_photo_dump",
+   "name": "Photo dump",
+   "category": "format",
+   "style": "sty_cozy_local",
+   "ref_count": 3,
+   "rarity": 0.7384
+  },
+  {
+   "id": "hook_kid_voice",
+   "name": "Kid says the first line",
+   "category": "hook",
+   "style": "sty_kid_pov",
+   "ref_count": 45,
+   "rarity": 0.2774
+  },
+  {
+   "id": "hook_object_reveal",
+   "name": "Mystery object reveal",
+   "category": "hook",
+   "style": "sty_kid_pov",
+   "ref_count": 2,
+   "rarity": 0.7926
+  },
+  {
+   "id": "str_seamless_loop",
+   "name": "Seamless loop",
+   "category": "structure",
+   "style": "sty_kid_pov",
+   "ref_count": 1,
+   "rarity": 0.8692
+  },
+  {
+   "id": "pace_rewind",
+   "name": "Reverse playback",
+   "category": "pacing",
+   "style": "sty_kid_pov",
+   "ref_count": 3,
+   "rarity": 0.7384
+  },
+  {
+   "id": "tr_object_pass",
+   "name": "Object pass to lens",
+   "category": "transition",
+   "style": "sty_kid_pov",
+   "ref_count": 6,
+   "rarity": 0.6327
+  },
+  {
+   "id": "tr_jump_through",
+   "name": "Jump-through cut",
+   "category": "transition",
+   "style": "sty_kid_pov",
+   "ref_count": 24,
+   "rarity": 0.3925
+  },
+  {
+   "id": "txt_kid_drawn",
+   "name": "Kid-drawn titles",
+   "category": "text",
+   "style": "sty_kid_pov",
+   "ref_count": 13,
+   "rarity": 0.5019
+  },
+  {
+   "id": "txt_sticker_pop",
+   "name": "Sticker pop-in text",
+   "category": "text",
+   "style": "sty_kid_pov",
+   "ref_count": 9,
+   "rarity": 0.5654
+  },
+  {
+   "id": "col_pastel",
+   "name": "Pastel palette",
+   "category": "color",
+   "style": "sty_kid_pov",
+   "ref_count": 18,
+   "rarity": 0.4443
+  },
+  {
+   "id": "fmt_pov_cam",
+   "name": "Kid-height POV camera",
+   "category": "format",
+   "style": "sty_kid_pov",
+   "ref_count": 32,
+   "rarity": 0.3401
+  },
+  {
+   "id": "hook_question",
+   "name": "Direct question to camera",
+   "category": "hook",
+   "style": "sty_parent_proof",
+   "ref_count": 13,
+   "rarity": 0.5019
+  },
+  {
+   "id": "str_before_after",
+   "name": "Before and after",
+   "category": "structure",
+   "style": "sty_parent_proof",
+   "ref_count": 18,
+   "rarity": 0.4443
+  },
+  {
+   "id": "str_parent_interview",
+   "name": "Parent interview",
+   "category": "structure",
+   "style": "sty_parent_proof",
+   "ref_count": 2,
+   "rarity": 0.7926
+  },
+  {
+   "id": "str_listicle",
+   "name": "Listicle",
+   "category": "structure",
+   "style": "sty_parent_proof",
+   "ref_count": 3,
+   "rarity": 0.7384
+  },
+  {
+   "id": "txt_big_number",
+   "name": "Big number stat",
+   "category": "text",
+   "style": "sty_parent_proof",
+   "ref_count": 32,
+   "rarity": 0.3401
+  },
+  {
+   "id": "txt_subtitle_bar",
+   "name": "Subtitle bar",
+   "category": "text",
+   "style": "sty_parent_proof",
+   "ref_count": 24,
+   "rarity": 0.3925
+  },
+  {
+   "id": "col_brand_block",
+   "name": "Brand-color backdrops",
+   "category": "color",
+   "style": "sty_parent_proof",
+   "ref_count": 9,
+   "rarity": 0.5654
+  },
+  {
+   "id": "col_natural",
+   "name": "Ungraded natural light",
+   "category": "color",
+   "style": "sty_parent_proof",
+   "ref_count": 6,
+   "rarity": 0.6327
+  },
+  {
+   "id": "aud_interview_bed",
+   "name": "Interview audio over b-roll",
+   "category": "audio",
+   "style": "sty_parent_proof",
+   "ref_count": 45,
+   "rarity": 0.2774
+  },
+  {
+   "id": "fmt_reel_long",
+   "name": "30 to 60 second reel",
+   "category": "format",
+   "style": "sty_parent_proof",
+   "ref_count": 1,
+   "rarity": 0.8692
+  },
+  {
+   "id": "hook_cold_open",
+   "name": "Cold open mid-action",
+   "category": "hook",
+   "style": "sty_night_glow",
+   "ref_count": 24,
+   "rarity": 0.3925
+  },
+  {
+   "id": "str_one_take",
+   "name": "One continuous take",
+   "category": "structure",
+   "style": "sty_night_glow",
+   "ref_count": 6,
+   "rarity": 0.6327
+  },
+  {
+   "id": "pace_speed_ramp",
+   "name": "Speed ramp",
+   "category": "pacing",
+   "style": "sty_night_glow",
+   "ref_count": 32,
+   "rarity": 0.3401
+  },
+  {
+   "id": "tr_match_cut",
+   "name": "Match cut",
+   "category": "transition",
+   "style": "sty_night_glow",
+   "ref_count": 9,
+   "rarity": 0.5654
+  },
+  {
+   "id": "tr_body_wipe",
+   "name": "Walk-past body wipe",
+   "category": "transition",
+   "style": "sty_night_glow",
+   "ref_count": 2,
+   "rarity": 0.7926
+  },
+  {
+   "id": "col_neon_night",
+   "name": "Neon night palette",
+   "category": "color",
+   "style": "sty_night_glow",
+   "ref_count": 1,
+   "rarity": 0.8692
+  },
+  {
+   "id": "col_high_key",
+   "name": "Bright high-key white",
+   "category": "color",
+   "style": "sty_night_glow",
+   "ref_count": 13,
+   "rarity": 0.5019
+  },
+  {
+   "id": "aud_silence_drop",
+   "name": "Music drops to silence",
+   "category": "audio",
+   "style": "sty_night_glow",
+   "ref_count": 18,
+   "rarity": 0.4443
+  },
+  {
+   "id": "aud_count_in",
+   "name": "Count-in claps",
+   "category": "audio",
+   "style": "sty_night_glow",
+   "ref_count": 3,
+   "rarity": 0.7384
+  },
+  {
+   "id": "fmt_split_screen",
+   "name": "Split screen",
+   "category": "format",
+   "style": "sty_night_glow",
+   "ref_count": 45,
+   "rarity": 0.2774
+  }
+ ],
+ "references": [
+  {
+   "id": "ref_001",
+   "url": "https://example.com/placeholder/reference/ref_001",
+   "creator": "@placeholder_creator_01",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-01",
+   "views": 10099,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Interview audio over b-roll; Saturated primaries; Kid-height POV camera; Timelapse; Overhead process build; Hand over lens; Jump-through cut; Whip pan.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_interview_bed",
+    "col_primary_pop",
+    "fmt_pov_cam",
+    "pace_timelapse",
+    "str_overhead_process",
+    "tr_hand_cover",
+    "tr_jump_through",
+    "tr_whip_pan"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_002",
+   "url": "https://example.com/placeholder/reference/ref_002",
+   "creator": "@placeholder_creator_38",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-02",
+   "views": 83235,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Split screen; Myth-bust opener; Long static hold; Slow reveal; Numbered tutorial steps; Soft dissolve; Checklist ticks.",
+   "techniques": [
+    "col_aqua_grade",
+    "fmt_split_screen",
+    "hook_myth_bust",
+    "pace_hold_long",
+    "pace_slow_reveal",
+    "str_tutorial_steps",
+    "tr_dissolve",
+    "txt_checklist"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_003",
+   "url": "https://example.com/placeholder/reference/ref_003",
+   "creator": "@placeholder_creator_14",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-03",
+   "views": 13812,
+   "analysis": "Placeholder analysis. Uses: 8-bit sound effects; Monochrome with one accent; Show the mistake first; Freeze-frame callout; Jump-through cut; Arrow label callouts; Subtitle bar.",
+   "techniques": [
+    "aud_sfx_blips",
+    "col_mono_accent",
+    "hook_mistake_first",
+    "pace_freeze_frame",
+    "tr_jump_through",
+    "txt_label_callouts",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_004",
+   "url": "https://example.com/placeholder/reference/ref_004",
+   "creator": "@placeholder_creator_51",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-04",
+   "views": 38551,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Teal and orange grade; Cuts on the beat; Sub-second cuts; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_trending_sound",
+    "col_teal_orange",
+    "pace_beat_sync",
+    "pace_fast_cuts",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_005",
+   "url": "https://example.com/placeholder/reference/ref_005",
+   "creator": "@placeholder_creator_27",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-05",
+   "views": 12956,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Overheard-quote hook; Soft dissolve; Finger-snap cut; Zoom punch-in.",
+   "techniques": [
+    "aud_lofi_bed",
+    "hook_overheard",
+    "tr_dissolve",
+    "tr_snap_cut",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_006",
+   "url": "https://example.com/placeholder/reference/ref_006",
+   "creator": "@placeholder_creator_03",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-06",
+   "views": 4194,
+   "analysis": "Placeholder analysis. Uses: Pastel palette; Kid-height POV camera; Kid says the first line; Finger-snap cut; Sticker pop-in text.",
+   "techniques": [
+    "col_pastel",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "tr_snap_cut",
+    "txt_sticker_pop"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_007",
+   "url": "https://example.com/placeholder/reference/ref_007",
+   "creator": "@placeholder_creator_40",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-07",
+   "views": 79949,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Pastel palette; Saturated primaries; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_pastel",
+    "col_primary_pop",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_008",
+   "url": "https://example.com/placeholder/reference/ref_008",
+   "creator": "@placeholder_creator_16",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-08",
+   "views": 57258,
+   "analysis": "Placeholder analysis. Uses: Music drops to silence; Split screen; Cold open mid-action; Speed ramp.",
+   "techniques": [
+    "aud_silence_drop",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_speed_ramp"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_009",
+   "url": "https://example.com/placeholder/reference/ref_009",
+   "creator": "@placeholder_creator_53",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-09",
+   "views": 52942,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Monochrome with one accent; Saturated primaries; Result first, then process; Behind the counter; Overhead process build; Paint smear wipe.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_mono_accent",
+    "col_primary_pop",
+    "hook_result_first",
+    "str_behind_scenes",
+    "str_overhead_process",
+    "tr_paint_smear"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_010",
+   "url": "https://example.com/placeholder/reference/ref_010",
+   "creator": "@placeholder_creator_29",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-10",
+   "views": 24483,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Long static hold; Before and after; Numbered tutorial steps; Kid-drawn titles.",
+   "techniques": [
+    "col_aqua_grade",
+    "pace_hold_long",
+    "str_before_after",
+    "str_tutorial_steps",
+    "txt_kid_drawn"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_011",
+   "url": "https://example.com/placeholder/reference/ref_011",
+   "creator": "@placeholder_creator_05",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-11",
+   "views": 23199,
+   "analysis": "Placeholder analysis. Uses: 8-bit sound effects; Monochrome with one accent; Kid-height POV camera; Show the mistake first; POV text overlay; Arrow label callouts.",
+   "techniques": [
+    "aud_sfx_blips",
+    "col_mono_accent",
+    "fmt_pov_cam",
+    "hook_mistake_first",
+    "hook_pov_text",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_012",
+   "url": "https://example.com/placeholder/reference/ref_012",
+   "creator": "@placeholder_creator_42",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-12",
+   "views": 29880,
+   "analysis": "Placeholder analysis. Uses: Teal and orange grade; Kid-height POV camera; Cuts on the beat; Challenge format; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "col_teal_orange",
+    "fmt_pov_cam",
+    "pace_beat_sync",
+    "str_challenge",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_013",
+   "url": "https://example.com/placeholder/reference/ref_013",
+   "creator": "@placeholder_creator_18",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-13",
+   "views": 35303,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Monochrome with one accent; Overheard-quote hook; Slow motion detail; Behind the counter; Overhead process build; Match cut; Finger-snap cut; Big number stat.",
+   "techniques": [
+    "aud_lofi_bed",
+    "col_mono_accent",
+    "hook_overheard",
+    "pace_slow_mo",
+    "str_behind_scenes",
+    "str_overhead_process",
+    "tr_match_cut",
+    "tr_snap_cut",
+    "txt_big_number"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_014",
+   "url": "https://example.com/placeholder/reference/ref_014",
+   "creator": "@placeholder_creator_55",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-14",
+   "views": 427628,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Kid-height POV camera; Split screen; Kid says the first line; Jump-through cut.",
+   "techniques": [
+    "aud_interview_bed",
+    "fmt_pov_cam",
+    "fmt_split_screen",
+    "hook_kid_voice",
+    "tr_jump_through"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_015",
+   "url": "https://example.com/placeholder/reference/ref_015",
+   "creator": "@placeholder_creator_31",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-15",
+   "views": 32706,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Music drops to silence; Slow motion detail; Big number stat.",
+   "techniques": [
+    "aud_interview_bed",
+    "aud_silence_drop",
+    "pace_slow_mo",
+    "txt_big_number"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_016",
+   "url": "https://example.com/placeholder/reference/ref_016",
+   "creator": "@placeholder_creator_07",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-16",
+   "views": 34141,
+   "analysis": "Placeholder analysis. Uses: Split screen; Speed ramp; One continuous take; Zoom punch-in.",
+   "techniques": [
+    "fmt_split_screen",
+    "pace_speed_ramp",
+    "str_one_take",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_017",
+   "url": "https://example.com/placeholder/reference/ref_017",
+   "creator": "@placeholder_creator_44",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-17",
+   "views": 9477,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Monochrome with one accent; Pastel palette; Saturated primaries; Overhead process build; Zoom punch-in; Handwritten titles.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_mono_accent",
+    "col_pastel",
+    "col_primary_pop",
+    "str_overhead_process",
+    "tr_zoom_punch",
+    "txt_handwritten"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_018",
+   "url": "https://example.com/placeholder/reference/ref_018",
+   "creator": "@placeholder_creator_20",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-18",
+   "views": 8052,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Kid says the first line; Myth-bust opener; Long static hold; Checklist ticks.",
+   "techniques": [
+    "col_aqua_grade",
+    "hook_kid_voice",
+    "hook_myth_bust",
+    "pace_hold_long",
+    "txt_checklist"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_019",
+   "url": "https://example.com/placeholder/reference/ref_019",
+   "creator": "@placeholder_creator_57",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-19",
+   "views": 37116,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; 8-bit sound effects; Monochrome with one accent; Before and after; Bug hunt narrative; Arrow label callouts; Terminal typewriter text.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_sfx_blips",
+    "col_mono_accent",
+    "str_before_after",
+    "str_bug_hunt",
+    "txt_label_callouts",
+    "txt_terminal_type"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_020",
+   "url": "https://example.com/placeholder/reference/ref_020",
+   "creator": "@placeholder_creator_33",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-20",
+   "views": 49317,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Trending sound; Monochrome with one accent; Teal and orange grade; Sub-second cuts; Whip pan; Zoom punch-in; Sticker pop-in text.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_trending_sound",
+    "col_mono_accent",
+    "col_teal_orange",
+    "pace_fast_cuts",
+    "tr_whip_pan",
+    "tr_zoom_punch",
+    "txt_sticker_pop"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_021",
+   "url": "https://example.com/placeholder/reference/ref_021",
+   "creator": "@placeholder_creator_09",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-21",
+   "views": 315384,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Slow motion detail; Finger-snap cut.",
+   "techniques": [
+    "aud_lofi_bed",
+    "pace_slow_mo",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_022",
+   "url": "https://example.com/placeholder/reference/ref_022",
+   "creator": "@placeholder_creator_46",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-22",
+   "views": 37234,
+   "analysis": "Placeholder analysis. Uses: Kid-height POV camera; Split screen; Kid says the first line; Zoom punch-in; Kid-drawn titles; Arrow label callouts.",
+   "techniques": [
+    "fmt_pov_cam",
+    "fmt_split_screen",
+    "hook_kid_voice",
+    "tr_zoom_punch",
+    "txt_kid_drawn",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_023",
+   "url": "https://example.com/placeholder/reference/ref_023",
+   "creator": "@placeholder_creator_22",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-23",
+   "views": 36790,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Overheard-quote hook; Direct question to camera; Before and after; Overhead process build; Finger-snap cut; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "hook_overheard",
+    "hook_question",
+    "str_before_after",
+    "str_overhead_process",
+    "tr_snap_cut",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_024",
+   "url": "https://example.com/placeholder/reference/ref_024",
+   "creator": "@placeholder_creator_59",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-24",
+   "views": 480426,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Music drops to silence; Bright high-key white; Split screen; Cold open mid-action; Speed ramp; Match cut.",
+   "techniques": [
+    "aud_interview_bed",
+    "aud_silence_drop",
+    "col_high_key",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_speed_ramp",
+    "tr_match_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_025",
+   "url": "https://example.com/placeholder/reference/ref_025",
+   "creator": "@placeholder_creator_35",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-25",
+   "views": 24686,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Show the mistake first; Result first, then process; Long static hold; Overhead process build; Finger-snap cut; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_asmr_process",
+    "hook_mistake_first",
+    "hook_result_first",
+    "pace_hold_long",
+    "str_overhead_process",
+    "tr_snap_cut",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_026",
+   "url": "https://example.com/placeholder/reference/ref_026",
+   "creator": "@placeholder_creator_11",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-26",
+   "views": 9154,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; 8-bit sound effects; Calm voiceover; Aqua color grade; Top-down camera; Myth-bust opener; POV text overlay; Long static hold; One continuous take; Numbered tutorial steps.",
+   "techniques": [
+    "aud_interview_bed",
+    "aud_sfx_blips",
+    "aud_voiceover",
+    "col_aqua_grade",
+    "fmt_overhead_cam",
+    "hook_myth_bust",
+    "hook_pov_text",
+    "pace_hold_long",
+    "str_one_take",
+    "str_tutorial_steps"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_027",
+   "url": "https://example.com/placeholder/reference/ref_027",
+   "creator": "@placeholder_creator_48",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-27",
+   "views": 67976,
+   "analysis": "Placeholder analysis. Uses: Monochrome with one accent; Kid says the first line; Show the mistake first; Myth-bust opener; Bug hunt narrative; Arrow label callouts; Terminal typewriter text.",
+   "techniques": [
+    "col_mono_accent",
+    "hook_kid_voice",
+    "hook_mistake_first",
+    "hook_myth_bust",
+    "str_bug_hunt",
+    "txt_label_callouts",
+    "txt_terminal_type"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_028",
+   "url": "https://example.com/placeholder/reference/ref_028",
+   "creator": "@placeholder_creator_24",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-01",
+   "views": 111966,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Direct question to camera; Bug hunt narrative; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_trending_sound",
+    "hook_question",
+    "str_bug_hunt",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_029",
+   "url": "https://example.com/placeholder/reference/ref_029",
+   "creator": "@placeholder_creator_61",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-02",
+   "views": 77550,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Lo-fi music bed; Overheard-quote hook; Speed ramp; Behind the counter; Day in the life; Finger-snap cut.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_lofi_bed",
+    "hook_overheard",
+    "pace_speed_ramp",
+    "str_behind_scenes",
+    "str_day_in_life",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_030",
+   "url": "https://example.com/placeholder/reference/ref_030",
+   "creator": "@placeholder_creator_37",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-03",
+   "views": 38445,
+   "analysis": "Placeholder analysis. Uses: Monochrome with one accent; Kid-height POV camera; Kid says the first line; Mystery object reveal; Jump-through cut; Finger-snap cut.",
+   "techniques": [
+    "col_mono_accent",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "hook_object_reveal",
+    "tr_jump_through",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_031",
+   "url": "https://example.com/placeholder/reference/ref_031",
+   "creator": "@placeholder_creator_13",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-04",
+   "views": 16081,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Interview audio over b-roll; Teal and orange grade; Split screen; Show the mistake first; Direct question to camera; Long static hold; Before and after; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_interview_bed",
+    "col_teal_orange",
+    "fmt_split_screen",
+    "hook_mistake_first",
+    "hook_question",
+    "pace_hold_long",
+    "str_before_after",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_032",
+   "url": "https://example.com/placeholder/reference/ref_032",
+   "creator": "@placeholder_creator_50",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-05",
+   "views": 36981,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Music drops to silence; Monochrome with one accent; Split screen; Speed ramp; Match cut.",
+   "techniques": [
+    "aud_interview_bed",
+    "aud_silence_drop",
+    "col_mono_accent",
+    "fmt_split_screen",
+    "pace_speed_ramp",
+    "tr_match_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_033",
+   "url": "https://example.com/placeholder/reference/ref_033",
+   "creator": "@placeholder_creator_26",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-06",
+   "views": 1247591,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Saturated primaries; Top-down camera; Result first, then process; Overhead process build; Hand over lens.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_primary_pop",
+    "fmt_overhead_cam",
+    "hook_result_first",
+    "str_overhead_process",
+    "tr_hand_cover"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_034",
+   "url": "https://example.com/placeholder/reference/ref_034",
+   "creator": "@placeholder_creator_02",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-07",
+   "views": 6710,
+   "analysis": "Placeholder analysis. Uses: Calm voiceover; Aqua color grade; Long static hold; Soft dissolve; Checklist ticks.",
+   "techniques": [
+    "aud_voiceover",
+    "col_aqua_grade",
+    "pace_hold_long",
+    "tr_dissolve",
+    "txt_checklist"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_035",
+   "url": "https://example.com/placeholder/reference/ref_035",
+   "creator": "@placeholder_creator_39",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-08",
+   "views": 56293,
+   "analysis": "Placeholder analysis. Uses: Monochrome with one accent; Split screen; POV text overlay; Long static hold; Bug hunt narrative; Finger-snap cut; Arrow label callouts.",
+   "techniques": [
+    "col_mono_accent",
+    "fmt_split_screen",
+    "hook_pov_text",
+    "pace_hold_long",
+    "str_bug_hunt",
+    "tr_snap_cut",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_036",
+   "url": "https://example.com/placeholder/reference/ref_036",
+   "creator": "@placeholder_creator_15",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-09",
+   "views": 204031,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Trending sound; Ungraded natural light; Teal and orange grade; Challenge format; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_interview_bed",
+    "aud_trending_sound",
+    "col_natural",
+    "col_teal_orange",
+    "str_challenge",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_037",
+   "url": "https://example.com/placeholder/reference/ref_037",
+   "creator": "@placeholder_creator_52",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-10",
+   "views": 147680,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Warm film grade; Kid-height POV camera; Kid says the first line; Overheard-quote hook; Long static hold; Slow motion detail; Behind the counter; Finger-snap cut; Arrow label callouts.",
+   "techniques": [
+    "aud_lofi_bed",
+    "col_warm_film",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "hook_overheard",
+    "pace_hold_long",
+    "pace_slow_mo",
+    "str_behind_scenes",
+    "tr_snap_cut",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_038",
+   "url": "https://example.com/placeholder/reference/ref_038",
+   "creator": "@placeholder_creator_28",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-11",
+   "views": 56446,
+   "analysis": "Placeholder analysis. Uses: Pastel palette; Kid-height POV camera; Kid says the first line; Jump-through cut.",
+   "techniques": [
+    "col_pastel",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "tr_jump_through"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_039",
+   "url": "https://example.com/placeholder/reference/ref_039",
+   "creator": "@placeholder_creator_04",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-12",
+   "views": 83571,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Brand-color backdrops; Zoom punch-in; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_brand_block",
+    "tr_zoom_punch",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_040",
+   "url": "https://example.com/placeholder/reference/ref_040",
+   "creator": "@placeholder_creator_41",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-13",
+   "views": 10696,
+   "analysis": "Placeholder analysis. Uses: Bright high-key white; Split screen; Cold open mid-action; Speed ramp; Match cut.",
+   "techniques": [
+    "col_high_key",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_speed_ramp",
+    "tr_match_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_041",
+   "url": "https://example.com/placeholder/reference/ref_041",
+   "creator": "@placeholder_creator_17",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-14",
+   "views": 31434,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Saturated primaries; Result first, then process; Timelapse; Challenge format; Overhead process build; Zoom punch-in.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_primary_pop",
+    "hook_result_first",
+    "pace_timelapse",
+    "str_challenge",
+    "str_overhead_process",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_042",
+   "url": "https://example.com/placeholder/reference/ref_042",
+   "creator": "@placeholder_creator_54",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-15",
+   "views": 61507,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Music drops to silence; Aqua color grade; Long static hold; Numbered tutorial steps; Checklist ticks.",
+   "techniques": [
+    "aud_lofi_bed",
+    "aud_silence_drop",
+    "col_aqua_grade",
+    "pace_hold_long",
+    "str_tutorial_steps",
+    "txt_checklist"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_043",
+   "url": "https://example.com/placeholder/reference/ref_043",
+   "creator": "@placeholder_creator_30",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-16",
+   "views": 87742,
+   "analysis": "Placeholder analysis. Uses: 8-bit sound effects; Monochrome with one accent; POV text overlay; Long static hold; Bug hunt narrative; Arrow label callouts.",
+   "techniques": [
+    "aud_sfx_blips",
+    "col_mono_accent",
+    "hook_pov_text",
+    "pace_hold_long",
+    "str_bug_hunt",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_044",
+   "url": "https://example.com/placeholder/reference/ref_044",
+   "creator": "@placeholder_creator_06",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-17",
+   "views": 61429,
+   "analysis": "Placeholder analysis. Uses: Whip pan; Zoom punch-in; Subtitle bar.",
+   "techniques": [
+    "tr_whip_pan",
+    "tr_zoom_punch",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_045",
+   "url": "https://example.com/placeholder/reference/ref_045",
+   "creator": "@placeholder_creator_43",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-18",
+   "views": 55314,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Warm film grade; Top-down camera; Overheard-quote hook; Long static hold; Speed ramp; Behind the counter; Day in the life; Finger-snap cut.",
+   "techniques": [
+    "aud_lofi_bed",
+    "col_warm_film",
+    "fmt_overhead_cam",
+    "hook_overheard",
+    "pace_hold_long",
+    "pace_speed_ramp",
+    "str_behind_scenes",
+    "str_day_in_life",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_046",
+   "url": "https://example.com/placeholder/reference/ref_046",
+   "creator": "@placeholder_creator_19",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-19",
+   "views": 46623,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Kid-height POV camera; Kid says the first line; Arrow label callouts.",
+   "techniques": [
+    "aud_trending_sound",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_047",
+   "url": "https://example.com/placeholder/reference/ref_047",
+   "creator": "@placeholder_creator_56",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-20",
+   "views": 13625,
+   "analysis": "Placeholder analysis. Uses: Count-in claps; Interview audio over b-roll; Brand-color backdrops; Bright high-key white; Direct question to camera; Big number stat.",
+   "techniques": [
+    "aud_count_in",
+    "aud_interview_bed",
+    "col_brand_block",
+    "col_high_key",
+    "hook_question",
+    "txt_big_number"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_048",
+   "url": "https://example.com/placeholder/reference/ref_048",
+   "creator": "@placeholder_creator_32",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-21",
+   "views": 50130,
+   "analysis": "Placeholder analysis. Uses: Music drops to silence; Bright high-key white; Split screen; Cold open mid-action; Speed ramp; Zoom punch-in.",
+   "techniques": [
+    "aud_silence_drop",
+    "col_high_key",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_speed_ramp",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_049",
+   "url": "https://example.com/placeholder/reference/ref_049",
+   "creator": "@placeholder_creator_08",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-22",
+   "views": 7424,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Result first, then process; Stop motion; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "hook_result_first",
+    "pace_stop_motion",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_050",
+   "url": "https://example.com/placeholder/reference/ref_050",
+   "creator": "@placeholder_creator_45",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-23",
+   "views": 10295,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Aqua color grade; Bright high-key white; Myth-bust opener; Result first, then process; Long static hold; Slow reveal; Numbered tutorial steps; Lower-third labels.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_aqua_grade",
+    "col_high_key",
+    "hook_myth_bust",
+    "hook_result_first",
+    "pace_hold_long",
+    "pace_slow_reveal",
+    "str_tutorial_steps",
+    "txt_lower_third"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_051",
+   "url": "https://example.com/placeholder/reference/ref_051",
+   "creator": "@placeholder_creator_21",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-24",
+   "views": 9290,
+   "analysis": "Placeholder analysis. Uses: Monochrome with one accent; Bug hunt narrative; Arrow label callouts.",
+   "techniques": [
+    "col_mono_accent",
+    "str_bug_hunt",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_052",
+   "url": "https://example.com/placeholder/reference/ref_052",
+   "creator": "@placeholder_creator_58",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-25",
+   "views": 45727,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Split screen; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_trending_sound",
+    "fmt_split_screen",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_053",
+   "url": "https://example.com/placeholder/reference/ref_053",
+   "creator": "@placeholder_creator_34",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-26",
+   "views": 59033,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Top-down camera; Slow motion detail; Behind the counter; Finger-snap cut; Subtitle bar.",
+   "techniques": [
+    "aud_lofi_bed",
+    "fmt_overhead_cam",
+    "pace_slow_mo",
+    "str_behind_scenes",
+    "tr_snap_cut",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_054",
+   "url": "https://example.com/placeholder/reference/ref_054",
+   "creator": "@placeholder_creator_10",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-27",
+   "views": 19525,
+   "analysis": "Placeholder analysis. Uses: Pastel palette; Kid-height POV camera; Kid says the first line; Jump-through cut; Object pass to lens; Whip pan; Sticker pop-in text.",
+   "techniques": [
+    "col_pastel",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "tr_jump_through",
+    "tr_object_pass",
+    "tr_whip_pan",
+    "txt_sticker_pop"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_055",
+   "url": "https://example.com/placeholder/reference/ref_055",
+   "creator": "@placeholder_creator_47",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-01",
+   "views": 3641,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Split screen; Direct question to camera; Before and after; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "fmt_split_screen",
+    "hook_question",
+    "str_before_after",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_056",
+   "url": "https://example.com/placeholder/reference/ref_056",
+   "creator": "@placeholder_creator_23",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-02",
+   "views": 27602,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Music drops to silence; Monochrome with one accent; Split screen; Cold open mid-action; Speed ramp; Match cut.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_silence_drop",
+    "col_mono_accent",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_speed_ramp",
+    "tr_match_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_057",
+   "url": "https://example.com/placeholder/reference/ref_057",
+   "creator": "@placeholder_creator_60",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-03",
+   "views": 44245,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Calm voiceover; Aqua color grade; Pastel palette; Saturated primaries; Top-down camera; Split screen; Result first, then process; Timelapse; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_voiceover",
+    "col_aqua_grade",
+    "col_pastel",
+    "col_primary_pop",
+    "fmt_overhead_cam",
+    "fmt_split_screen",
+    "hook_result_first",
+    "pace_timelapse",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_058",
+   "url": "https://example.com/placeholder/reference/ref_058",
+   "creator": "@placeholder_creator_36",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-04",
+   "views": 62247,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Cold open mid-action; Long static hold; Bug hunt narrative; Numbered tutorial steps; Zoom punch-in.",
+   "techniques": [
+    "col_aqua_grade",
+    "hook_cold_open",
+    "pace_hold_long",
+    "str_bug_hunt",
+    "str_tutorial_steps",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_059",
+   "url": "https://example.com/placeholder/reference/ref_059",
+   "creator": "@placeholder_creator_12",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-05",
+   "views": 4896,
+   "analysis": "Placeholder analysis. Uses: Monochrome with one accent; Bug hunt narrative; Numbered tutorial steps; Finger-snap cut; Arrow label callouts; Terminal typewriter text.",
+   "techniques": [
+    "col_mono_accent",
+    "str_bug_hunt",
+    "str_tutorial_steps",
+    "tr_snap_cut",
+    "txt_label_callouts",
+    "txt_terminal_type"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_060",
+   "url": "https://example.com/placeholder/reference/ref_060",
+   "creator": "@placeholder_creator_49",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-06",
+   "views": 28173,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Aqua color grade; Teal and orange grade; Whip pan; Zoom punch-in; Sticker pop-in text.",
+   "techniques": [
+    "aud_trending_sound",
+    "col_aqua_grade",
+    "col_teal_orange",
+    "tr_whip_pan",
+    "tr_zoom_punch",
+    "txt_sticker_pop"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_061",
+   "url": "https://example.com/placeholder/reference/ref_061",
+   "creator": "@placeholder_creator_25",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-07",
+   "views": 7492,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Interview audio over b-roll; Lo-fi music bed; Countdown open; Behind the counter; Numbered tutorial steps; Finger-snap cut; Small serif captions.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_interview_bed",
+    "aud_lofi_bed",
+    "hook_countdown",
+    "str_behind_scenes",
+    "str_tutorial_steps",
+    "tr_snap_cut",
+    "txt_serif_caption"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_062",
+   "url": "https://example.com/placeholder/reference/ref_062",
+   "creator": "@placeholder_creator_01",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-08",
+   "views": 37794,
+   "analysis": "Placeholder analysis. Uses: Pastel palette; Kid-height POV camera; Kid says the first line; Long static hold; Reverse playback; Object pass to lens; Kid-drawn titles.",
+   "techniques": [
+    "col_pastel",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "pace_hold_long",
+    "pace_rewind",
+    "tr_object_pass",
+    "txt_kid_drawn"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_063",
+   "url": "https://example.com/placeholder/reference/ref_063",
+   "creator": "@placeholder_creator_38",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-09",
+   "views": 79351,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Brand-color backdrops; Ungraded natural light; Before and after; Big number stat; Arrow label callouts; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_brand_block",
+    "col_natural",
+    "str_before_after",
+    "txt_big_number",
+    "txt_label_callouts",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_064",
+   "url": "https://example.com/placeholder/reference/ref_064",
+   "creator": "@placeholder_creator_14",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-10",
+   "views": 20727,
+   "analysis": "Placeholder analysis. Uses: Split screen; Kid says the first line; Speed ramp; Walk-past body wipe; Finger-snap cut; Zoom punch-in.",
+   "techniques": [
+    "fmt_split_screen",
+    "hook_kid_voice",
+    "pace_speed_ramp",
+    "tr_body_wipe",
+    "tr_snap_cut",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_065",
+   "url": "https://example.com/placeholder/reference/ref_065",
+   "creator": "@placeholder_creator_51",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-11",
+   "views": 281211,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Saturated primaries; Top-down camera; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_primary_pop",
+    "fmt_overhead_cam",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_066",
+   "url": "https://example.com/placeholder/reference/ref_066",
+   "creator": "@placeholder_creator_27",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-12",
+   "views": 93332,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Long static hold; Numbered tutorial steps.",
+   "techniques": [
+    "col_aqua_grade",
+    "pace_hold_long",
+    "str_tutorial_steps"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_067",
+   "url": "https://example.com/placeholder/reference/ref_067",
+   "creator": "@placeholder_creator_03",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-13",
+   "views": 90128,
+   "analysis": "Placeholder analysis. Uses: 8-bit sound effects; Monochrome with one accent; Show the mistake first; POV text overlay; Bug hunt narrative; Glitch cut; Zoom punch-in; Arrow label callouts; Terminal typewriter text.",
+   "techniques": [
+    "aud_sfx_blips",
+    "col_mono_accent",
+    "hook_mistake_first",
+    "hook_pov_text",
+    "str_bug_hunt",
+    "tr_glitch",
+    "tr_zoom_punch",
+    "txt_label_callouts",
+    "txt_terminal_type"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_068",
+   "url": "https://example.com/placeholder/reference/ref_068",
+   "creator": "@placeholder_creator_40",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-14",
+   "views": 19330,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Aqua color grade; Kid-height POV camera; Sub-second cuts; Challenge format; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_trending_sound",
+    "col_aqua_grade",
+    "fmt_pov_cam",
+    "pace_fast_cuts",
+    "str_challenge",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_069",
+   "url": "https://example.com/placeholder/reference/ref_069",
+   "creator": "@placeholder_creator_16",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-15",
+   "views": 9390,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Behind the counter; Finger-snap cut; Small serif captions.",
+   "techniques": [
+    "aud_lofi_bed",
+    "str_behind_scenes",
+    "tr_snap_cut",
+    "txt_serif_caption"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_070",
+   "url": "https://example.com/placeholder/reference/ref_070",
+   "creator": "@placeholder_creator_53",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-16",
+   "views": 487443,
+   "analysis": "Placeholder analysis. Uses: Pastel palette; Kid-height POV camera; Kid says the first line; Reverse playback; Jump-through cut; Kid-drawn titles.",
+   "techniques": [
+    "col_pastel",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "pace_rewind",
+    "tr_jump_through",
+    "txt_kid_drawn"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_071",
+   "url": "https://example.com/placeholder/reference/ref_071",
+   "creator": "@placeholder_creator_29",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-17",
+   "views": 65755,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Aqua color grade; 30 to 60 second reel; Direct question to camera; Parent interview; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_aqua_grade",
+    "fmt_reel_long",
+    "hook_question",
+    "str_parent_interview",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_072",
+   "url": "https://example.com/placeholder/reference/ref_072",
+   "creator": "@placeholder_creator_05",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-18",
+   "views": 44194,
+   "analysis": "Placeholder analysis. Uses: Split screen; Cold open mid-action; Cuts on the beat; Speed ramp.",
+   "techniques": [
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_beat_sync",
+    "pace_speed_ramp"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_073",
+   "url": "https://example.com/placeholder/reference/ref_073",
+   "creator": "@placeholder_creator_42",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-19",
+   "views": 126188,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Monochrome with one accent; Saturated primaries; Kid says the first line; Result first, then process; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_mono_accent",
+    "col_primary_pop",
+    "hook_kid_voice",
+    "hook_result_first",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_074",
+   "url": "https://example.com/placeholder/reference/ref_074",
+   "creator": "@placeholder_creator_18",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-20",
+   "views": 9417,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Long static hold; Numbered tutorial steps; Lower-third labels.",
+   "techniques": [
+    "col_aqua_grade",
+    "pace_hold_long",
+    "str_tutorial_steps",
+    "txt_lower_third"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_075",
+   "url": "https://example.com/placeholder/reference/ref_075",
+   "creator": "@placeholder_creator_55",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-21",
+   "views": 19038,
+   "analysis": "Placeholder analysis. Uses: Monochrome with one accent; Warm film grade; Show the mistake first; Long static hold; Slow reveal; Zoom punch-in; Arrow label callouts.",
+   "techniques": [
+    "col_mono_accent",
+    "col_warm_film",
+    "hook_mistake_first",
+    "pace_hold_long",
+    "pace_slow_reveal",
+    "tr_zoom_punch",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_076",
+   "url": "https://example.com/placeholder/reference/ref_076",
+   "creator": "@placeholder_creator_31",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-22",
+   "views": 77095,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Split screen; Challenge format; Spin transition; Whip pan; Zoom punch-in; Word-by-word kinetic captions.",
+   "techniques": [
+    "aud_trending_sound",
+    "fmt_split_screen",
+    "str_challenge",
+    "tr_spin",
+    "tr_whip_pan",
+    "tr_zoom_punch",
+    "txt_kinetic_captions"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_077",
+   "url": "https://example.com/placeholder/reference/ref_077",
+   "creator": "@placeholder_creator_07",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-23",
+   "views": 116491,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Warm film grade; Slow motion detail; Behind the counter; Finger-snap cut; Big number stat; Small serif captions.",
+   "techniques": [
+    "aud_lofi_bed",
+    "col_warm_film",
+    "pace_slow_mo",
+    "str_behind_scenes",
+    "tr_snap_cut",
+    "txt_big_number",
+    "txt_serif_caption"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_078",
+   "url": "https://example.com/placeholder/reference/ref_078",
+   "creator": "@placeholder_creator_44",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-24",
+   "views": 87199,
+   "analysis": "Placeholder analysis. Uses: Kid-height POV camera; Kid says the first line; Show the mistake first; Timelapse; Jump-through cut; Object pass to lens; Sticker pop-in text.",
+   "techniques": [
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "hook_mistake_first",
+    "pace_timelapse",
+    "tr_jump_through",
+    "tr_object_pass",
+    "txt_sticker_pop"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_079",
+   "url": "https://example.com/placeholder/reference/ref_079",
+   "creator": "@placeholder_creator_20",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-25",
+   "views": 24543,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Listicle; Finger-snap cut; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "str_listicle",
+    "tr_snap_cut",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_080",
+   "url": "https://example.com/placeholder/reference/ref_080",
+   "creator": "@placeholder_creator_57",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-26",
+   "views": 631186,
+   "analysis": "Placeholder analysis. Uses: Bright high-key white; Split screen; Cold open mid-action; Kid says the first line; Show the mistake first; Speed ramp; Match cut; Big number stat.",
+   "techniques": [
+    "col_high_key",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "hook_kid_voice",
+    "hook_mistake_first",
+    "pace_speed_ramp",
+    "tr_match_cut",
+    "txt_big_number"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_081",
+   "url": "https://example.com/placeholder/reference/ref_081",
+   "creator": "@placeholder_creator_33",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-27",
+   "views": 22711,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Monochrome with one accent; Saturated primaries; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_mono_accent",
+    "col_primary_pop",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_082",
+   "url": "https://example.com/placeholder/reference/ref_082",
+   "creator": "@placeholder_creator_09",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-01",
+   "views": 44764,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Aqua color grade; Kid says the first line; Myth-bust opener; POV text overlay; Long static hold; Numbered tutorial steps; Whip pan.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_aqua_grade",
+    "hook_kid_voice",
+    "hook_myth_bust",
+    "hook_pov_text",
+    "pace_hold_long",
+    "str_tutorial_steps",
+    "tr_whip_pan"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_083",
+   "url": "https://example.com/placeholder/reference/ref_083",
+   "creator": "@placeholder_creator_46",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-02",
+   "views": 7545,
+   "analysis": "Placeholder analysis. Uses: Monochrome with one accent; Show the mistake first; Freeze-frame callout; Bug hunt narrative; Arrow label callouts.",
+   "techniques": [
+    "col_mono_accent",
+    "hook_mistake_first",
+    "pace_freeze_frame",
+    "str_bug_hunt",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_084",
+   "url": "https://example.com/placeholder/reference/ref_084",
+   "creator": "@placeholder_creator_22",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-03",
+   "views": 25030,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Timelapse; Challenge format; Finger-snap cut; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_trending_sound",
+    "pace_timelapse",
+    "str_challenge",
+    "tr_snap_cut",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_085",
+   "url": "https://example.com/placeholder/reference/ref_085",
+   "creator": "@placeholder_creator_59",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-04",
+   "views": 107268,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Warm film grade; Overheard-quote hook; Finger-snap cut.",
+   "techniques": [
+    "aud_lofi_bed",
+    "col_warm_film",
+    "hook_overheard",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_086",
+   "url": "https://example.com/placeholder/reference/ref_086",
+   "creator": "@placeholder_creator_35",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-05",
+   "views": 169535,
+   "analysis": "Placeholder analysis. Uses: Pastel palette; Kid-height POV camera; Kid says the first line; Listicle; Jump-through cut; Finger-snap cut.",
+   "techniques": [
+    "col_pastel",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "str_listicle",
+    "tr_jump_through",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_087",
+   "url": "https://example.com/placeholder/reference/ref_087",
+   "creator": "@placeholder_creator_11",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-06",
+   "views": 4093,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Direct question to camera; Reverse playback; Before and after; Big number stat.",
+   "techniques": [
+    "aud_interview_bed",
+    "hook_question",
+    "pace_rewind",
+    "str_before_after",
+    "txt_big_number"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_088",
+   "url": "https://example.com/placeholder/reference/ref_088",
+   "creator": "@placeholder_creator_48",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-07",
+   "views": 7775,
+   "analysis": "Placeholder analysis. Uses: Split screen; Speed ramp; One continuous take.",
+   "techniques": [
+    "fmt_split_screen",
+    "pace_speed_ramp",
+    "str_one_take"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_089",
+   "url": "https://example.com/placeholder/reference/ref_089",
+   "creator": "@placeholder_creator_24",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-08",
+   "views": 13117,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Lo-fi music bed; Saturated primaries; Top-down camera; Result first, then process; Overhead process build; Hand over lens; Jump-through cut; Arrow label callouts; Subtitle bar.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_lofi_bed",
+    "col_primary_pop",
+    "fmt_overhead_cam",
+    "hook_result_first",
+    "str_overhead_process",
+    "tr_hand_cover",
+    "tr_jump_through",
+    "txt_label_callouts",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_090",
+   "url": "https://example.com/placeholder/reference/ref_090",
+   "creator": "@placeholder_creator_61",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-09",
+   "views": 176116,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Myth-bust opener; Long static hold; Numbered tutorial steps; Soft dissolve; Zoom punch-in.",
+   "techniques": [
+    "col_aqua_grade",
+    "hook_myth_bust",
+    "pace_hold_long",
+    "str_tutorial_steps",
+    "tr_dissolve",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_091",
+   "url": "https://example.com/placeholder/reference/ref_091",
+   "creator": "@placeholder_creator_37",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-10",
+   "views": 53102,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Monochrome with one accent; Kid says the first line; Bug hunt narrative; Finger-snap cut; Arrow label callouts.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_mono_accent",
+    "hook_kid_voice",
+    "str_bug_hunt",
+    "tr_snap_cut",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_092",
+   "url": "https://example.com/placeholder/reference/ref_092",
+   "creator": "@placeholder_creator_13",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-11",
+   "views": 70716,
+   "analysis": "Placeholder analysis. Uses: Long static hold; Challenge format; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "pace_hold_long",
+    "str_challenge",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_093",
+   "url": "https://example.com/placeholder/reference/ref_093",
+   "creator": "@placeholder_creator_50",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-12",
+   "views": 19031,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Lo-fi music bed; Overheard-quote hook; Overhead process build; Finger-snap cut; Big number stat.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_lofi_bed",
+    "hook_overheard",
+    "str_overhead_process",
+    "tr_snap_cut",
+    "txt_big_number"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_094",
+   "url": "https://example.com/placeholder/reference/ref_094",
+   "creator": "@placeholder_creator_26",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-13",
+   "views": 7520,
+   "analysis": "Placeholder analysis. Uses: Pastel palette; Kid-height POV camera; Kid says the first line; Bug hunt narrative; Jump-through cut; Kid-drawn titles; Sticker pop-in text.",
+   "techniques": [
+    "col_pastel",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "str_bug_hunt",
+    "tr_jump_through",
+    "txt_kid_drawn",
+    "txt_sticker_pop"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_095",
+   "url": "https://example.com/placeholder/reference/ref_095",
+   "creator": "@placeholder_creator_02",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-14",
+   "views": 24342,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Before and after; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "str_before_after",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_096",
+   "url": "https://example.com/placeholder/reference/ref_096",
+   "creator": "@placeholder_creator_39",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-15",
+   "views": 248897,
+   "analysis": "Placeholder analysis. Uses: Music drops to silence; Bright high-key white; Monochrome with one accent; Split screen; Cold open mid-action; POV text overlay; Speed ramp.",
+   "techniques": [
+    "aud_silence_drop",
+    "col_high_key",
+    "col_mono_accent",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "hook_pov_text",
+    "pace_speed_ramp"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_097",
+   "url": "https://example.com/placeholder/reference/ref_097",
+   "creator": "@placeholder_creator_15",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-16",
+   "views": 241584,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Interview audio over b-roll; Top-down camera; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_interview_bed",
+    "fmt_overhead_cam",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_098",
+   "url": "https://example.com/placeholder/reference/ref_098",
+   "creator": "@placeholder_creator_52",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-17",
+   "views": 7011,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Myth-bust opener; Long static hold; Numbered tutorial steps; Whip pan; Big number stat; Checklist ticks.",
+   "techniques": [
+    "col_aqua_grade",
+    "hook_myth_bust",
+    "pace_hold_long",
+    "str_tutorial_steps",
+    "tr_whip_pan",
+    "txt_big_number",
+    "txt_checklist"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_099",
+   "url": "https://example.com/placeholder/reference/ref_099",
+   "creator": "@placeholder_creator_28",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-18",
+   "views": 20406,
+   "analysis": "Placeholder analysis. Uses: Monochrome with one accent; Kid says the first line; Show the mistake first; Myth-bust opener; POV text overlay; Bug hunt narrative; Kid-drawn titles; Arrow label callouts.",
+   "techniques": [
+    "col_mono_accent",
+    "hook_kid_voice",
+    "hook_mistake_first",
+    "hook_myth_bust",
+    "hook_pov_text",
+    "str_bug_hunt",
+    "txt_kid_drawn",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_100",
+   "url": "https://example.com/placeholder/reference/ref_100",
+   "creator": "@placeholder_creator_04",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-19",
+   "views": 12481,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Cuts on the beat; Challenge format; Numbered tutorial steps; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_trending_sound",
+    "pace_beat_sync",
+    "str_challenge",
+    "str_tutorial_steps",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_101",
+   "url": "https://example.com/placeholder/reference/ref_101",
+   "creator": "@placeholder_creator_41",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-20",
+   "views": 40116,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Overheard-quote hook; Slow motion detail; Overhead process build; Finger-snap cut; Zoom punch-in; Small serif captions.",
+   "techniques": [
+    "aud_lofi_bed",
+    "hook_overheard",
+    "pace_slow_mo",
+    "str_overhead_process",
+    "tr_snap_cut",
+    "tr_zoom_punch",
+    "txt_serif_caption"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_102",
+   "url": "https://example.com/placeholder/reference/ref_102",
+   "creator": "@placeholder_creator_17",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-21",
+   "views": 80304,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Saturated primaries; Kid-height POV camera; Split screen; Kid says the first line; Long static hold; Zoom punch-in; Sticker pop-in text.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_primary_pop",
+    "fmt_pov_cam",
+    "fmt_split_screen",
+    "hook_kid_voice",
+    "pace_hold_long",
+    "tr_zoom_punch",
+    "txt_sticker_pop"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_103",
+   "url": "https://example.com/placeholder/reference/ref_103",
+   "creator": "@placeholder_creator_54",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-22",
+   "views": 33314,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Before and after; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "str_before_after",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_104",
+   "url": "https://example.com/placeholder/reference/ref_104",
+   "creator": "@placeholder_creator_30",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-23",
+   "views": 10046,
+   "analysis": "Placeholder analysis. Uses: Music drops to silence; Bright high-key white; Split screen; Cold open mid-action; Speed ramp; One continuous take; Match cut.",
+   "techniques": [
+    "aud_silence_drop",
+    "col_high_key",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_speed_ramp",
+    "str_one_take",
+    "tr_match_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_105",
+   "url": "https://example.com/placeholder/reference/ref_105",
+   "creator": "@placeholder_creator_06",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-24",
+   "views": 5593,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Interview audio over b-roll; Saturated primaries; Top-down camera; Bug hunt narrative; Overhead process build; Hand over lens; Handwritten titles.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_interview_bed",
+    "col_primary_pop",
+    "fmt_overhead_cam",
+    "str_bug_hunt",
+    "str_overhead_process",
+    "tr_hand_cover",
+    "txt_handwritten"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_106",
+   "url": "https://example.com/placeholder/reference/ref_106",
+   "creator": "@placeholder_creator_43",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-25",
+   "views": 20599,
+   "analysis": "Placeholder analysis. Uses: Calm voiceover; Aqua color grade; Teal and orange grade; Kid says the first line; Overheard-quote hook; Long static hold; Big number stat.",
+   "techniques": [
+    "aud_voiceover",
+    "col_aqua_grade",
+    "col_teal_orange",
+    "hook_kid_voice",
+    "hook_overheard",
+    "pace_hold_long",
+    "txt_big_number"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_107",
+   "url": "https://example.com/placeholder/reference/ref_107",
+   "creator": "@placeholder_creator_19",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-26",
+   "views": 82334,
+   "analysis": "Placeholder analysis. Uses: 8-bit sound effects; Monochrome with one accent; Cold open mid-action; Show the mistake first; POV text overlay; Bug hunt narrative; Glitch cut; Arrow label callouts.",
+   "techniques": [
+    "aud_sfx_blips",
+    "col_mono_accent",
+    "hook_cold_open",
+    "hook_mistake_first",
+    "hook_pov_text",
+    "str_bug_hunt",
+    "tr_glitch",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_108",
+   "url": "https://example.com/placeholder/reference/ref_108",
+   "creator": "@placeholder_creator_56",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-27",
+   "views": 3986,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Long static hold; Bug hunt narrative; Challenge format; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_trending_sound",
+    "pace_hold_long",
+    "str_bug_hunt",
+    "str_challenge",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_109",
+   "url": "https://example.com/placeholder/reference/ref_109",
+   "creator": "@placeholder_creator_32",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-01",
+   "views": 244000,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Lo-fi music bed; Warm film grade; Split screen; Overheard-quote hook; Slow motion detail; Finger-snap cut.",
+   "techniques": [
+    "aud_interview_bed",
+    "aud_lofi_bed",
+    "col_warm_film",
+    "fmt_split_screen",
+    "hook_overheard",
+    "pace_slow_mo",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_110",
+   "url": "https://example.com/placeholder/reference/ref_110",
+   "creator": "@placeholder_creator_08",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-02",
+   "views": 54650,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Kid-height POV camera; Kid says the first line; Behind the counter; Jump-through cut; Kid-drawn titles.",
+   "techniques": [
+    "aud_asmr_process",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "str_behind_scenes",
+    "tr_jump_through",
+    "txt_kid_drawn"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_111",
+   "url": "https://example.com/placeholder/reference/ref_111",
+   "creator": "@placeholder_creator_45",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-03",
+   "views": 25959,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Brand-color backdrops; Direct question to camera; Long static hold; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_brand_block",
+    "hook_question",
+    "pace_hold_long",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_112",
+   "url": "https://example.com/placeholder/reference/ref_112",
+   "creator": "@placeholder_creator_21",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-04",
+   "views": 15976,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Music drops to silence; Split screen; Cold open mid-action; Speed ramp; Whip pan.",
+   "techniques": [
+    "aud_interview_bed",
+    "aud_silence_drop",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_speed_ramp",
+    "tr_whip_pan"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_113",
+   "url": "https://example.com/placeholder/reference/ref_113",
+   "creator": "@placeholder_creator_58",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-05",
+   "views": 190204,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Saturated primaries; Kid says the first line; Result first, then process; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_primary_pop",
+    "hook_kid_voice",
+    "hook_result_first",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_114",
+   "url": "https://example.com/placeholder/reference/ref_114",
+   "creator": "@placeholder_creator_34",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-06",
+   "views": 4266,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Saturated primaries; Myth-bust opener; Overheard-quote hook; Long static hold; Numbered tutorial steps; Checklist ticks.",
+   "techniques": [
+    "col_aqua_grade",
+    "col_primary_pop",
+    "hook_myth_bust",
+    "hook_overheard",
+    "pace_hold_long",
+    "str_tutorial_steps",
+    "txt_checklist"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_115",
+   "url": "https://example.com/placeholder/reference/ref_115",
+   "creator": "@placeholder_creator_10",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-07",
+   "views": 13129,
+   "analysis": "Placeholder analysis. Uses: Monochrome with one accent; Photo dump; Cold open mid-action; Show the mistake first; Bug hunt narrative; Arrow label callouts.",
+   "techniques": [
+    "col_mono_accent",
+    "fmt_photo_dump",
+    "hook_cold_open",
+    "hook_mistake_first",
+    "str_bug_hunt",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_116",
+   "url": "https://example.com/placeholder/reference/ref_116",
+   "creator": "@placeholder_creator_47",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-08",
+   "views": 47310,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Cuts on the beat; Sub-second cuts; Speed ramp; Challenge format; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_trending_sound",
+    "pace_beat_sync",
+    "pace_fast_cuts",
+    "pace_speed_ramp",
+    "str_challenge",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_117",
+   "url": "https://example.com/placeholder/reference/ref_117",
+   "creator": "@placeholder_creator_23",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-09",
+   "views": 158335,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Kid says the first line; Myth-bust opener; Overheard-quote hook; Slow motion detail; Finger-snap cut.",
+   "techniques": [
+    "aud_lofi_bed",
+    "hook_kid_voice",
+    "hook_myth_bust",
+    "hook_overheard",
+    "pace_slow_mo",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_118",
+   "url": "https://example.com/placeholder/reference/ref_118",
+   "creator": "@placeholder_creator_60",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-10",
+   "views": 22851,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Pastel palette; Kid-height POV camera; Cold open mid-action; Kid says the first line; Result first, then process.",
+   "techniques": [
+    "col_aqua_grade",
+    "col_pastel",
+    "fmt_pov_cam",
+    "hook_cold_open",
+    "hook_kid_voice",
+    "hook_result_first"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_119",
+   "url": "https://example.com/placeholder/reference/ref_119",
+   "creator": "@placeholder_creator_36",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-11",
+   "views": 132371,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Lo-fi music bed; Brand-color backdrops; Speed ramp; Before and after; Zoom punch-in; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "aud_lofi_bed",
+    "col_brand_block",
+    "pace_speed_ramp",
+    "str_before_after",
+    "tr_zoom_punch",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_120",
+   "url": "https://example.com/placeholder/reference/ref_120",
+   "creator": "@placeholder_creator_12",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-12",
+   "views": 10805,
+   "analysis": "Placeholder analysis. Uses: Music drops to silence; Split screen; Cold open mid-action; Speed ramp.",
+   "techniques": [
+    "aud_silence_drop",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_speed_ramp"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_121",
+   "url": "https://example.com/placeholder/reference/ref_121",
+   "creator": "@placeholder_creator_49",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-13",
+   "views": 138358,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Saturated primaries; Result first, then process; Timelapse; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_primary_pop",
+    "hook_result_first",
+    "pace_timelapse",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_122",
+   "url": "https://example.com/placeholder/reference/ref_122",
+   "creator": "@placeholder_creator_25",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-14",
+   "views": 8682,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Aqua color grade; Myth-bust opener; Long static hold; Numbered tutorial steps.",
+   "techniques": [
+    "aud_lofi_bed",
+    "col_aqua_grade",
+    "hook_myth_bust",
+    "pace_hold_long",
+    "str_tutorial_steps"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_123",
+   "url": "https://example.com/placeholder/reference/ref_123",
+   "creator": "@placeholder_creator_01",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-15",
+   "views": 102783,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Monochrome with one accent; POV text overlay; Direct question to camera; Bug hunt narrative; Kid-drawn titles; Arrow label callouts.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_mono_accent",
+    "hook_pov_text",
+    "hook_question",
+    "str_bug_hunt",
+    "txt_kid_drawn",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_124",
+   "url": "https://example.com/placeholder/reference/ref_124",
+   "creator": "@placeholder_creator_38",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-16",
+   "views": 14632,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Sub-second cuts; Challenge format; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_trending_sound",
+    "pace_fast_cuts",
+    "str_challenge",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_125",
+   "url": "https://example.com/placeholder/reference/ref_125",
+   "creator": "@placeholder_creator_14",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-17",
+   "views": 527163,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Warm film grade; Overheard-quote hook; Behind the counter; Finger-snap cut.",
+   "techniques": [
+    "aud_lofi_bed",
+    "col_warm_film",
+    "hook_overheard",
+    "str_behind_scenes",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_126",
+   "url": "https://example.com/placeholder/reference/ref_126",
+   "creator": "@placeholder_creator_51",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-18",
+   "views": 15638,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Interview audio over b-roll; Pastel palette; Kid-height POV camera; Kid says the first line; Overheard-quote hook; Behind the counter; Seamless loop; Jump-through cut; Object pass to lens; Kid-drawn titles.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_interview_bed",
+    "col_pastel",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "hook_overheard",
+    "str_behind_scenes",
+    "str_seamless_loop",
+    "tr_jump_through",
+    "tr_object_pass",
+    "txt_kid_drawn"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_127",
+   "url": "https://example.com/placeholder/reference/ref_127",
+   "creator": "@placeholder_creator_27",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-19",
+   "views": 16787,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Kid says the first line; Before and after; Zoom punch-in; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "hook_kid_voice",
+    "str_before_after",
+    "tr_zoom_punch",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_128",
+   "url": "https://example.com/placeholder/reference/ref_128",
+   "creator": "@placeholder_creator_03",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-20",
+   "views": 38346,
+   "analysis": "Placeholder analysis. Uses: Split screen; Speed ramp; Match cut.",
+   "techniques": [
+    "fmt_split_screen",
+    "pace_speed_ramp",
+    "tr_match_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_129",
+   "url": "https://example.com/placeholder/reference/ref_129",
+   "creator": "@placeholder_creator_40",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-21",
+   "views": 23469,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Stop motion; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "pace_stop_motion",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_130",
+   "url": "https://example.com/placeholder/reference/ref_130",
+   "creator": "@placeholder_creator_16",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-22",
+   "views": 9587,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Calm voiceover; Aqua color grade; Monochrome with one accent; Carousel; Myth-bust opener; Long static hold; Numbered tutorial steps.",
+   "techniques": [
+    "aud_interview_bed",
+    "aud_voiceover",
+    "col_aqua_grade",
+    "col_mono_accent",
+    "fmt_carousel",
+    "hook_myth_bust",
+    "pace_hold_long",
+    "str_tutorial_steps"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_131",
+   "url": "https://example.com/placeholder/reference/ref_131",
+   "creator": "@placeholder_creator_53",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-23",
+   "views": 84957,
+   "analysis": "Placeholder analysis. Uses: Monochrome with one accent; Split screen; Kid says the first line; Show the mistake first; POV text overlay; Bug hunt narrative; Arrow label callouts.",
+   "techniques": [
+    "col_mono_accent",
+    "fmt_split_screen",
+    "hook_kid_voice",
+    "hook_mistake_first",
+    "hook_pov_text",
+    "str_bug_hunt",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_132",
+   "url": "https://example.com/placeholder/reference/ref_132",
+   "creator": "@placeholder_creator_29",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-24",
+   "views": 6453,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Trending sound; Countdown open; Result first, then process; Challenge format; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_lofi_bed",
+    "aud_trending_sound",
+    "hook_countdown",
+    "hook_result_first",
+    "str_challenge",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_133",
+   "url": "https://example.com/placeholder/reference/ref_133",
+   "creator": "@placeholder_creator_05",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-25",
+   "views": 13097,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Monochrome with one accent; Finger-snap cut.",
+   "techniques": [
+    "aud_lofi_bed",
+    "col_mono_accent",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_134",
+   "url": "https://example.com/placeholder/reference/ref_134",
+   "creator": "@placeholder_creator_42",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-26",
+   "views": 28625,
+   "analysis": "Placeholder analysis. Uses: Pastel palette; Kid-height POV camera; Kid says the first line; Jump-through cut; Sticker pop-in text; Terminal typewriter text.",
+   "techniques": [
+    "col_pastel",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "tr_jump_through",
+    "txt_sticker_pop",
+    "txt_terminal_type"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_135",
+   "url": "https://example.com/placeholder/reference/ref_135",
+   "creator": "@placeholder_creator_18",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-27",
+   "views": 13431,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Before and after; Finger-snap cut; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "str_before_after",
+    "tr_snap_cut",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_136",
+   "url": "https://example.com/placeholder/reference/ref_136",
+   "creator": "@placeholder_creator_55",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-01",
+   "views": 80597,
+   "analysis": "Placeholder analysis. Uses: Bright high-key white; Saturated primaries; Split screen; Cold open mid-action; Myth-bust opener; Speed ramp; Finger-snap cut.",
+   "techniques": [
+    "col_high_key",
+    "col_primary_pop",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "hook_myth_bust",
+    "pace_speed_ramp",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_137",
+   "url": "https://example.com/placeholder/reference/ref_137",
+   "creator": "@placeholder_creator_31",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-02",
+   "views": 60339,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Top-down camera; Long static hold; Overhead process build; Hand over lens; Object pass to lens; Finger-snap cut.",
+   "techniques": [
+    "aud_asmr_process",
+    "fmt_overhead_cam",
+    "pace_hold_long",
+    "str_overhead_process",
+    "tr_hand_cover",
+    "tr_object_pass",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_138",
+   "url": "https://example.com/placeholder/reference/ref_138",
+   "creator": "@placeholder_creator_07",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-03",
+   "views": 5649,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Aqua color grade; Long static hold; Soft dissolve; Checklist ticks.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_aqua_grade",
+    "pace_hold_long",
+    "tr_dissolve",
+    "txt_checklist"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_139",
+   "url": "https://example.com/placeholder/reference/ref_139",
+   "creator": "@placeholder_creator_44",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-04",
+   "views": 17030,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Monochrome with one accent; Show the mistake first; Bug hunt narrative; Finger-snap cut; Whip pan; Arrow label callouts.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_mono_accent",
+    "hook_mistake_first",
+    "str_bug_hunt",
+    "tr_snap_cut",
+    "tr_whip_pan",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_140",
+   "url": "https://example.com/placeholder/reference/ref_140",
+   "creator": "@placeholder_creator_20",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-05",
+   "views": 158519,
+   "analysis": "Placeholder analysis. Uses: Cuts on the beat; Long static hold; Whip pan; Zoom punch-in; Checklist ticks.",
+   "techniques": [
+    "pace_beat_sync",
+    "pace_hold_long",
+    "tr_whip_pan",
+    "tr_zoom_punch",
+    "txt_checklist"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_141",
+   "url": "https://example.com/placeholder/reference/ref_141",
+   "creator": "@placeholder_creator_57",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-06",
+   "views": 66635,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Photo dump; Overheard-quote hook; Long static hold; Slow motion detail; Before and after; Match cut; Finger-snap cut.",
+   "techniques": [
+    "aud_lofi_bed",
+    "fmt_photo_dump",
+    "hook_overheard",
+    "pace_hold_long",
+    "pace_slow_mo",
+    "str_before_after",
+    "tr_match_cut",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_142",
+   "url": "https://example.com/placeholder/reference/ref_142",
+   "creator": "@placeholder_creator_33",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-07",
+   "views": 29424,
+   "analysis": "Placeholder analysis. Uses: Monochrome with one accent; Pastel palette; Kid-height POV camera; Kid says the first line; Long static hold; Numbered tutorial steps; Jump-through cut; Small serif captions.",
+   "techniques": [
+    "col_mono_accent",
+    "col_pastel",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "pace_hold_long",
+    "str_tutorial_steps",
+    "tr_jump_through",
+    "txt_serif_caption"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_143",
+   "url": "https://example.com/placeholder/reference/ref_143",
+   "creator": "@placeholder_creator_09",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-08",
+   "views": 238242,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Ungraded natural light; Direct question to camera; Long static hold; Slow motion detail; Before and after; Finger-snap cut; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_natural",
+    "hook_question",
+    "pace_hold_long",
+    "pace_slow_mo",
+    "str_before_after",
+    "tr_snap_cut",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_144",
+   "url": "https://example.com/placeholder/reference/ref_144",
+   "creator": "@placeholder_creator_46",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-09",
+   "views": 349583,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Music drops to silence; Split screen; Cold open mid-action; Speed ramp; Finger-snap cut.",
+   "techniques": [
+    "aud_lofi_bed",
+    "aud_silence_drop",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_speed_ramp",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_145",
+   "url": "https://example.com/placeholder/reference/ref_145",
+   "creator": "@placeholder_creator_22",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-10",
+   "views": 61917,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Saturated primaries; Result first, then process; Timelapse; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_primary_pop",
+    "hook_result_first",
+    "pace_timelapse",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_146",
+   "url": "https://example.com/placeholder/reference/ref_146",
+   "creator": "@placeholder_creator_59",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-11",
+   "views": 12893,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Pastel palette; Kid says the first line; Direct question to camera; Long static hold.",
+   "techniques": [
+    "col_aqua_grade",
+    "col_pastel",
+    "hook_kid_voice",
+    "hook_question",
+    "pace_hold_long"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_147",
+   "url": "https://example.com/placeholder/reference/ref_147",
+   "creator": "@placeholder_creator_35",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-12",
+   "views": 8722,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Monochrome with one accent; Kid says the first line; Sub-second cuts; Arrow label callouts.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_mono_accent",
+    "hook_kid_voice",
+    "pace_fast_cuts",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_148",
+   "url": "https://example.com/placeholder/reference/ref_148",
+   "creator": "@placeholder_creator_11",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-13",
+   "views": 275555,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Teal and orange grade; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_trending_sound",
+    "col_teal_orange",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_149",
+   "url": "https://example.com/placeholder/reference/ref_149",
+   "creator": "@placeholder_creator_48",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-14",
+   "views": 51833,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Monochrome with one accent; Overheard-quote hook; Challenge format; Finger-snap cut; Zoom punch-in.",
+   "techniques": [
+    "aud_lofi_bed",
+    "col_mono_accent",
+    "hook_overheard",
+    "str_challenge",
+    "tr_snap_cut",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_150",
+   "url": "https://example.com/placeholder/reference/ref_150",
+   "creator": "@placeholder_creator_24",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-15",
+   "views": 27207,
+   "analysis": "Placeholder analysis. Uses: Kid-height POV camera; Split screen; Kid says the first line; Jump-through cut.",
+   "techniques": [
+    "fmt_pov_cam",
+    "fmt_split_screen",
+    "hook_kid_voice",
+    "tr_jump_through"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_151",
+   "url": "https://example.com/placeholder/reference/ref_151",
+   "creator": "@placeholder_creator_61",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-16",
+   "views": 55476,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Direct question to camera; Before and after; Parent interview; Big number stat.",
+   "techniques": [
+    "aud_interview_bed",
+    "hook_question",
+    "str_before_after",
+    "str_parent_interview",
+    "txt_big_number"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_152",
+   "url": "https://example.com/placeholder/reference/ref_152",
+   "creator": "@placeholder_creator_37",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-17",
+   "views": 5495,
+   "analysis": "Placeholder analysis. Uses: Music drops to silence; Aqua color grade; Bright high-key white; Monochrome with one accent; Split screen; Cold open mid-action; Speed ramp; Finger-snap cut.",
+   "techniques": [
+    "aud_silence_drop",
+    "col_aqua_grade",
+    "col_high_key",
+    "col_mono_accent",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_speed_ramp",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_153",
+   "url": "https://example.com/placeholder/reference/ref_153",
+   "creator": "@placeholder_creator_13",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-18",
+   "views": 92671,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Bright high-key white; Saturated primaries; Result first, then process; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_high_key",
+    "col_primary_pop",
+    "hook_result_first",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_154",
+   "url": "https://example.com/placeholder/reference/ref_154",
+   "creator": "@placeholder_creator_50",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-19",
+   "views": 15929,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Myth-bust opener; Long static hold; Challenge format; Numbered tutorial steps; Checklist ticks.",
+   "techniques": [
+    "col_aqua_grade",
+    "hook_myth_bust",
+    "pace_hold_long",
+    "str_challenge",
+    "str_tutorial_steps",
+    "txt_checklist"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_155",
+   "url": "https://example.com/placeholder/reference/ref_155",
+   "creator": "@placeholder_creator_26",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-20",
+   "views": 4527,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Monochrome with one accent; Kid says the first line; Jump-cut talking head; Bug hunt narrative; Arrow label callouts; Terminal typewriter text.",
+   "techniques": [
+    "aud_trending_sound",
+    "col_mono_accent",
+    "hook_kid_voice",
+    "pace_jump_cut_talk",
+    "str_bug_hunt",
+    "txt_label_callouts",
+    "txt_terminal_type"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_156",
+   "url": "https://example.com/placeholder/reference/ref_156",
+   "creator": "@placeholder_creator_02",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-21",
+   "views": 239554,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Monochrome with one accent; Challenge format; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_trending_sound",
+    "col_mono_accent",
+    "str_challenge",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_157",
+   "url": "https://example.com/placeholder/reference/ref_157",
+   "creator": "@placeholder_creator_39",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-22",
+   "views": 5269,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Lo-fi music bed; Warm film grade; Overheard-quote hook; Jump-through cut; Finger-snap cut.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_lofi_bed",
+    "col_warm_film",
+    "hook_overheard",
+    "tr_jump_through",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_158",
+   "url": "https://example.com/placeholder/reference/ref_158",
+   "creator": "@placeholder_creator_15",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-23",
+   "views": 48962,
+   "analysis": "Placeholder analysis. Uses: Kid-height POV camera; Kid says the first line; Mystery object reveal; Jump-through cut; Kid-drawn titles.",
+   "techniques": [
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "hook_object_reveal",
+    "tr_jump_through",
+    "txt_kid_drawn"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_159",
+   "url": "https://example.com/placeholder/reference/ref_159",
+   "creator": "@placeholder_creator_52",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-24",
+   "views": 38931,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Before and after; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "str_before_after",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_160",
+   "url": "https://example.com/placeholder/reference/ref_160",
+   "creator": "@placeholder_creator_28",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-25",
+   "views": 149632,
+   "analysis": "Placeholder analysis. Uses: Count-in claps; Bright high-key white; Neon night palette; Split screen; Cold open mid-action; Speed ramp; One continuous take.",
+   "techniques": [
+    "aud_count_in",
+    "col_high_key",
+    "col_neon_night",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_speed_ramp",
+    "str_one_take"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_161",
+   "url": "https://example.com/placeholder/reference/ref_161",
+   "creator": "@placeholder_creator_04",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-26",
+   "views": 1045,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Saturated primaries; Result first, then process; Slow motion detail; Speed ramp; Overhead process build; Finger-snap cut.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_primary_pop",
+    "hook_result_first",
+    "pace_slow_mo",
+    "pace_speed_ramp",
+    "str_overhead_process",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_162",
+   "url": "https://example.com/placeholder/reference/ref_162",
+   "creator": "@placeholder_creator_41",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-27",
+   "views": 5481,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Music drops to silence; Aqua color grade; Kid-height POV camera; Myth-bust opener; Result first, then process; Freeze-frame callout; Long static hold; Numbered tutorial steps.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_silence_drop",
+    "col_aqua_grade",
+    "fmt_pov_cam",
+    "hook_myth_bust",
+    "hook_result_first",
+    "pace_freeze_frame",
+    "pace_hold_long",
+    "str_tutorial_steps"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_163",
+   "url": "https://example.com/placeholder/reference/ref_163",
+   "creator": "@placeholder_creator_17",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-01",
+   "views": 14290,
+   "analysis": "Placeholder analysis. Uses: Monochrome with one accent; Bug hunt narrative; Arrow label callouts.",
+   "techniques": [
+    "col_mono_accent",
+    "str_bug_hunt",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_164",
+   "url": "https://example.com/placeholder/reference/ref_164",
+   "creator": "@placeholder_creator_54",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-02",
+   "views": 26492,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Trending sound; Monochrome with one accent; Teal and orange grade; Cuts on the beat; Overhead process build; Whip pan; Zoom punch-in; Word-by-word kinetic captions.",
+   "techniques": [
+    "aud_interview_bed",
+    "aud_trending_sound",
+    "col_mono_accent",
+    "col_teal_orange",
+    "pace_beat_sync",
+    "str_overhead_process",
+    "tr_whip_pan",
+    "tr_zoom_punch",
+    "txt_kinetic_captions"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_165",
+   "url": "https://example.com/placeholder/reference/ref_165",
+   "creator": "@placeholder_creator_30",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-03",
+   "views": 16751,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Natural room tone; Monochrome with one accent; Overheard-quote hook; Behind the counter; Finger-snap cut; Small serif captions.",
+   "techniques": [
+    "aud_lofi_bed",
+    "aud_room_tone",
+    "col_mono_accent",
+    "hook_overheard",
+    "str_behind_scenes",
+    "tr_snap_cut",
+    "txt_serif_caption"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_166",
+   "url": "https://example.com/placeholder/reference/ref_166",
+   "creator": "@placeholder_creator_06",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-04",
+   "views": 6481,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Pastel palette; Kid-height POV camera; Kid says the first line; Jump-through cut; Kid-drawn titles.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_pastel",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "tr_jump_through",
+    "txt_kid_drawn"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_167",
+   "url": "https://example.com/placeholder/reference/ref_167",
+   "creator": "@placeholder_creator_43",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-05",
+   "views": 21119,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Kid-height POV camera; Challenge format; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "fmt_pov_cam",
+    "str_challenge",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_168",
+   "url": "https://example.com/placeholder/reference/ref_168",
+   "creator": "@placeholder_creator_19",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-06",
+   "views": 23998,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Music drops to silence; Bright high-key white; Split screen; Cold open mid-action; Speed ramp; One continuous take; Overhead process build; Walk-past body wipe.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_silence_drop",
+    "col_high_key",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_speed_ramp",
+    "str_one_take",
+    "str_overhead_process",
+    "tr_body_wipe"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_169",
+   "url": "https://example.com/placeholder/reference/ref_169",
+   "creator": "@placeholder_creator_56",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-07",
+   "views": 4046,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Saturated primaries; Kid says the first line; Timelapse; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_primary_pop",
+    "hook_kid_voice",
+    "pace_timelapse",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_170",
+   "url": "https://example.com/placeholder/reference/ref_170",
+   "creator": "@placeholder_creator_32",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-08",
+   "views": 246475,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Long static hold; Soft dissolve; Checklist ticks.",
+   "techniques": [
+    "col_aqua_grade",
+    "pace_hold_long",
+    "tr_dissolve",
+    "txt_checklist"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_171",
+   "url": "https://example.com/placeholder/reference/ref_171",
+   "creator": "@placeholder_creator_08",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-09",
+   "views": 1968,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Trending sound; Monochrome with one accent; Split screen; Show the mistake first; POV text overlay; Bug hunt narrative; Arrow label callouts.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_trending_sound",
+    "col_mono_accent",
+    "fmt_split_screen",
+    "hook_mistake_first",
+    "hook_pov_text",
+    "str_bug_hunt",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_172",
+   "url": "https://example.com/placeholder/reference/ref_172",
+   "creator": "@placeholder_creator_45",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-10",
+   "views": 27384,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Teal and orange grade; Overheard-quote hook; Challenge format; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_teal_orange",
+    "hook_overheard",
+    "str_challenge",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_173",
+   "url": "https://example.com/placeholder/reference/ref_173",
+   "creator": "@placeholder_creator_21",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-11",
+   "views": 207454,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Photo dump; Overheard-quote hook; Behind the counter; Finger-snap cut.",
+   "techniques": [
+    "aud_lofi_bed",
+    "fmt_photo_dump",
+    "hook_overheard",
+    "str_behind_scenes",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_174",
+   "url": "https://example.com/placeholder/reference/ref_174",
+   "creator": "@placeholder_creator_58",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-12",
+   "views": 31414,
+   "analysis": "Placeholder analysis. Uses: Pastel palette; Kid-height POV camera; Split screen; Kid says the first line; Jump-through cut; Kid-drawn titles; Sticker pop-in text.",
+   "techniques": [
+    "col_pastel",
+    "fmt_pov_cam",
+    "fmt_split_screen",
+    "hook_kid_voice",
+    "tr_jump_through",
+    "txt_kid_drawn",
+    "txt_sticker_pop"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_175",
+   "url": "https://example.com/placeholder/reference/ref_175",
+   "creator": "@placeholder_creator_34",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-13",
+   "views": 15723,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Trending sound; Ungraded natural light; Split screen; Big number stat; Checklist ticks; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "aud_trending_sound",
+    "col_natural",
+    "fmt_split_screen",
+    "txt_big_number",
+    "txt_checklist",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_176",
+   "url": "https://example.com/placeholder/reference/ref_176",
+   "creator": "@placeholder_creator_10",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-14",
+   "views": 33088,
+   "analysis": "Placeholder analysis. Uses: Split screen; Cold open mid-action; Speed ramp; Jump-through cut.",
+   "techniques": [
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_speed_ramp",
+    "tr_jump_through"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_177",
+   "url": "https://example.com/placeholder/reference/ref_177",
+   "creator": "@placeholder_creator_47",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-15",
+   "views": 40683,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Saturated primaries; Top-down camera; Split screen; Result first, then process; Long static hold; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_primary_pop",
+    "fmt_overhead_cam",
+    "fmt_split_screen",
+    "hook_result_first",
+    "pace_hold_long",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_178",
+   "url": "https://example.com/placeholder/reference/ref_178",
+   "creator": "@placeholder_creator_23",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-16",
+   "views": 105322,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Myth-bust opener; Long static hold; Numbered tutorial steps; Soft dissolve; Subtitle bar.",
+   "techniques": [
+    "col_aqua_grade",
+    "hook_myth_bust",
+    "pace_hold_long",
+    "str_tutorial_steps",
+    "tr_dissolve",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_179",
+   "url": "https://example.com/placeholder/reference/ref_179",
+   "creator": "@placeholder_creator_60",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-17",
+   "views": 97287,
+   "analysis": "Placeholder analysis. Uses: 8-bit sound effects; Monochrome with one accent; POV text overlay; Bug hunt narrative; Arrow label callouts.",
+   "techniques": [
+    "aud_sfx_blips",
+    "col_mono_accent",
+    "hook_pov_text",
+    "str_bug_hunt",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_180",
+   "url": "https://example.com/placeholder/reference/ref_180",
+   "creator": "@placeholder_creator_36",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-18",
+   "views": 25807,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Aqua color grade; Monochrome with one accent; Cuts on the beat; Hand over lens; Whip pan; Zoom punch-in; Big number stat; Checklist ticks.",
+   "techniques": [
+    "aud_trending_sound",
+    "col_aqua_grade",
+    "col_mono_accent",
+    "pace_beat_sync",
+    "tr_hand_cover",
+    "tr_whip_pan",
+    "tr_zoom_punch",
+    "txt_big_number",
+    "txt_checklist"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_181",
+   "url": "https://example.com/placeholder/reference/ref_181",
+   "creator": "@placeholder_creator_12",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-19",
+   "views": 30125,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Brand-color backdrops; Split screen; Overheard-quote hook; Long static hold; Behind the counter; Finger-snap cut.",
+   "techniques": [
+    "aud_lofi_bed",
+    "col_brand_block",
+    "fmt_split_screen",
+    "hook_overheard",
+    "pace_hold_long",
+    "str_behind_scenes",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_182",
+   "url": "https://example.com/placeholder/reference/ref_182",
+   "creator": "@placeholder_creator_49",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-20",
+   "views": 19999,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Pastel palette; Kid-height POV camera; Kid says the first line; Jump-through cut; Kid-drawn titles.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_pastel",
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "tr_jump_through",
+    "txt_kid_drawn"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_183",
+   "url": "https://example.com/placeholder/reference/ref_183",
+   "creator": "@placeholder_creator_25",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-21",
+   "views": 16582,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Brand-color backdrops; Numbered tutorial steps; Big number stat; Subtitle bar.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_brand_block",
+    "str_tutorial_steps",
+    "txt_big_number",
+    "txt_subtitle_bar"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_184",
+   "url": "https://example.com/placeholder/reference/ref_184",
+   "creator": "@placeholder_creator_01",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-22",
+   "views": 24200,
+   "analysis": "Placeholder analysis. Uses: Count-in claps; Music drops to silence; Split screen; Cold open mid-action; Speed ramp; Zoom punch-in.",
+   "techniques": [
+    "aud_count_in",
+    "aud_silence_drop",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_speed_ramp",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_185",
+   "url": "https://example.com/placeholder/reference/ref_185",
+   "creator": "@placeholder_creator_38",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-23",
+   "views": 60733,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Saturated primaries; Top-down camera; Kid says the first line; Behind the counter; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "col_primary_pop",
+    "fmt_overhead_cam",
+    "hook_kid_voice",
+    "str_behind_scenes",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_186",
+   "url": "https://example.com/placeholder/reference/ref_186",
+   "creator": "@placeholder_creator_14",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-24",
+   "views": 47968,
+   "analysis": "Placeholder analysis. Uses: 8-bit sound effects; Calm voiceover; Aqua color grade; Long static hold; Numbered tutorial steps; Zoom punch-in; Checklist ticks.",
+   "techniques": [
+    "aud_sfx_blips",
+    "aud_voiceover",
+    "col_aqua_grade",
+    "pace_hold_long",
+    "str_tutorial_steps",
+    "tr_zoom_punch",
+    "txt_checklist"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_187",
+   "url": "https://example.com/placeholder/reference/ref_187",
+   "creator": "@placeholder_creator_51",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-25",
+   "views": 55719,
+   "analysis": "Placeholder analysis. Uses: Monochrome with one accent; Teal and orange grade; Split screen; Show the mistake first; Long static hold; Speed ramp; Arrow label callouts.",
+   "techniques": [
+    "col_mono_accent",
+    "col_teal_orange",
+    "fmt_split_screen",
+    "hook_mistake_first",
+    "pace_hold_long",
+    "pace_speed_ramp",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_188",
+   "url": "https://example.com/placeholder/reference/ref_188",
+   "creator": "@placeholder_creator_27",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-26",
+   "views": 3129,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Music drops to silence; Teal and orange grade; Cold open mid-action; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_silence_drop",
+    "col_teal_orange",
+    "hook_cold_open",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_189",
+   "url": "https://example.com/placeholder/reference/ref_189",
+   "creator": "@placeholder_creator_03",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-27",
+   "views": 25007,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Kid says the first line; Overheard-quote hook; Slow motion detail; Behind the counter; Finger-snap cut; Arrow label callouts.",
+   "techniques": [
+    "aud_lofi_bed",
+    "hook_kid_voice",
+    "hook_overheard",
+    "pace_slow_mo",
+    "str_behind_scenes",
+    "tr_snap_cut",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_190",
+   "url": "https://example.com/placeholder/reference/ref_190",
+   "creator": "@placeholder_creator_40",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-01",
+   "views": 100707,
+   "analysis": "Placeholder analysis. Uses: Kid-height POV camera; Kid says the first line; Before and after; Jump-through cut.",
+   "techniques": [
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "str_before_after",
+    "tr_jump_through"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_191",
+   "url": "https://example.com/placeholder/reference/ref_191",
+   "creator": "@placeholder_creator_16",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-02",
+   "views": 954492,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Brand-color backdrops; Ungraded natural light; Before and after; Soft dissolve; Big number stat.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_brand_block",
+    "col_natural",
+    "str_before_after",
+    "tr_dissolve",
+    "txt_big_number"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_192",
+   "url": "https://example.com/placeholder/reference/ref_192",
+   "creator": "@placeholder_creator_53",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-03-03",
+   "views": 4779,
+   "analysis": "Placeholder analysis. Uses: Music drops to silence; Warm film grade; Split screen; Speed ramp.",
+   "techniques": [
+    "aud_silence_drop",
+    "col_warm_film",
+    "fmt_split_screen",
+    "pace_speed_ramp"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_193",
+   "url": "https://example.com/placeholder/reference/ref_193",
+   "creator": "@placeholder_creator_29",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-04-04",
+   "views": 46427,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Trending sound; Top-down camera; Timelapse; Overhead process build.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_trending_sound",
+    "fmt_overhead_cam",
+    "pace_timelapse",
+    "str_overhead_process"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_194",
+   "url": "https://example.com/placeholder/reference/ref_194",
+   "creator": "@placeholder_creator_05",
+   "platform": "tiktok",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-05-05",
+   "views": 12361,
+   "analysis": "Placeholder analysis. Uses: Aqua color grade; Myth-bust opener; Long static hold; Speed ramp; Numbered tutorial steps; Soft dissolve.",
+   "techniques": [
+    "col_aqua_grade",
+    "hook_myth_bust",
+    "pace_hold_long",
+    "pace_speed_ramp",
+    "str_tutorial_steps",
+    "tr_dissolve"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_195",
+   "url": "https://example.com/placeholder/reference/ref_195",
+   "creator": "@placeholder_creator_42",
+   "platform": "instagram",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-06-06",
+   "views": 42366,
+   "analysis": "Placeholder analysis. Uses: Monochrome with one accent; Split screen; Show the mistake first; Bug hunt narrative; Arrow label callouts.",
+   "techniques": [
+    "col_mono_accent",
+    "fmt_split_screen",
+    "hook_mistake_first",
+    "str_bug_hunt",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_196",
+   "url": "https://example.com/placeholder/reference/ref_196",
+   "creator": "@placeholder_creator_18",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-07-07",
+   "views": 19228,
+   "analysis": "Placeholder analysis. Uses: Trending sound; Teal and orange grade; Countdown open; Challenge format; Whip pan; Zoom punch-in.",
+   "techniques": [
+    "aud_trending_sound",
+    "col_teal_orange",
+    "hook_countdown",
+    "str_challenge",
+    "tr_whip_pan",
+    "tr_zoom_punch"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_197",
+   "url": "https://example.com/placeholder/reference/ref_197",
+   "creator": "@placeholder_creator_55",
+   "platform": "instagram",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-08-08",
+   "views": 35769,
+   "analysis": "Placeholder analysis. Uses: Lo-fi music bed; Brand-color backdrops; Saturated primaries; Overheard-quote hook; Behind the counter; Overhead process build; Finger-snap cut; Arrow label callouts.",
+   "techniques": [
+    "aud_lofi_bed",
+    "col_brand_block",
+    "col_primary_pop",
+    "hook_overheard",
+    "str_behind_scenes",
+    "str_overhead_process",
+    "tr_snap_cut",
+    "txt_label_callouts"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_198",
+   "url": "https://example.com/placeholder/reference/ref_198",
+   "creator": "@placeholder_creator_31",
+   "platform": "tiktok",
+   "format": "reel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-09-09",
+   "views": 33551,
+   "analysis": "Placeholder analysis. Uses: Kid-height POV camera; Kid says the first line; Jump-through cut; Object pass to lens; Finger-snap cut.",
+   "techniques": [
+    "fmt_pov_cam",
+    "hook_kid_voice",
+    "tr_jump_through",
+    "tr_object_pass",
+    "tr_snap_cut"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_199",
+   "url": "https://example.com/placeholder/reference/ref_199",
+   "creator": "@placeholder_creator_07",
+   "platform": "instagram",
+   "format": "carousel",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-01-10",
+   "views": 35052,
+   "analysis": "Placeholder analysis. Uses: Interview audio over b-roll; Ungraded natural light; Direct question to camera; Listicle; Big number stat.",
+   "techniques": [
+    "aud_interview_bed",
+    "col_natural",
+    "hook_question",
+    "str_listicle",
+    "txt_big_number"
+   ],
+   "placeholder": true
+  },
+  {
+   "id": "ref_200",
+   "url": "https://example.com/placeholder/reference/ref_200",
+   "creator": "@placeholder_creator_44",
+   "platform": "tiktok",
+   "format": "short",
+   "analyzed_by": "Instinct",
+   "analyzed_at": "2026-02-11",
+   "views": 65752,
+   "analysis": "Placeholder analysis. Uses: ASMR process sounds; Lo-fi music bed; Monochrome with one accent; Split screen; Cold open mid-action; Cuts on the beat; Speed ramp.",
+   "techniques": [
+    "aud_asmr_process",
+    "aud_lofi_bed",
+    "col_mono_accent",
+    "fmt_split_screen",
+    "hook_cold_open",
+    "pace_beat_sync",
+    "pace_speed_ramp"
+   ],
+   "placeholder": true
+  }
+ ],
+ "businesses": [
+  {
+   "id": "pixel-pond",
+   "name": "Pixel Pond Code Club",
+   "category": "Kids coding",
+   "status": "signed",
+   "targets": {
+    "A2": 0.8,
+    "A3": 0.6,
+    "A4": 0.4,
+    "A5": 0.3
+   },
+   "style": "sty_nerd_deadpan",
+   "secondary": "sty_night_glow",
+   "voice": "Dry, nerdy, proud of kid projects",
+   "goal": {
+    "text": "Fill 40 seats in the spring robotics session",
+    "metric": "spring robotics seats",
+    "target": 40,
+    "due": "2027-02-01"
+   },
+   "synthetic": true,
+   "neighborhood": "n_linden_hollow",
+   "posts": [
+    {
+     "id": "pixel-pond-post-01",
+     "hook": "Maya, 9, wrote a bug. Then she fixed it. Here's the bug.",
+     "technique_ids": [
+      "pace_freeze_frame",
+      "txt_terminal_type",
+      "txt_label_callouts",
+      "str_bug_hunt",
+      "aud_silence_drop",
+      "tr_match_cut"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_bug_hunt",
+     "pacing": "pace_freeze_frame",
+     "transitions": [
+      "tr_match_cut"
+     ],
+     "text_treatment": "txt_terminal_type",
+     "color": null,
+     "audio": "aud_silence_drop",
+     "caption": "Maya, 9, wrote a bug. Then she fixed it. Here's the bug. Spring robotics seats are open. Link in bio.",
+     "posted_at": "2026-08-03",
+     "_weak": false,
+     "_planted": false,
+     "views": 6737,
+     "saves": 95
+    },
+    {
+     "id": "pixel-pond-post-02",
+     "hook": "POV: your robot was supposed to turn left.",
+     "technique_ids": [
+      "aud_sfx_blips",
+      "hook_pov_text",
+      "txt_label_callouts",
+      "txt_terminal_type",
+      "col_high_key",
+      "aud_silence_drop"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_pov_text",
+     "structure": null,
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": "txt_label_callouts",
+     "color": "col_high_key",
+     "audio": "aud_sfx_blips",
+     "caption": "POV: your robot was supposed to turn left. Spring robotics seats are open. Link in bio.",
+     "posted_at": "2026-08-11",
+     "_weak": false,
+     "_planted": false,
+     "views": 9818,
+     "saves": 122
+    },
+    {
+     "id": "pixel-pond-post-03",
+     "hook": "Things our 10-year-olds shipped this week, ranked by beeps.",
+     "technique_ids": [
+      "pace_jump_cut_talk",
+      "pace_freeze_frame",
+      "hook_mistake_first",
+      "hook_pov_text",
+      "aud_silence_drop",
+      "hook_cold_open"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_mistake_first",
+     "structure": null,
+     "pacing": "pace_jump_cut_talk",
+     "transitions": [],
+     "text_treatment": null,
+     "color": null,
+     "audio": "aud_silence_drop",
+     "caption": "Things our 10-year-olds shipped this week, ranked by beeps. Spring robotics seats are open. Link in bio.",
+     "posted_at": "2026-08-20",
+     "_weak": false,
+     "_planted": false,
+     "views": 17562,
+     "saves": 436
+    },
+    {
+     "id": "pixel-pond-post-04",
+     "hook": "This servo cost $4. The lesson was free.",
+     "technique_ids": [
+      "txt_label_callouts",
+      "pace_freeze_frame",
+      "txt_terminal_type",
+      "aud_sfx_blips",
+      "col_mono_accent",
+      "tr_match_cut",
+      "aud_silence_drop"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": null,
+     "pacing": "pace_freeze_frame",
+     "transitions": [
+      "tr_match_cut"
+     ],
+     "text_treatment": "txt_label_callouts",
+     "color": "col_mono_accent",
+     "audio": "aud_sfx_blips",
+     "caption": "This servo cost $4. The lesson was free. Spring robotics seats are open. Link in bio.",
+     "posted_at": "2026-08-26",
+     "_weak": false,
+     "_planted": false,
+     "views": 14307,
+     "saves": 413
+    },
+    {
+     "id": "pixel-pond-post-05",
+     "hook": "We asked a 7-year-old to explain a for-loop. She used snacks.",
+     "technique_ids": [
+      "str_bug_hunt",
+      "hook_pov_text",
+      "hook_mistake_first",
+      "col_mono_accent",
+      "pace_freeze_frame",
+      "col_high_key"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_pov_text",
+     "structure": "str_bug_hunt",
+     "pacing": "pace_freeze_frame",
+     "transitions": [],
+     "text_treatment": null,
+     "color": "col_mono_accent",
+     "audio": null,
+     "caption": "We asked a 7-year-old to explain a for-loop. She used snacks. Spring robotics seats are open. Link in bio.",
+     "posted_at": "2026-08-31",
+     "_weak": false,
+     "_planted": false,
+     "views": 6170,
+     "saves": 179
+    },
+    {
+     "id": "pixel-pond-post-06",
+     "hook": "Spring robotics: 40 seats. 12 robots already named Kevin.",
+     "technique_ids": [
+      "hook_pov_text",
+      "pace_jump_cut_talk",
+      "col_mono_accent",
+      "aud_sfx_blips",
+      "col_high_key"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_pov_text",
+     "structure": null,
+     "pacing": "pace_jump_cut_talk",
+     "transitions": [],
+     "text_treatment": null,
+     "color": "col_mono_accent",
+     "audio": "aud_sfx_blips",
+     "caption": "Spring robotics: 40 seats. 12 robots already named Kevin. Spring robotics seats are open. Link in bio.",
+     "posted_at": "2026-09-09",
+     "_weak": false,
+     "_planted": false,
+     "views": 10433,
+     "saves": 141
+    },
+    {
+     "id": "pixel-pond-post-07",
+     "hook": "Your kid's first line of code, frame by frame.",
+     "technique_ids": [
+      "txt_terminal_type",
+      "pace_jump_cut_talk",
+      "txt_label_callouts",
+      "col_mono_accent",
+      "aud_silence_drop",
+      "fmt_split_screen"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": null,
+     "pacing": "pace_jump_cut_talk",
+     "transitions": [],
+     "text_treatment": "txt_terminal_type",
+     "color": "col_mono_accent",
+     "audio": "aud_silence_drop",
+     "caption": "Your kid's first line of code, frame by frame. Spring robotics seats are open. Link in bio.",
+     "posted_at": "2026-09-15",
+     "_weak": false,
+     "_planted": false,
+     "views": 9724,
+     "saves": 140
+    },
+    {
+     "id": "pixel-pond-post-08",
+     "hook": "The robot did not win the race. It did finish.",
+     "technique_ids": [
+      "col_mono_accent",
+      "txt_label_callouts",
+      "hook_mistake_first",
+      "tr_glitch",
+      "pace_speed_ramp",
+      "hook_cold_open"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_mistake_first",
+     "structure": null,
+     "pacing": "pace_speed_ramp",
+     "transitions": [
+      "tr_glitch"
+     ],
+     "text_treatment": "txt_label_callouts",
+     "color": "col_mono_accent",
+     "audio": null,
+     "caption": "The robot did not win the race. It did finish. Spring robotics seats are open. Link in bio.",
+     "posted_at": "2026-09-24",
+     "_weak": false,
+     "_planted": false,
+     "views": 12264,
+     "saves": 269
+    },
+    {
+     "id": "pixel-pond-post-09",
+     "hook": "Debugging, as performed by four 8-year-olds and a tape measure.",
+     "technique_ids": [
+      "col_mono_accent",
+      "str_bug_hunt",
+      "txt_label_callouts",
+      "pace_jump_cut_talk",
+      "tr_glitch",
+      "pace_speed_ramp"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_bug_hunt",
+     "pacing": "pace_jump_cut_talk",
+     "transitions": [
+      "tr_glitch"
+     ],
+     "text_treatment": "txt_label_callouts",
+     "color": "col_mono_accent",
+     "audio": null,
+     "caption": "Debugging, as performed by four 8-year-olds and a tape measure. Spring robotics seats are open. Link in bio.",
+     "posted_at": "2026-09-30",
+     "_weak": false,
+     "_planted": false,
+     "views": 11109,
+     "saves": 282
+    },
+    {
+     "id": "pixel-pond-post-10",
+     "hook": "Spring robotics registration is open.",
+     "technique_ids": [
+      "col_mono_accent",
+      "txt_label_callouts",
+      "pace_speed_ramp"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": null,
+     "pacing": "pace_speed_ramp",
+     "transitions": [],
+     "text_treatment": "txt_label_callouts",
+     "color": "col_mono_accent",
+     "audio": null,
+     "caption": "Spring robotics registration is open. Spring robotics seats are open. Link in bio.",
+     "posted_at": "2026-10-07",
+     "_weak": true,
+     "_planted": false,
+     "views": 1433,
+     "saves": 8
+    }
+   ]
+  },
+  {
+   "id": "wet-paint",
+   "name": "Wet Paint Kids Studio",
+   "category": "Kids art",
+   "status": "signed",
+   "targets": {
+    "A1": 0.8,
+    "A2": 0.5,
+    "A3": 0.5
+   },
+   "style": "sty_messy_process",
+   "secondary": "sty_cozy_local",
+   "voice": "Messy, joyful",
+   "goal": {
+    "text": "Book 12 birthday parties a month",
+    "metric": "birthday parties per month",
+    "target": 12,
+    "due": "2027-01-31"
+   },
+   "synthetic": true,
+   "neighborhood": "n_linden_hollow",
+   "posts": [
+    {
+     "id": "wet-paint-post-01",
+     "hook": "We said one more color. It was six more colors.",
+     "technique_ids": [
+      "aud_asmr_process",
+      "col_primary_pop",
+      "fmt_overhead_cam",
+      "tr_paint_smear",
+      "pace_stop_motion",
+      "txt_handwritten"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": null,
+     "pacing": "pace_stop_motion",
+     "transitions": [
+      "tr_paint_smear"
+     ],
+     "text_treatment": "txt_handwritten",
+     "color": "col_primary_pop",
+     "audio": "aud_asmr_process",
+     "caption": "We said one more color. It was six more colors. Book a messy birthday. Link in bio.",
+     "posted_at": "2026-08-05",
+     "_weak": false,
+     "_planted": true,
+     "views": 27119,
+     "saves": 1220
+    },
+    {
+     "id": "wet-paint-post-02",
+     "hook": "Birthday party, minute 1 vs minute 90.",
+     "technique_ids": [
+      "aud_asmr_process",
+      "col_primary_pop",
+      "str_overhead_process",
+      "pace_timelapse",
+      "pace_slow_mo",
+      "aud_lofi_bed"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_overhead_process",
+     "pacing": "pace_timelapse",
+     "transitions": [],
+     "text_treatment": null,
+     "color": "col_primary_pop",
+     "audio": "aud_asmr_process",
+     "caption": "Birthday party, minute 1 vs minute 90. Book a messy birthday. Link in bio.",
+     "posted_at": "2026-08-11",
+     "_weak": false,
+     "_planted": false,
+     "views": 5675,
+     "saves": 162
+    },
+    {
+     "id": "wet-paint-post-03",
+     "hook": "Glitter has been located in the ceiling.",
+     "technique_ids": [
+      "str_overhead_process",
+      "col_primary_pop",
+      "hook_result_first",
+      "tr_paint_smear",
+      "pace_stop_motion",
+      "txt_handwritten"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_result_first",
+     "structure": "str_overhead_process",
+     "pacing": "pace_stop_motion",
+     "transitions": [
+      "tr_paint_smear"
+     ],
+     "text_treatment": "txt_handwritten",
+     "color": "col_primary_pop",
+     "audio": null,
+     "caption": "Glitter has been located in the ceiling. Book a messy birthday. Link in bio.",
+     "posted_at": "2026-08-18",
+     "_weak": false,
+     "_planted": true,
+     "views": 31319,
+     "saves": 1409
+    },
+    {
+     "id": "wet-paint-post-04",
+     "hook": "A 4-year-old's sunflower, start to finish.",
+     "technique_ids": [
+      "hook_result_first",
+      "str_overhead_process",
+      "pace_timelapse",
+      "tr_hand_cover",
+      "aud_lofi_bed"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_result_first",
+     "structure": "str_overhead_process",
+     "pacing": "pace_timelapse",
+     "transitions": [
+      "tr_hand_cover"
+     ],
+     "text_treatment": null,
+     "color": null,
+     "audio": "aud_lofi_bed",
+     "caption": "A 4-year-old's sunflower, start to finish. Book a messy birthday. Link in bio.",
+     "posted_at": "2026-08-24",
+     "_weak": false,
+     "_planted": false,
+     "views": 10863,
+     "saves": 255
+    },
+    {
+     "id": "wet-paint-post-05",
+     "hook": "Rate this splatter wall, honestly.",
+     "technique_ids": [
+      "pace_timelapse",
+      "col_primary_pop",
+      "aud_asmr_process",
+      "str_overhead_process",
+      "fmt_overhead_cam",
+      "aud_lofi_bed",
+      "str_behind_scenes"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_overhead_process",
+     "pacing": "pace_timelapse",
+     "transitions": [],
+     "text_treatment": null,
+     "color": "col_primary_pop",
+     "audio": "aud_asmr_process",
+     "caption": "Rate this splatter wall, honestly. Book a messy birthday. Link in bio.",
+     "posted_at": "2026-08-31",
+     "_weak": false,
+     "_planted": false,
+     "views": 7595,
+     "saves": 169
+    },
+    {
+     "id": "wet-paint-post-06",
+     "hook": "The aprons survived. The aprons are heroes.",
+     "technique_ids": [
+      "aud_asmr_process",
+      "fmt_overhead_cam",
+      "pace_timelapse",
+      "tr_paint_smear",
+      "pace_stop_motion",
+      "txt_handwritten"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": null,
+     "pacing": "pace_timelapse",
+     "transitions": [
+      "tr_paint_smear"
+     ],
+     "text_treatment": "txt_handwritten",
+     "color": null,
+     "audio": "aud_asmr_process",
+     "caption": "The aprons survived. The aprons are heroes. Book a messy birthday. Link in bio.",
+     "posted_at": "2026-09-08",
+     "_weak": false,
+     "_planted": true,
+     "views": 24831,
+     "saves": 1117
+    },
+    {
+     "id": "wet-paint-post-07",
+     "hook": "Painting with spaghetti: a documentary.",
+     "technique_ids": [
+      "str_overhead_process",
+      "hook_result_first",
+      "pace_timelapse",
+      "tr_paint_smear",
+      "pace_stop_motion",
+      "txt_handwritten"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_result_first",
+     "structure": "str_overhead_process",
+     "pacing": "pace_timelapse",
+     "transitions": [
+      "tr_paint_smear"
+     ],
+     "text_treatment": "txt_handwritten",
+     "color": null,
+     "audio": null,
+     "caption": "Painting with spaghetti: a documentary. Book a messy birthday. Link in bio.",
+     "posted_at": "2026-09-16",
+     "_weak": false,
+     "_planted": true,
+     "views": 15416,
+     "saves": 693
+    },
+    {
+     "id": "wet-paint-post-08",
+     "hook": "Every kid leaves with a masterpiece and one blue elbow.",
+     "technique_ids": [
+      "str_overhead_process",
+      "col_primary_pop",
+      "fmt_overhead_cam",
+      "pace_timelapse",
+      "col_warm_film",
+      "tr_snap_cut"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_overhead_process",
+     "pacing": "pace_timelapse",
+     "transitions": [
+      "tr_snap_cut"
+     ],
+     "text_treatment": null,
+     "color": "col_primary_pop",
+     "audio": null,
+     "caption": "Every kid leaves with a masterpiece and one blue elbow. Book a messy birthday. Link in bio.",
+     "posted_at": "2026-09-23",
+     "_weak": false,
+     "_planted": false,
+     "views": 7023,
+     "saves": 198
+    },
+    {
+     "id": "wet-paint-post-09",
+     "hook": "Party packages for this fall.",
+     "technique_ids": [
+      "aud_asmr_process",
+      "str_overhead_process",
+      "str_behind_scenes"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_overhead_process",
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": null,
+     "color": null,
+     "audio": "aud_asmr_process",
+     "caption": "Party packages for this fall. Book a messy birthday. Link in bio.",
+     "posted_at": "2026-10-01",
+     "_weak": true,
+     "_planted": false,
+     "views": 1847,
+     "saves": 11
+    },
+    {
+     "id": "wet-paint-post-10",
+     "hook": "Clay day. Squish, roll, flop, repeat.",
+     "technique_ids": [
+      "hook_result_first",
+      "pace_timelapse",
+      "aud_asmr_process",
+      "fmt_overhead_cam",
+      "str_overhead_process",
+      "hook_overheard",
+      "tr_snap_cut"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_result_first",
+     "structure": "str_overhead_process",
+     "pacing": "pace_timelapse",
+     "transitions": [
+      "tr_snap_cut"
+     ],
+     "text_treatment": null,
+     "color": null,
+     "audio": "aud_asmr_process",
+     "caption": "Clay day. Squish, roll, flop, repeat. Book a messy birthday. Link in bio.",
+     "posted_at": "2026-10-08",
+     "_weak": false,
+     "_planted": false,
+     "views": 9377,
+     "saves": 252
+    }
+   ]
+  },
+  {
+   "id": "cannonball",
+   "name": "Cannonball Swim School",
+   "category": "Swim lessons",
+   "status": "signed",
+   "targets": {
+    "A1": 0.7,
+    "A2": 0.6,
+    "A3": 0.4
+   },
+   "style": "sty_calm_explainer",
+   "secondary": "sty_parent_proof",
+   "voice": "Calm, safety first",
+   "goal": {
+    "text": "Grow the winter waitlist to 150",
+    "metric": "winter waitlist size",
+    "target": 150,
+    "due": "2026-12-15"
+   },
+   "synthetic": true,
+   "neighborhood": "n_linden_hollow",
+   "posts": [
+    {
+     "id": "cannonball-post-01",
+     "hook": "Three things to check before your child's first lesson.",
+     "technique_ids": [
+      "pace_hold_long",
+      "aud_voiceover",
+      "txt_checklist",
+      "hook_myth_bust",
+      "tr_dissolve",
+      "aud_interview_bed"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_myth_bust",
+     "structure": null,
+     "pacing": "pace_hold_long",
+     "transitions": [
+      "tr_dissolve"
+     ],
+     "text_treatment": "txt_checklist",
+     "color": null,
+     "audio": "aud_voiceover",
+     "caption": "Three things to check before your child's first lesson. Join the winter waitlist. Link in bio.",
+     "posted_at": "2026-08-04",
+     "_weak": false,
+     "_planted": false,
+     "views": 8891,
+     "saves": 227
+    },
+    {
+     "id": "cannonball-post-02",
+     "hook": "Myth: floaties teach kids to swim.",
+     "technique_ids": [
+      "hook_myth_bust",
+      "str_tutorial_steps",
+      "tr_dissolve",
+      "txt_lower_third",
+      "aud_voiceover",
+      "txt_big_number",
+      "col_brand_block"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_myth_bust",
+     "structure": "str_tutorial_steps",
+     "pacing": null,
+     "transitions": [
+      "tr_dissolve"
+     ],
+     "text_treatment": "txt_lower_third",
+     "color": "col_brand_block",
+     "audio": "aud_voiceover",
+     "caption": "Myth: floaties teach kids to swim. Join the winter waitlist. Link in bio.",
+     "posted_at": "2026-08-13",
+     "_weak": false,
+     "_planted": false,
+     "views": 10462,
+     "saves": 152
+    },
+    {
+     "id": "cannonball-post-03",
+     "hook": "From clinging to the wall to a full length, in six weeks.",
+     "technique_ids": [
+      "pace_hold_long",
+      "fmt_carousel",
+      "txt_checklist",
+      "pace_slow_reveal",
+      "aud_voiceover",
+      "col_brand_block",
+      "str_before_after"
+     ],
+     "format": "carousel",
+     "hook_technique": null,
+     "structure": "str_before_after",
+     "pacing": "pace_hold_long",
+     "transitions": [],
+     "text_treatment": "txt_checklist",
+     "color": "col_brand_block",
+     "audio": "aud_voiceover",
+     "caption": "From clinging to the wall to a full length, in six weeks. Join the winter waitlist. Link in bio.",
+     "posted_at": "2026-08-20",
+     "_weak": false,
+     "_planted": false,
+     "views": 3174,
+     "saves": 64
+    },
+    {
+     "id": "cannonball-post-04",
+     "hook": "What a calm first lesson looks like.",
+     "technique_ids": [
+      "txt_checklist",
+      "str_tutorial_steps",
+      "tr_dissolve",
+      "pace_hold_long",
+      "fmt_carousel",
+      "txt_subtitle_bar",
+      "aud_interview_bed"
+     ],
+     "format": "carousel",
+     "hook_technique": null,
+     "structure": "str_tutorial_steps",
+     "pacing": "pace_hold_long",
+     "transitions": [
+      "tr_dissolve"
+     ],
+     "text_treatment": "txt_checklist",
+     "color": null,
+     "audio": "aud_interview_bed",
+     "caption": "What a calm first lesson looks like. Join the winter waitlist. Link in bio.",
+     "posted_at": "2026-08-24",
+     "_weak": false,
+     "_planted": false,
+     "views": 6210,
+     "saves": 90
+    },
+    {
+     "id": "cannonball-post-05",
+     "hook": "Our instructor ratio is 1 to 4. Here's why.",
+     "technique_ids": [
+      "col_aqua_grade",
+      "txt_lower_third",
+      "str_tutorial_steps",
+      "tr_paint_smear",
+      "pace_stop_motion",
+      "txt_handwritten"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_tutorial_steps",
+     "pacing": "pace_stop_motion",
+     "transitions": [
+      "tr_paint_smear"
+     ],
+     "text_treatment": "txt_lower_third",
+     "color": "col_aqua_grade",
+     "audio": null,
+     "caption": "Our instructor ratio is 1 to 4. Here's why. Join the winter waitlist. Link in bio.",
+     "posted_at": "2026-09-02",
+     "_weak": false,
+     "_planted": true,
+     "views": 23009,
+     "saves": 1035
+    },
+    {
+     "id": "cannonball-post-06",
+     "hook": "Why we teach floating before kicking.",
+     "technique_ids": [
+      "fmt_carousel",
+      "tr_dissolve",
+      "pace_hold_long",
+      "txt_checklist",
+      "hook_question"
+     ],
+     "format": "carousel",
+     "hook_technique": "hook_question",
+     "structure": null,
+     "pacing": "pace_hold_long",
+     "transitions": [
+      "tr_dissolve"
+     ],
+     "text_treatment": "txt_checklist",
+     "color": null,
+     "audio": null,
+     "caption": "Why we teach floating before kicking. Join the winter waitlist. Link in bio.",
+     "posted_at": "2026-09-09",
+     "_weak": false,
+     "_planted": false,
+     "views": 6560,
+     "saves": 193
+    },
+    {
+     "id": "cannonball-post-07",
+     "hook": "Winter waitlist update.",
+     "technique_ids": [
+      "pace_hold_long",
+      "col_aqua_grade",
+      "txt_big_number"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": null,
+     "pacing": "pace_hold_long",
+     "transitions": [],
+     "text_treatment": "txt_big_number",
+     "color": "col_aqua_grade",
+     "audio": null,
+     "caption": "Winter waitlist update. Join the winter waitlist. Link in bio.",
+     "posted_at": "2026-09-15",
+     "_weak": true,
+     "_planted": false,
+     "views": 1581,
+     "saves": 9
+    },
+    {
+     "id": "cannonball-post-08",
+     "hook": "Bubbles first: how we start every lesson.",
+     "technique_ids": [
+      "tr_dissolve",
+      "fmt_carousel",
+      "aud_voiceover",
+      "tr_paint_smear",
+      "pace_stop_motion",
+      "txt_handwritten"
+     ],
+     "format": "carousel",
+     "hook_technique": null,
+     "structure": null,
+     "pacing": "pace_stop_motion",
+     "transitions": [
+      "tr_dissolve",
+      "tr_paint_smear"
+     ],
+     "text_treatment": "txt_handwritten",
+     "color": null,
+     "audio": "aud_voiceover",
+     "caption": "Bubbles first: how we start every lesson. Join the winter waitlist. Link in bio.",
+     "posted_at": "2026-09-23",
+     "_weak": false,
+     "_planted": true,
+     "views": 33955,
+     "saves": 1527
+    },
+    {
+     "id": "cannonball-post-09",
+     "hook": "One kid, one noodle, one very proud dad.",
+     "technique_ids": [
+      "col_aqua_grade",
+      "pace_hold_long",
+      "fmt_carousel",
+      "tr_paint_smear",
+      "pace_stop_motion",
+      "txt_handwritten"
+     ],
+     "format": "carousel",
+     "hook_technique": null,
+     "structure": null,
+     "pacing": "pace_hold_long",
+     "transitions": [
+      "tr_paint_smear"
+     ],
+     "text_treatment": "txt_handwritten",
+     "color": "col_aqua_grade",
+     "audio": null,
+     "caption": "One kid, one noodle, one very proud dad. Join the winter waitlist. Link in bio.",
+     "posted_at": "2026-09-28",
+     "_weak": false,
+     "_planted": true,
+     "views": 21369,
+     "saves": 961
+    },
+    {
+     "id": "cannonball-post-10",
+     "hook": "The water safety rule we repeat every lesson.",
+     "technique_ids": [
+      "col_aqua_grade",
+      "aud_voiceover",
+      "pace_hold_long",
+      "tr_paint_smear",
+      "pace_stop_motion",
+      "txt_handwritten"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": null,
+     "pacing": "pace_hold_long",
+     "transitions": [
+      "tr_paint_smear"
+     ],
+     "text_treatment": "txt_handwritten",
+     "color": "col_aqua_grade",
+     "audio": "aud_voiceover",
+     "caption": "The water safety rule we repeat every lesson. Join the winter waitlist. Link in bio.",
+     "posted_at": "2026-10-07",
+     "_weak": false,
+     "_planted": true,
+     "views": 16678,
+     "saves": 750
+    }
+   ]
+  },
+  {
+   "id": "byte-builders",
+   "name": "Byte Builders Academy",
+   "category": "Kids coding",
+   "status": "lead",
+   "targets": {
+    "A2": 0.8,
+    "A4": 0.5
+   },
+   "style": "sty_nerd_deadpan",
+   "secondary": "sty_parent_proof",
+   "voice": "Earnest, credential-forward",
+   "hypothesized_goal": {
+    "text": "Enroll 30 students in the winter coding camp",
+    "metric": "camp enrollments",
+    "target": 30,
+    "due": "2026-12-20"
+   },
+   "synthetic": true,
+   "neighborhood": "n_linden_hollow",
+   "posts": [
+    {
+     "id": "byte-builders-post-01",
+     "hook": "Is your kid ready for Python?",
+     "technique_ids": [
+      "aud_sfx_blips",
+      "pace_jump_cut_talk",
+      "hook_mistake_first",
+      "txt_label_callouts",
+      "txt_subtitle_bar",
+      "hook_question"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_mistake_first",
+     "structure": null,
+     "pacing": "pace_jump_cut_talk",
+     "transitions": [],
+     "text_treatment": "txt_label_callouts",
+     "color": null,
+     "audio": "aud_sfx_blips",
+     "caption": "Is your kid ready for Python?",
+     "posted_at": "2026-09-24",
+     "_weak": false,
+     "_planted": false,
+     "views": 2640,
+     "saves": 74
+    },
+    {
+     "id": "byte-builders-post-02",
+     "hook": "Our coding camp in 30 seconds",
+     "technique_ids": [
+      "txt_label_callouts",
+      "txt_terminal_type",
+      "col_mono_accent",
+      "hook_pov_text",
+      "aud_interview_bed",
+      "str_before_after"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_pov_text",
+     "structure": "str_before_after",
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": "txt_label_callouts",
+     "color": "col_mono_accent",
+     "audio": "aud_interview_bed",
+     "caption": "Our coding camp in 30 seconds",
+     "posted_at": "2026-10-01",
+     "_weak": false,
+     "_planted": false,
+     "views": 1862,
+     "saves": 48
+    },
+    {
+     "id": "byte-builders-post-03",
+     "hook": "Meet our new robotics kits",
+     "technique_ids": [
+      "col_mono_accent",
+      "hook_pov_text",
+      "txt_label_callouts",
+      "str_bug_hunt",
+      "txt_subtitle_bar",
+      "aud_interview_bed"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_pov_text",
+     "structure": "str_bug_hunt",
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": "txt_label_callouts",
+     "color": "col_mono_accent",
+     "audio": "aud_interview_bed",
+     "caption": "Meet our new robotics kits",
+     "posted_at": "2026-10-05",
+     "_weak": false,
+     "_planted": false,
+     "views": 3363,
+     "saves": 92
+    }
+   ]
+  },
+  {
+   "id": "tumble-town",
+   "name": "Tumble Town Gym",
+   "category": "Kids gymnastics",
+   "status": "lead",
+   "targets": {
+    "A1": 0.8,
+    "A2": 0.6
+   },
+   "style": "sty_hype_montage",
+   "secondary": "sty_kid_pov",
+   "voice": "High energy, cheer-squad proud",
+   "hypothesized_goal": {
+    "text": "Fill weekday after-school classes for ages 5 to 10",
+    "metric": "weekday class enrollment",
+    "target": 60,
+    "due": "2027-01-15"
+   },
+   "synthetic": true,
+   "neighborhood": "n_linden_hollow",
+   "posts": [
+    {
+     "id": "tumble-town-post-01",
+     "hook": "Cartwheel progress: week 1 vs week 8",
+     "technique_ids": [
+      "col_teal_orange",
+      "tr_zoom_punch",
+      "aud_trending_sound",
+      "tr_spin",
+      "hook_kid_voice",
+      "txt_kid_drawn",
+      "txt_kinetic_captions"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_kid_voice",
+     "structure": null,
+     "pacing": null,
+     "transitions": [
+      "tr_zoom_punch",
+      "tr_spin"
+     ],
+     "text_treatment": "txt_kid_drawn",
+     "color": "col_teal_orange",
+     "audio": "aud_trending_sound",
+     "caption": "Cartwheel progress: week 1 vs week 8",
+     "posted_at": "2026-09-24",
+     "_weak": false,
+     "_planted": false,
+     "views": 2116,
+     "saves": 46
+    },
+    {
+     "id": "tumble-town-post-02",
+     "hook": "Open gym Saturday, here's the vibe",
+     "technique_ids": [
+      "pace_fast_cuts",
+      "tr_spin",
+      "col_teal_orange",
+      "hook_countdown",
+      "aud_trending_sound",
+      "tr_jump_through",
+      "txt_kinetic_captions"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_countdown",
+     "structure": null,
+     "pacing": "pace_fast_cuts",
+     "transitions": [
+      "tr_spin",
+      "tr_jump_through"
+     ],
+     "text_treatment": "txt_kinetic_captions",
+     "color": "col_teal_orange",
+     "audio": "aud_trending_sound",
+     "caption": "Open gym Saturday, here's the vibe",
+     "posted_at": "2026-09-29",
+     "_weak": false,
+     "_planted": false,
+     "views": 1969,
+     "saves": 53
+    },
+    {
+     "id": "tumble-town-post-03",
+     "hook": "Can your kid do this balance beam challenge?",
+     "technique_ids": [
+      "pace_beat_sync",
+      "str_challenge",
+      "pace_fast_cuts",
+      "tr_spin",
+      "hook_countdown",
+      "txt_kid_drawn"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_countdown",
+     "structure": "str_challenge",
+     "pacing": "pace_beat_sync",
+     "transitions": [
+      "tr_spin"
+     ],
+     "text_treatment": "txt_kid_drawn",
+     "color": null,
+     "audio": null,
+     "caption": "Can your kid do this balance beam challenge?",
+     "posted_at": "2026-10-05",
+     "_weak": false,
+     "_planted": false,
+     "views": 1504,
+     "saves": 29
+    }
+   ]
+  },
+  {
+   "id": "treble-clef",
+   "name": "Treble Clef Music School",
+   "category": "Music lessons",
+   "status": "lead",
+   "targets": {
+    "A2": 0.6,
+    "A1": 0.4
+   },
+   "style": "sty_kid_pov",
+   "secondary": "sty_cozy_local",
+   "voice": "Warm, a little theatrical",
+   "hypothesized_goal": {
+    "text": "Book 25 new trial lessons before the winter recital",
+    "metric": "trial lessons booked",
+    "target": 25,
+    "due": "2026-12-10"
+   },
+   "synthetic": true,
+   "neighborhood": "n_linden_hollow",
+   "posts": [
+    {
+     "id": "treble-clef-post-01",
+     "hook": "First recital nerves, and how we handle them",
+     "technique_ids": [
+      "tr_object_pass",
+      "str_seamless_loop",
+      "txt_kid_drawn",
+      "txt_sticker_pop",
+      "aud_lofi_bed",
+      "pace_slow_mo"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_seamless_loop",
+     "pacing": "pace_slow_mo",
+     "transitions": [
+      "tr_object_pass"
+     ],
+     "text_treatment": "txt_kid_drawn",
+     "color": null,
+     "audio": "aud_lofi_bed",
+     "caption": "First recital nerves, and how we handle them",
+     "posted_at": "2026-09-23",
+     "_weak": false,
+     "_planted": false,
+     "views": 916,
+     "saves": 23
+    },
+    {
+     "id": "treble-clef-post-02",
+     "hook": "Guess the song from three notes",
+     "technique_ids": [
+      "txt_sticker_pop",
+      "col_pastel",
+      "str_seamless_loop",
+      "tr_object_pass",
+      "col_warm_film"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_seamless_loop",
+     "pacing": null,
+     "transitions": [
+      "tr_object_pass"
+     ],
+     "text_treatment": "txt_sticker_pop",
+     "color": "col_pastel",
+     "audio": null,
+     "caption": "Guess the song from three notes",
+     "posted_at": "2026-09-28",
+     "_weak": false,
+     "_planted": false,
+     "views": 974,
+     "saves": 19
+    },
+    {
+     "id": "treble-clef-post-03",
+     "hook": "Our tiniest violinist",
+     "technique_ids": [
+      "txt_kid_drawn",
+      "tr_jump_through",
+      "pace_rewind",
+      "hook_object_reveal",
+      "tr_object_pass",
+      "tr_snap_cut"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_object_reveal",
+     "structure": null,
+     "pacing": "pace_rewind",
+     "transitions": [
+      "tr_jump_through",
+      "tr_object_pass",
+      "tr_snap_cut"
+     ],
+     "text_treatment": "txt_kid_drawn",
+     "color": null,
+     "audio": null,
+     "caption": "Our tiniest violinist",
+     "posted_at": "2026-10-08",
+     "_weak": false,
+     "_planted": false,
+     "views": 2346,
+     "saves": 61
+    }
+   ]
+  },
+  {
+   "id": "northpoint",
+   "name": "Northpoint Tutoring",
+   "category": "Tutoring",
+   "status": "lead",
+   "targets": {
+    "A2": 0.7,
+    "A5": 0.6,
+    "A4": 0.3
+   },
+   "style": "sty_parent_proof",
+   "secondary": "sty_calm_explainer",
+   "voice": "Reassuring, results-focused",
+   "hypothesized_goal": {
+    "text": "Sign 20 families to semester math packages",
+    "metric": "semester packages",
+    "target": 20,
+    "due": "2027-01-20"
+   },
+   "synthetic": true,
+   "neighborhood": "n_linden_hollow",
+   "posts": [
+    {
+     "id": "northpoint-post-01",
+     "hook": "Fractions in 20 seconds",
+     "technique_ids": [
+      "str_listicle",
+      "col_brand_block",
+      "txt_subtitle_bar",
+      "str_before_after",
+      "txt_checklist",
+      "pace_hold_long"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_listicle",
+     "pacing": "pace_hold_long",
+     "transitions": [],
+     "text_treatment": "txt_subtitle_bar",
+     "color": "col_brand_block",
+     "audio": null,
+     "caption": "Fractions in 20 seconds",
+     "posted_at": "2026-09-23",
+     "_weak": false,
+     "_planted": false,
+     "views": 2375,
+     "saves": 42
+    },
+    {
+     "id": "northpoint-post-02",
+     "hook": "What a tutoring session actually looks like",
+     "technique_ids": [
+      "aud_interview_bed",
+      "str_parent_interview",
+      "txt_subtitle_bar",
+      "col_brand_block",
+      "fmt_reel_long",
+      "str_tutorial_steps",
+      "txt_checklist"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_parent_interview",
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": "txt_subtitle_bar",
+     "color": "col_brand_block",
+     "audio": "aud_interview_bed",
+     "caption": "What a tutoring session actually looks like",
+     "posted_at": "2026-09-28",
+     "_weak": false,
+     "_planted": false,
+     "views": 1277,
+     "saves": 28
+    },
+    {
+     "id": "northpoint-post-03",
+     "hook": "Report card season: three tips",
+     "technique_ids": [
+      "col_brand_block",
+      "str_parent_interview",
+      "fmt_reel_long",
+      "hook_question",
+      "col_aqua_grade"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_question",
+     "structure": "str_parent_interview",
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": null,
+     "color": "col_brand_block",
+     "audio": null,
+     "caption": "Report card season: three tips",
+     "posted_at": "2026-10-07",
+     "_weak": false,
+     "_planted": false,
+     "views": 2469,
+     "saves": 67
+    }
+   ]
+  },
+  {
+   "id": "page-turn",
+   "name": "Page Turn Books",
+   "category": "Bookshop with storytime",
+   "status": "lead",
+   "targets": {
+    "A1": 0.6,
+    "A6": 0.5
+   },
+   "style": "sty_cozy_local",
+   "secondary": "sty_kid_pov",
+   "voice": "Bookish, gentle humor",
+   "hypothesized_goal": {
+    "text": "Double Saturday storytime attendance",
+    "metric": "storytime attendance",
+    "target": 40,
+    "due": "2027-01-31"
+   },
+   "synthetic": true,
+   "neighborhood": "n_linden_hollow",
+   "posts": [
+    {
+     "id": "page-turn-post-01",
+     "hook": "Storytime this Saturday",
+     "technique_ids": [
+      "tr_snap_cut",
+      "pace_slow_mo",
+      "str_behind_scenes",
+      "hook_overheard",
+      "fmt_pov_cam"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_overheard",
+     "structure": "str_behind_scenes",
+     "pacing": "pace_slow_mo",
+     "transitions": [
+      "tr_snap_cut"
+     ],
+     "text_treatment": null,
+     "color": null,
+     "audio": null,
+     "caption": "Storytime this Saturday",
+     "posted_at": "2026-09-21",
+     "_weak": false,
+     "_planted": false,
+     "views": 2537,
+     "saves": 66
+    },
+    {
+     "id": "page-turn-post-02",
+     "hook": "Staff picks for 5-year-olds",
+     "technique_ids": [
+      "col_warm_film",
+      "pace_slow_mo",
+      "hook_overheard",
+      "aud_lofi_bed",
+      "tr_jump_through",
+      "txt_sticker_pop"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_overheard",
+     "structure": null,
+     "pacing": "pace_slow_mo",
+     "transitions": [
+      "tr_jump_through"
+     ],
+     "text_treatment": "txt_sticker_pop",
+     "color": "col_warm_film",
+     "audio": "aud_lofi_bed",
+     "caption": "Staff picks for 5-year-olds",
+     "posted_at": "2026-09-30",
+     "_weak": false,
+     "_planted": false,
+     "views": 5056,
+     "saves": 147
+    },
+    {
+     "id": "page-turn-post-03",
+     "hook": "What our booksellers are reading",
+     "technique_ids": [
+      "str_day_in_life",
+      "hook_overheard",
+      "col_warm_film",
+      "tr_snap_cut",
+      "txt_kid_drawn",
+      "hook_kid_voice"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_overheard",
+     "structure": "str_day_in_life",
+     "pacing": null,
+     "transitions": [
+      "tr_snap_cut"
+     ],
+     "text_treatment": "txt_kid_drawn",
+     "color": "col_warm_film",
+     "audio": null,
+     "caption": "What our booksellers are reading",
+     "posted_at": "2026-10-08",
+     "_weak": false,
+     "_planted": false,
+     "views": 3357,
+     "saves": 81
+    }
+   ]
+  },
+  {
+   "id": "crux",
+   "name": "Crux Climbing",
+   "category": "Climbing gym",
+   "status": "lead",
+   "targets": {
+    "A5": 0.7,
+    "A6": 0.6
+   },
+   "style": "sty_night_glow",
+   "secondary": "sty_hype_montage",
+   "voice": "Stoked, community first",
+   "hypothesized_goal": {
+    "text": "Sell 80 teen climb-night passes this winter",
+    "metric": "teen passes",
+    "target": 80,
+    "due": "2027-02-28"
+   },
+   "synthetic": true,
+   "neighborhood": "n_linden_hollow",
+   "posts": [
+    {
+     "id": "crux-post-01",
+     "hook": "Can you send this V2?",
+     "technique_ids": [
+      "tr_body_wipe",
+      "fmt_split_screen",
+      "aud_silence_drop",
+      "str_one_take",
+      "col_teal_orange"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_one_take",
+     "pacing": null,
+     "transitions": [
+      "tr_body_wipe"
+     ],
+     "text_treatment": null,
+     "color": "col_teal_orange",
+     "audio": "aud_silence_drop",
+     "caption": "Can you send this V2?",
+     "posted_at": "2026-09-21",
+     "_weak": false,
+     "_planted": false,
+     "views": 2684,
+     "saves": 60
+    },
+    {
+     "id": "crux-post-02",
+     "hook": "Teen climb night recap",
+     "technique_ids": [
+      "aud_count_in",
+      "tr_match_cut",
+      "hook_cold_open",
+      "tr_body_wipe",
+      "col_teal_orange"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_cold_open",
+     "structure": null,
+     "pacing": null,
+     "transitions": [
+      "tr_match_cut",
+      "tr_body_wipe"
+     ],
+     "text_treatment": null,
+     "color": "col_teal_orange",
+     "audio": "aud_count_in",
+     "caption": "Teen climb night recap",
+     "posted_at": "2026-09-30",
+     "_weak": false,
+     "_planted": false,
+     "views": 1625,
+     "saves": 38
+    },
+    {
+     "id": "crux-post-03",
+     "hook": "First time on the wall",
+     "technique_ids": [
+      "tr_match_cut",
+      "tr_body_wipe",
+      "str_one_take",
+      "pace_speed_ramp",
+      "aud_trending_sound"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_one_take",
+     "pacing": "pace_speed_ramp",
+     "transitions": [
+      "tr_match_cut",
+      "tr_body_wipe"
+     ],
+     "text_treatment": null,
+     "color": null,
+     "audio": "aud_trending_sound",
+     "caption": "First time on the wall",
+     "posted_at": "2026-10-07",
+     "_weak": false,
+     "_planted": false,
+     "views": 1236,
+     "saves": 28
+    }
+   ]
+  },
+  {
+   "id": "second-rise",
+   "name": "Second Rise Bakery",
+   "category": "Bakery",
+   "status": "lead",
+   "targets": {
+    "A6": 0.6,
+    "A3": 0.3
+   },
+   "style": "sty_cozy_local",
+   "secondary": "sty_messy_process",
+   "voice": "Early-morning warm",
+   "hypothesized_goal": {
+    "text": "Grow weekday preorders to 50 a day",
+    "metric": "weekday preorders",
+    "target": 50,
+    "due": "2027-01-31"
+   },
+   "synthetic": true,
+   "neighborhood": "n_linden_hollow",
+   "posts": [
+    {
+     "id": "second-rise-post-01",
+     "hook": "4am, first loaves out",
+     "technique_ids": [
+      "hook_overheard",
+      "txt_serif_caption",
+      "aud_lofi_bed",
+      "str_day_in_life",
+      "aud_asmr_process"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_overheard",
+     "structure": "str_day_in_life",
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": "txt_serif_caption",
+     "color": null,
+     "audio": "aud_lofi_bed",
+     "caption": "4am, first loaves out",
+     "posted_at": "2026-09-21",
+     "_weak": false,
+     "_planted": false,
+     "views": 2468,
+     "saves": 56
+    },
+    {
+     "id": "second-rise-post-02",
+     "hook": "Croissant lamination, slowed down",
+     "technique_ids": [
+      "tr_snap_cut",
+      "hook_overheard",
+      "fmt_photo_dump",
+      "aud_room_tone",
+      "col_primary_pop",
+      "aud_asmr_process"
+     ],
+     "format": "carousel",
+     "hook_technique": "hook_overheard",
+     "structure": null,
+     "pacing": null,
+     "transitions": [
+      "tr_snap_cut"
+     ],
+     "text_treatment": null,
+     "color": "col_primary_pop",
+     "audio": "aud_room_tone",
+     "caption": "Croissant lamination, slowed down",
+     "posted_at": "2026-10-01",
+     "_weak": false,
+     "_planted": false,
+     "views": 1354,
+     "saves": 20
+    },
+    {
+     "id": "second-rise-post-03",
+     "hook": "What's fresh this weekend",
+     "technique_ids": [
+      "tr_snap_cut",
+      "aud_room_tone",
+      "fmt_photo_dump",
+      "aud_lofi_bed",
+      "str_behind_scenes",
+      "aud_asmr_process",
+      "hook_result_first"
+     ],
+     "format": "carousel",
+     "hook_technique": "hook_result_first",
+     "structure": "str_behind_scenes",
+     "pacing": null,
+     "transitions": [
+      "tr_snap_cut"
+     ],
+     "text_treatment": null,
+     "color": null,
+     "audio": "aud_room_tone",
+     "caption": "What's fresh this weekend",
+     "posted_at": "2026-10-08",
+     "_weak": false,
+     "_planted": false,
+     "views": 2180,
+     "saves": 52
+    }
+   ]
+  },
+  {
+   "id": "corner-cup",
+   "name": "Corner Cup Cafe",
+   "category": "Cafe",
+   "status": "lead",
+   "targets": {
+    "A6": 0.8,
+    "A3": 0.3
+   },
+   "style": "sty_cozy_local",
+   "secondary": "sty_night_glow",
+   "voice": "Friendly regulars' spot",
+   "hypothesized_goal": {
+    "text": "Lift weekday afternoon sales by 20%",
+    "metric": "weekday afternoon sales",
+    "target": 20,
+    "due": "2027-01-31"
+   },
+   "synthetic": true,
+   "neighborhood": "n_linden_hollow",
+   "posts": [
+    {
+     "id": "corner-cup-post-01",
+     "hook": "Latte art fail compilation",
+     "technique_ids": [
+      "fmt_photo_dump",
+      "str_behind_scenes",
+      "hook_overheard",
+      "aud_room_tone",
+      "pace_speed_ramp",
+      "col_high_key"
+     ],
+     "format": "carousel",
+     "hook_technique": "hook_overheard",
+     "structure": "str_behind_scenes",
+     "pacing": "pace_speed_ramp",
+     "transitions": [],
+     "text_treatment": null,
+     "color": "col_high_key",
+     "audio": "aud_room_tone",
+     "caption": "Latte art fail compilation",
+     "posted_at": "2026-09-22",
+     "_weak": false,
+     "_planted": false,
+     "views": 1500,
+     "saves": 26
+    },
+    {
+     "id": "corner-cup-post-02",
+     "hook": "Meet our regulars",
+     "technique_ids": [
+      "fmt_photo_dump",
+      "hook_overheard",
+      "str_behind_scenes",
+      "aud_lofi_bed",
+      "tr_match_cut",
+      "pace_speed_ramp"
+     ],
+     "format": "carousel",
+     "hook_technique": "hook_overheard",
+     "structure": "str_behind_scenes",
+     "pacing": "pace_speed_ramp",
+     "transitions": [
+      "tr_match_cut"
+     ],
+     "text_treatment": null,
+     "color": null,
+     "audio": "aud_lofi_bed",
+     "caption": "Meet our regulars",
+     "posted_at": "2026-09-28",
+     "_weak": false,
+     "_planted": false,
+     "views": 1827,
+     "saves": 35
+    },
+    {
+     "id": "corner-cup-post-03",
+     "hook": "New fall menu",
+     "technique_ids": [
+      "fmt_photo_dump",
+      "aud_lofi_bed",
+      "tr_snap_cut",
+      "hook_overheard",
+      "hook_cold_open",
+      "pace_speed_ramp"
+     ],
+     "format": "carousel",
+     "hook_technique": "hook_overheard",
+     "structure": null,
+     "pacing": "pace_speed_ramp",
+     "transitions": [
+      "tr_snap_cut"
+     ],
+     "text_treatment": null,
+     "color": null,
+     "audio": "aud_lofi_bed",
+     "caption": "New fall menu",
+     "posted_at": "2026-10-06",
+     "_weak": false,
+     "_planted": false,
+     "views": 1456,
+     "saves": 18
+    }
+   ]
+  },
+  {
+   "id": "still-water",
+   "name": "Still Water Yoga",
+   "category": "Yoga",
+   "status": "lead",
+   "targets": {
+    "A6": 0.9
+   },
+   "style": "sty_calm_explainer",
+   "secondary": "sty_cozy_local",
+   "voice": "Quiet, unhurried",
+   "hypothesized_goal": {
+    "text": "Sell 40 new intro-month passes",
+    "metric": "intro passes",
+    "target": 40,
+    "due": "2027-01-31"
+   },
+   "synthetic": true,
+   "neighborhood": "n_linden_hollow",
+   "posts": [
+    {
+     "id": "still-water-post-01",
+     "hook": "Five-minute desk stretch",
+     "technique_ids": [
+      "txt_checklist",
+      "pace_hold_long",
+      "pace_slow_reveal",
+      "str_tutorial_steps",
+      "tr_dissolve",
+      "tr_snap_cut"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_tutorial_steps",
+     "pacing": "pace_hold_long",
+     "transitions": [
+      "tr_dissolve",
+      "tr_snap_cut"
+     ],
+     "text_treatment": "txt_checklist",
+     "color": null,
+     "audio": null,
+     "caption": "Five-minute desk stretch",
+     "posted_at": "2026-09-24",
+     "_weak": false,
+     "_planted": false,
+     "views": 1706,
+     "saves": 50
+    },
+    {
+     "id": "still-water-post-02",
+     "hook": "Sunrise class, no talking",
+     "technique_ids": [
+      "str_tutorial_steps",
+      "aud_voiceover",
+      "pace_hold_long",
+      "pace_slow_reveal",
+      "txt_checklist",
+      "pace_slow_mo"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_tutorial_steps",
+     "pacing": "pace_hold_long",
+     "transitions": [],
+     "text_treatment": "txt_checklist",
+     "color": null,
+     "audio": "aud_voiceover",
+     "caption": "Sunrise class, no talking",
+     "posted_at": "2026-09-30",
+     "_weak": false,
+     "_planted": false,
+     "views": 2415,
+     "saves": 35
+    },
+    {
+     "id": "still-water-post-03",
+     "hook": "What to bring to your first class",
+     "technique_ids": [
+      "pace_hold_long",
+      "hook_myth_bust",
+      "tr_dissolve",
+      "txt_lower_third",
+      "txt_checklist",
+      "aud_lofi_bed"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_myth_bust",
+     "structure": null,
+     "pacing": "pace_hold_long",
+     "transitions": [
+      "tr_dissolve"
+     ],
+     "text_treatment": "txt_lower_third",
+     "color": null,
+     "audio": "aud_lofi_bed",
+     "caption": "What to bring to your first class",
+     "posted_at": "2026-10-06",
+     "_weak": false,
+     "_planted": false,
+     "views": 3722,
+     "saves": 49
+    }
+   ]
+  },
+  {
+   "id": "good-boy",
+   "name": "Good Boy Grooming",
+   "category": "Pet grooming",
+   "status": "lead",
+   "targets": {
+    "A6": 0.7
+   },
+   "style": "sty_kid_pov",
+   "secondary": "sty_parent_proof",
+   "voice": "Goofy, dog-obsessed",
+   "hypothesized_goal": {
+    "text": "Book 30 new-client grooms a month",
+    "metric": "new-client grooms",
+    "target": 30,
+    "due": "2027-01-31"
+   },
+   "synthetic": true,
+   "neighborhood": "n_linden_hollow",
+   "posts": [
+    {
+     "id": "good-boy-post-01",
+     "hook": "Before and after: Biscuit's spa day",
+     "technique_ids": [
+      "hook_kid_voice",
+      "txt_kid_drawn",
+      "hook_object_reveal",
+      "pace_rewind",
+      "tr_object_pass",
+      "txt_big_number"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_kid_voice",
+     "structure": null,
+     "pacing": "pace_rewind",
+     "transitions": [
+      "tr_object_pass"
+     ],
+     "text_treatment": "txt_kid_drawn",
+     "color": null,
+     "audio": null,
+     "caption": "Before and after: Biscuit's spa day",
+     "posted_at": "2026-09-23",
+     "_weak": false,
+     "_planted": false,
+     "views": 2694,
+     "saves": 49
+    },
+    {
+     "id": "good-boy-post-02",
+     "hook": "Nail trim without the drama",
+     "technique_ids": [
+      "tr_object_pass",
+      "txt_sticker_pop",
+      "hook_kid_voice",
+      "hook_object_reveal",
+      "tr_jump_through",
+      "str_before_after",
+      "hook_question"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_kid_voice",
+     "structure": "str_before_after",
+     "pacing": null,
+     "transitions": [
+      "tr_object_pass",
+      "tr_jump_through"
+     ],
+     "text_treatment": "txt_sticker_pop",
+     "color": null,
+     "audio": null,
+     "caption": "Nail trim without the drama",
+     "posted_at": "2026-09-30",
+     "_weak": false,
+     "_planted": false,
+     "views": 1311,
+     "saves": 16
+    },
+    {
+     "id": "good-boy-post-03",
+     "hook": "Our groomers' favorite breeds",
+     "technique_ids": [
+      "str_seamless_loop",
+      "hook_object_reveal",
+      "tr_object_pass",
+      "txt_kid_drawn",
+      "col_brand_block"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_object_reveal",
+     "structure": "str_seamless_loop",
+     "pacing": null,
+     "transitions": [
+      "tr_object_pass"
+     ],
+     "text_treatment": "txt_kid_drawn",
+     "color": "col_brand_block",
+     "audio": null,
+     "caption": "Our groomers' favorite breeds",
+     "posted_at": "2026-10-05",
+     "_weak": false,
+     "_planted": false,
+     "views": 1740,
+     "saves": 24
+    }
+   ]
+  }
+ ],
+ "planted": {
+  "collision_techniques": [
+   "tr_paint_smear",
+   "pace_stop_motion",
+   "txt_handwritten"
+  ],
+  "collision_between": [
+   "wet-paint",
+   "cannonball"
+  ],
+  "pitch_collision_techniques": [
+   "tr_spin",
+   "txt_kinetic_captions"
+  ],
+  "pitch_collision_between": [
+   "tumble-town",
+   "treble-clef"
+  ]
+ },
+ "spec_seeds": {
+  "tumble-town": [
+   {
+    "techniques": [
+     "tr_spin",
+     "txt_kinetic_captions",
+     "str_challenge",
+     "pace_beat_sync",
+     "tr_whip_pan"
+    ],
+    "note": "Tumble Town's own house moves"
+   },
+   {
+    "techniques": [
+     "tr_paint_smear",
+     "pace_stop_motion",
+     "pace_beat_sync",
+     "tr_zoom_punch",
+     "col_teal_orange"
+    ],
+    "note": "PLANTED: borrows the best-performing kids-art moves in Linden Hollow (Wet Paint's signature)"
+   },
+   {
+    "techniques": [
+     "txt_kinetic_captions",
+     "hook_countdown",
+     "aud_trending_sound",
+     "tr_zoom_punch",
+     "str_challenge"
+    ],
+    "note": "Tumble Town's own house moves"
+   }
+  ],
+  "treble-clef": [
+   {
+    "techniques": [
+     "tr_spin",
+     "txt_kinetic_captions",
+     "str_challenge",
+     "tr_zoom_punch",
+     "str_seamless_loop"
+    ],
+    "note": "PLANTED: built from the same style slice as Tumble Town's spec work"
+   },
+   {
+    "techniques": [
+     "hook_object_reveal",
+     "pace_rewind",
+     "txt_kid_drawn",
+     "fmt_pov_cam",
+     "hook_kid_voice"
+    ],
+    "note": "Treble Clef's own territory"
+   },
+   {
+    "techniques": [
+     "pace_rewind",
+     "tr_object_pass",
+     "tr_jump_through",
+     "col_pastel",
+     "txt_kid_drawn"
+    ],
+    "note": "Treble Clef's own territory"
+   }
+  ]
+ },
+ "draft_seeds": {
+  "cannonball": [
+   {
+    "techniques": [
+     "tr_paint_smear",
+     "pace_stop_motion",
+     "str_tutorial_steps",
+     "pace_hold_long",
+     "tr_dissolve",
+     "col_aqua_grade"
+    ],
+    "note": "PLANTED: reuses what worked best in Cannonball's history, which is Wet Paint's signature"
+   }
+  ]
+ },
+ "demo": {
+  "pursue": [
+   "tumble-town",
+   "treble-clef"
+  ],
+  "sign": "tumble-town"
+ }
+}

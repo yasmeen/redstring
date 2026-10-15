@@ -1,0 +1,50 @@
+{
+ "business": "tumble-town",
+ "researched_at": "2026-10-15",
+ "note": "Real public-web research on the category and audience. The business itself is fictional.",
+ "findings": [
+  {
+   "kind": "audience",
+   "text": "In a 2014 espnW/Aspen Institute Project Play survey, more than 8 in 10 parents were concerned about the quality or behavior of youth coaches (61% called it a big concern), and more than 87% worried about injury risk.",
+   "source_url": "https://espnpressroom.com/us/press-releases/2014/10/most-parents-have-big-concern-with-quality-and-behavior-of-youth-coaches/",
+   "source_title": "Most Parents have \u201cBig Concern\u201d with Quality and Behavior of Youth Coaches - ESPN Press Room"
+  },
+  {
+   "kind": "audience",
+   "text": "Coach credentials parents can ask about: USA Gymnastics requires adult recreational coach members to pass a background check every two years and complete U.S. Center for SafeSport training (U110), the U112 course, and a concussion education acknowledgment.",
+   "source_url": "https://usagym.org/membership/join/recreational-coach/",
+   "source_title": "Recreational Coach \u2022 USA Gymnastics"
+  },
+  {
+   "kind": "audience",
+   "text": "Pew (2015): 73% of parents of kids ages 6-17 said their children did sports or athletic activities in the past 12 months. For the youngest group, four in ten parents of children 5 or younger said the same.",
+   "source_url": "https://www.pewresearch.org/social-trends/2015/12/17/5-childrens-extracurricular-activities/",
+   "source_title": "Parental attitudes on children\u2019s extracurricular activities"
+  },
+  {
+   "kind": "audience",
+   "text": "Cost is a real factor: Project Play's 2022 parent survey found the average family spent $883 a year on one child's primary sport, down 6% from pre-pandemic levels.",
+   "source_url": "https://projectplay.org/state-of-play-2022/costs-to-play-trends",
+   "source_title": "Costs to Play Trends - State of Play 2022 - Project Play"
+  },
+  {
+   "kind": "audience",
+   "text": "After-school coverage gap: America After 3PM (Oct 2025) found parents of about 29.6 million children want an afterschool program, and 22.6 million of those kids are not in one but would enroll if one were available.",
+   "source_url": "https://afterschoolalliance.org/documents/AA3PM-2025/AA3PM-Lost-Opportunity-Afterschool-in-Demand-But-Out-of-Reach-for-Many-Full-Report-2025.pdf",
+   "source_title": "Afterschool in Demand, But Out of Reach for Many (America After 3PM, Fifth Edition, October 2025)"
+  },
+  {
+   "kind": "competitor",
+   "text": "Birthday parties are a standard gym offer: when class-management vendor Jackrabbit polled its gym users on their most popular special events, hosting birthday parties came out on top, and party guests who don't take classes are treated as new leads.",
+   "source_url": "https://www.jackrabbitclass.com/blog/hosting-birthday-parties-at-your-facility/",
+   "source_title": "How to Generate Revenue by Hosting Birthday Parties at Your Facility"
+  },
+  {
+   "kind": "channel",
+   "text": "Short-form video leads social engagement: in the Sprout Social Index 2022, 66% of consumers found short-form video the most engaging type of in-feed content, with static images second at 61%.",
+   "source_url": "https://media.sproutsocial.com/uploads/2022/12/Sprout-Social-The-Content-Benchmarks-Report_2023_v5.pdf",
+   "source_title": "The 2023 Content Benchmarks Report - Sprout Social"
+  }
+ ],
+ "verification": "Matched from search-result text, not read from the page itself. Spot-check each source_url before the demo."
+}
