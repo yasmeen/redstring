@@ -80,7 +80,7 @@ def _studio_context(businesses: list[dict]) -> tuple[list[dict], list[dict]]:
             needs_you.append({
                 "type": "borderline",
                 "business_id": business["id"],
-                "message": f"Board call: decide whether to pursue {business['name']}",
+                "message": f"Decide whether to pursue {business['name']}",
             })
 
     for slug, data in client_data.items():
@@ -110,7 +110,7 @@ def _studio_context(businesses: list[dict]) -> tuple[list[dict], list[dict]]:
                 "type": "blocked",
                 "business_id": slug,
                 "draft_id": draft_id,
-                "message": f"{business['name']}'s draft looked like {flag['with_business']}'s work to the same parents. Revised.",
+                "message": f"{business['name']}'s draft looked like {flag['with_business']}'s work to the same people. Revised.",
             })
 
     for business in businesses:
