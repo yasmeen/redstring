@@ -27,8 +27,11 @@ async function refresh() {
   $("#mode").textContent = `agents: ${o.mode}${o.readonly ? " · read-only link" : ""}`;
   if (o.readonly) $("#steps").hidden = true;
   $("#meta").innerHTML = o.graphs.map((g) => `<span class="pill">${esc(g)}</span>`).join("");
-  $("#steps").innerHTML = o.steps.map((s, i) =>
-    `<li class="${s.done ? "done" : ""}"><button data-step="${esc(s.id)}" title="${esc(s.label)}">${i}. ${esc(s.label)}</button></li>`).join("");
+  $("#steps").innerHTML = o.steps.map((s, i) => {
+    const disabled = i > 0 && !o.steps[i - 1].done;
+    const title = disabled ? `Run step ${i - 1} first` : s.label;
+    return `<li class="${s.done ? "done" : ""}"><button data-step="${esc(s.id)}" ${disabled ? "disabled" : ""} title="${esc(title)}">${i}. ${esc(s.label)}</button></li>`;
+  }).join("");
   $("#log").textContent = o.log.join("\n");
   $("#log").scrollTop = 1e6;
   $("#board").innerHTML = COLUMNS.map(([title, test]) => {

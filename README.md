@@ -7,6 +7,8 @@ An agent-run creative agency that wins clients by doing the work first. It scree
 - **Threads** are the route cards: the string from an answer back to its sources.
 - **Corkboard Studio** is a placeholder name for the agency running Red String in the demo. It is not the product.
 
+**Live demo:** [Red String](https://redstring-production-84af.up.railway.app) is read-only; the step runner is hidden there and runs locally.
+
 ## What is real and what is synthetic
 
 | Real | Synthetic, and labeled as such |
