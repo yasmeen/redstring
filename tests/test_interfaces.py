@@ -13,15 +13,15 @@ def test_every_spec_query_is_a_named_tool():
 
 
 def test_tool_properties_match_function_parameters():
-    for t in registry.TOOLS:
-        assert set(t.properties) <= set(inspect.signature(t.fn).parameters), t.name
+    for tool in registry.TOOLS:
+        assert set(tool.properties) <= set(inspect.signature(tool.fn).parameters), tool.name
 
 
-def test_audiences_of_tool_accepts_client_schema():
+def test_audiences_of_tool_accepts_client_argument():
     tools._world_cache = None
     seed.seed_all()
-    audience_tool = next(t for t in registry.TOOLS if t.name == "audiences_of")
-    assert audience_tool.call({"client": "wet-paint"})
+    tool = next(t for t in registry.TOOLS if t.name == "audiences_of")
+    assert tool.call({"client": "wet-paint"})
 
 
 def test_mcp_server_lists_and_calls_tools():

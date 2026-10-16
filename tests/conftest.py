@@ -27,6 +27,7 @@ def falkordb():
     proc = subprocess.Popen([str(bindir / "redis-server"), "--port", str(port), "--dir", tmp, "--save", "",
                              "--loadmodule", str(bindir / "falkordb.so")], stdout=subprocess.DEVNULL)
     config.FALKORDB_HOST, config.FALKORDB_PORT = "127.0.0.1", port
+    config.FALKORDB_USERNAME = config.FALKORDB_PASSWORD = None
     db.connect.cache_clear()
     for _ in range(50):
         try:
