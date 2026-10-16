@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
 
-from redstring import registry, seed, tools
+from redstring import db, registry, seed, tools
 
 
 def test_every_spec_query_is_a_named_tool():
@@ -39,11 +39,12 @@ def test_mcp_server_lists_and_calls_tools():
     assert '"verdict": "pursue_differentiated"' in str(out)
 
 
-def test_web_try_inputs():
-    from redstring.web.app import app
+def test_web_try_inputs(monkeypatch):
+    import redstring.web.app as web
+    monkeypatch.setattr(web, "READONLY", False)
     tools._world_cache = None
     seed.seed_all()
-    c = TestClient(app)
+    c = TestClient(web.app)
     overview = c.get("/api/overview")
     assert overview.status_code == 200
     assert any(a["id"] == "A7" for a in overview.json()["audiences"])
@@ -53,6 +54,7 @@ def test_web_try_inputs():
     r = c.post("/api/try/lead", json={"name": "Sprout Dance", "category": "Kids dance", "targets": {"A1": 1},
                                      "neighborhood": "n_flatiron"}).json()
     assert r["verdict"] == "pursue_differentiated"
+    assert r["saved"] is True
     r = c.post("/api/try/lead", json={"name": "Adult Culture Club", "category": "Community events",
                                      "targets": {"A6": 1}, "neighborhood": "n_flatiron"}).json()
     assert r["verdict"] == "pursue"
@@ -65,6 +67,33 @@ def test_web_try_inputs():
     r = c.post("/api/try/draft", json={"client": "cannonball", "technique_ids": planted}).json()
     assert r["flagged"]
     assert c.post("/api/try/lead", json={"name": "xx", "category": "yy", "targets": {}}).status_code == 400
+
+
+def test_web_try_lead_readonly_saves_nothing(monkeypatch):
+    import redstring.web.app as web
+    tools._world_cache = None
+    seed.seed_all()
+    monkeypatch.setattr(web, "READONLY", True)
+    c = TestClient(web.app)
+
+    def counts():
+        g = db.agency()
+        return (
+            db.rows(g, "MATCH (b:Business) RETURN count(b) AS count")[0]["count"],
+            db.rows(g, "MATCH (d:Decision) RETURN count(d) AS count")[0]["count"],
+            db.rows(g, "MATCH ()-[s:SCREENED]->() RETURN count(s) AS count")[0]["count"],
+        )
+
+    before = counts()
+    r = c.post("/api/try/lead", json={"name": "Sprout Dance", "category": "Kids dance", "targets": {"A1": 1},
+                                     "neighborhood": "n_flatiron"}).json()
+    assert r["verdict"] == "pursue_differentiated"
+    assert r["saved"] is False
+    r = c.post("/api/try/lead", json={"name": "Swim Prospect", "category": "Swim lessons",
+                                     "targets": {"A1": 0.6}, "neighborhood": "n_gramercy"}).json()
+    assert r["verdict"] == "decline"
+    assert r["saved"] is False
+    assert counts() == before
 
 
 def test_step_api_enforces_order():
