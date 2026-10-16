@@ -67,6 +67,19 @@ def test_web_try_inputs():
     assert c.post("/api/try/lead", json={"name": "xx", "category": "yy", "targets": {}}).status_code == 400
 
 
+def test_step_api_enforces_order():
+    import redstring.web.app as web
+    web._done.clear()
+    web._log.clear()
+    c = TestClient(web.app)
+
+    assert c.post("/api/step/reset").status_code == 200
+    r = c.post("/api/step/retire_goal")
+    assert r.status_code == 409
+    assert "client_month" in r.json()["detail"]
+    assert c.post("/api/step/screen").status_code == 200
+
+
 class FakeMessages:
     """Scripted model: calls lead_conflict, then record_screening, then finishes."""
 

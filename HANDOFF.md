@@ -1,6 +1,6 @@
 # Handoff: what's left before the Friday 7pm ET freeze
 
-Work from branch `claude/friendly-bell-pjidqd`. It is the only branch with code. Before anything is pushed:
+Work from branch `main`. Before anything is pushed:
 
 - `pytest` passes. It boots its own FalkorDB, so it needs no setup.
 - `redstring check` and `redstring demo` both run clean.
