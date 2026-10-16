@@ -41,7 +41,7 @@ pytest               # boots its own throwaway FalkorDB
 
 **Agents.** `REDSTRING_MODE=offline` (the default) runs deterministic agents that write the same nodes through the same tools, with templated text. `REDSTRING_MODE=claude` (or `redstring demo --mode claude`) runs each agent as a Claude tool-use loop (`claude-opus-5-5`, adaptive thinking, server-side refusal fallback) whose only graph access is its slice of the tool registry. The Researcher also gets web search, and its findings are cached to `data/research/<slug>.json` so reruns replay them. Set `ANTHROPIC_API_KEY` first. Claude mode has only been exercised against a scripted fake client so far; run it once with a real key before relying on it.
 
-**Deploy.** Set `REDSTRING_READONLY=1` on a public link: visitors can still use both try-it inputs, but cannot reset the demo or act as the board. `docker compose up` runs both services. For a hosted demo, point `FALKORDB_HOST`, `FALKORDB_PORT`, `FALKORDB_USERNAME` and `FALKORDB_PASSWORD` at FalkorDB Cloud and deploy the `Dockerfile`. It seeds on boot.
+**Deploy.** Set `REDSTRING_READONLY=1` on a public link: visitors can still use both try-it inputs, but cannot reset the demo or act as the board. `docker compose up` runs both services. For a hosted demo, point `FALKORDB_HOST`, `FALKORDB_PORT`, `FALKORDB_USERNAME` and `FALKORDB_PASSWORD` at FalkorDB Cloud and deploy the `Dockerfile`. Read-only deployments boot with the finished offline run.
 
 ## Graph architecture
 

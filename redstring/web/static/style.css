@@ -63,16 +63,27 @@ h1, h2, h3, h4, p { margin: 0; }
 .wordmark svg { width: 2.1rem; height: 2.1rem; flex-shrink: 0; }
 .thesis { margin-top: 10px; font-size: 1.0625rem; line-height: 1.45; max-width: 62ch; }
 .thesis b { color: var(--thread-deep); }
-.usecase { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(252, 250, 249, 0.6); font-size: 0.875rem; color: var(--muted); }
-.usecase p { line-height: 1.45; }
-.usecase .label { margin-right: 6px; }
-.usecase #agency { color: var(--ink); }
-.synthetic { display: inline-block; font: 600 0.75rem/1 var(--mono); color: var(--muted); border: 1px dashed var(--line-strong); border-radius: 4px; padding: 3px 6px; white-space: nowrap; }
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(252, 250, 249, 0.6); }
+.workspace .label { display: block; margin-bottom: 6px; }
+.workspace-agency { font-size: 1.125rem; line-height: 1.25; color: var(--ink); }
+.workspace-locations { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 8px; color: var(--muted); font-size: 0.875rem; line-height: 1.45; }
+.text-button { min-height: 40px; padding: 8px 2px; border: 0; background: transparent; color: var(--thread-deep); font: 600 0.8125rem/1.2 var(--sans); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.text-button:hover { color: var(--ink); }
 .graphs { font: 0.75rem/1.6 var(--mono); }
 .graphs #meta { color: var(--ink); }
-.mode { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: var(--ash-deep); color: var(--ink); font: 600 0.75rem/1.6 var(--mono); }
+.mode { display: inline-block; padding: 1px 7px; border-radius: 999px; background: var(--ash-deep); color: var(--ink); font: 600 0.75rem/1.6 var(--mono); }
 
-/* ------------------------------------------------------------------ demo run: steps are knots on one thread */
+/* ------------------------------------------------------------------ first-visit intro */
+
+.intro { width: calc(100% - var(--gutter) - var(--gutter)); max-width: calc(1760px - var(--gutter) - var(--gutter)); margin: 10px auto 0; padding: 20px 22px; }
+.intro-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.intro-steps { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 16px 0 18px; padding: 0; counter-reset: intro; }
+.intro-steps li { position: relative; min-height: 100%; padding: 13px 14px 13px 44px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(237, 230, 228, 0.35); color: var(--muted); font-size: 0.875rem; line-height: 1.5; }
+.intro-steps li::before { counter-increment: intro; content: counter(intro); position: absolute; left: 12px; top: 12px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--thread); color: var(--card); font: 700 0.75rem/1 var(--sans); }
+.intro-steps strong { color: var(--ink); }
+.intro-actions { display: flex; flex-wrap: wrap; gap: 8px 10px; }
+
+/* ------------------------------------------------------------------ agent run: steps are knots on one thread */
 
 .runner { max-width: 1760px; margin: 0 auto; padding: 6px var(--gutter) 10px; }
 .runner-inner { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 12px 0 10px; display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 4px 16px; align-items: start; }
@@ -259,7 +270,6 @@ legend .muted { font-weight: 400; }
 .panel { background: var(--card); border-radius: 12px; box-shadow: 0 1px 0 var(--line), var(--shadow-card); padding: 22px 24px 24px; min-width: 0; }
 .panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; margin-bottom: 6px; }
 .panel-sub { font-size: 0.9375rem; color: var(--muted); margin-bottom: 16px; max-width: 60ch; }
-.query-tag { font: 600 0.75rem/1 var(--mono); color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; }
 #lead-result:not(:empty), #draft-result:not(:empty) { margin-top: 16px; }
 
 .feed { list-style: none; margin: 0; padding: 0; max-height: 26rem; overflow: auto; }
@@ -268,6 +278,21 @@ legend .muted { font-weight: 400; }
 .feed .who { font-weight: 700; }
 .feed .g { font: 0.75rem var(--mono); color: var(--muted); }
 .feed li.empty { display: block; color: var(--muted); }
+
+/* ------------------------------------------------------------------ implementation details */
+
+.under-hood { width: calc(100% - var(--gutter) - var(--gutter)); max-width: calc(1760px - var(--gutter) - var(--gutter)); margin: 0 auto 48px; padding: 16px 20px; }
+.under-hood > summary { cursor: pointer; }
+.under-hood > summary:hover { color: var(--thread-deep); }
+.under-hood-content { display: grid; gap: 12px; padding-top: 16px; }
+.under-hood-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.under-hood-meta .graphs { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.under-hood-meta .label { margin-right: 2px; }
+.under-hood-copy { color: var(--muted); font-size: 0.875rem; }
+.thresholds { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 16px; margin: 0; }
+.thresholds > div { padding: 8px 0; border-top: 1px solid var(--line); }
+.thresholds dt { color: var(--muted); font-size: 0.75rem; }
+.thresholds dd { margin: 2px 0 0; font: 600 0.875rem/1.4 var(--mono); }
 
 /* ------------------------------------------------------------------ route and pitch cards (modal sheet) */
 
@@ -299,6 +324,8 @@ dialog#card::backdrop { background: rgba(42, 28, 31, 0.5); }
 }
 
 @media (max-width: 760px) {
+  .intro-steps { grid-template-columns: 1fr; gap: 8px; }
+  .thresholds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .runner-inner { grid-template-columns: 1fr; }
   .runner-status, .readonly-note { grid-column: 1; }
   .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 10px; }

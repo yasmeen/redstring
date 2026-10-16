@@ -1,12 +1,36 @@
 const $ = (s) => document.querySelector(s);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const chip = (v, label) => (v || label) ? `<span class="chip ${esc(v || "plain")}">${esc(label || String(v).replace(/_/g, " "))}</span>` : "";
+const VERDICT_LABELS = {
+  decline: "Decline: competes nearby",
+  pursue: "Pitch",
+  pursue_differentiated: "Pitch with a distinct angle",
+  borderline: "Board call",
+};
+const VERDICT_HELP = {
+  decline: "Same category as a signed client in the same neighborhood.",
+  pursue: "Little audience overlap with signed clients.",
+  pursue_differentiated: "Reaches the same people as a client; pitch only with a different creative angle.",
+  borderline: "Partial overlap; the board decides.",
+};
+const chip = (v, label) => {
+  if (!(v || label)) return "";
+  const verdict = label === undefined && Object.prototype.hasOwnProperty.call(VERDICT_LABELS, v);
+  const title = verdict ? ` title="${esc(VERDICT_HELP[v])}"` : "";
+  return `<span class="chip ${esc(v || "plain")}"${title}>${esc(label || VERDICT_LABELS[v] || String(v).replace(/_/g, " "))}</span>`;
+};
+const VERDICT_TEXT = new RegExp(`\\b(${Object.keys(VERDICT_LABELS).join("|")})\\b`, "g");
+const displayCopy = (text) => String(text ?? "")
+  .replace(VERDICT_TEXT, (verdict) => VERDICT_LABELS[verdict])
+  .replace(/The hackathon build sends nothing\./gi, "Nothing is sent from this workspace.");
 const n = (x, d = 2) => (typeof x === "number" ? x.toFixed(d) : "");
 const link = (u) => u ? `<a class="src" href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a>` : `<span class="muted">no source URL</span>`;
 const hoodOf = (b) => b.neighborhood_name || b.neighborhood || "";
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const splitQuery = window.matchMedia("(min-width: 1100px)");
 const isSplit = () => splitQuery.matches;
+const intro = $("#intro");
+const introButton = $("#intro-open");
+const introKey = "rs-intro-dismissed";
 
 async function api(path, opts = {}) {
   const r = await fetch(path, { headers: { "content-type": "application/json" }, ...opts });
@@ -16,6 +40,32 @@ async function api(path, opts = {}) {
 
 // selected: the business in the dossier. pinned: the viewer picked it (otherwise the dossier follows the action).
 let state = { overview: null, techniques: [], selected: null, pinned: false, animating: false };
+
+function setIntroVisible(visible) {
+  intro.hidden = !visible;
+  introButton.setAttribute("aria-expanded", String(visible));
+}
+
+function dismissIntro() {
+  setIntroVisible(false);
+  localStorage.setItem(introKey, "1");
+}
+
+setIntroVisible(localStorage.getItem(introKey) !== "1");
+introButton.addEventListener("click", () => {
+  setIntroVisible(true);
+  intro.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "center" });
+  $("#intro-title").focus();
+});
+$("#intro-got-it").addEventListener("click", () => {
+  dismissIntro();
+  $("#board-h").focus();
+});
+$("#intro-see-draft").addEventListener("click", async () => {
+  await select("tumble-town");
+  dismissIntro();
+  $("#dossier-h")?.focus();
+});
 
 // Short names for the step knots. The full label from the server stays in the title, aria-label and "Next" line.
 const STEP_SHORT = {
@@ -36,9 +86,16 @@ async function refresh() {
   state.overview = o;
   document.body.classList.toggle("readonly", !!o.readonly);
   $("#agency").textContent = o.agency;
-  $("#mode").textContent = `agents: ${o.mode}${o.readonly ? " · read-only link" : ""}`;
+  $("#mode").textContent = `agents: ${o.mode}${o.readonly ? " · read-only" : ""}`;
   $("#meta").textContent = o.graphs.join(" · ");
-  $("#biz-count").textContent = `${o.businesses.length} businesses · all synthetic`;
+  $("#biz-count").textContent = `${o.businesses.length} businesses in the pipeline`;
+  const thresholds = o.thresholds || {};
+  $("#thresholds").innerHTML = [
+    ["Rare technique", thresholds.rare],
+    ["Flag risk", thresholds.flag_risk],
+    ["Differentiate", thresholds.differentiate],
+    ["Borderline", thresholds.borderline],
+  ].map(([label, value]) => `<div><dt>${esc(label)}</dt><dd>${n(value)}</dd></div>`).join("");
   // The dossier follows the run (the business in the latest log line) until the viewer picks a card.
   let moved = false;
   if (!state.pinned && isSplit()) {
@@ -122,7 +179,7 @@ function renderSteps(o) {
   }).join("");
   $("#step-next").innerHTML = next >= 0
     ? `<b>Next:</b> ${next}. ${esc(o.steps[next].label)}`
-    : `<b>All ${o.steps.length} steps ran.</b> Step 0 resets the demo.`;
+    : `<b>All ${o.steps.length} steps ran.</b> Step 0 resets the workspace.`;
 }
 
 function renderLog(lines) {
@@ -153,8 +210,8 @@ function renderBoard(o) {
 async function feed() {
   const ds = await api("/api/decisions");
   $("#feed").innerHTML = ds.map((d) =>
-    `<li><div><div class="who">${esc(d.by)}</div><div class="g">${esc(d.graph)}</div></div><div><b>${esc(d.text)}</b><div class="muted">${esc(d.rationale)}</div></div></li>`).join("")
-    || `<li class="empty">No decisions yet. Run the demo steps above.</li>`;
+    `<li><div><div class="who">${esc(d.by)}</div><div class="g">${esc(d.graph)}</div></div><div><b>${esc(displayCopy(d.text))}</b><div class="muted">${esc(displayCopy(d.rationale))}</div></div></li>`).join("")
+    || `<li class="empty">No decisions yet. Run the steps above.</li>`;
 }
 
 $("#steps").addEventListener("click", async (e) => {
@@ -184,7 +241,7 @@ function select(slug) {
   state.pinned = true;
   $("#follow").hidden = false;
   document.querySelectorAll("#board [data-biz]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.biz === slug)));
-  openBusiness(slug, { animate: changed || !isSplit() });
+  return openBusiness(slug, { animate: changed || !isSplit() });
 }
 
 async function openBusiness(slug, { quiet = false, animate = false } = {}) {
@@ -197,7 +254,7 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   const b = d.business;
   const ro = state.overview?.readonly;
   const hood = hoodOf(b);
-  let h = `<div class="dossier-meta"><span>${esc(b.category)}${hood ? ` · ${esc(hood)}` : ""}</span>${b.synthetic === false ? "" : `<span class="synthetic">synthetic</span>`}
+  let h = `<div class="dossier-meta"><span>${esc(b.category)}${hood ? ` · ${esc(hood)}` : ""}</span>
       <button type="button" class="btn small dossier-close" data-dossier-close>Close</button></div>
     <h2 class="name" id="dossier-h" tabindex="-1">${esc(b.name)}</h2>
     <div class="status-row">${chip(b.status)}${b.voice ? `<span class="muted">Voice: ${esc(b.voice)}</span>` : ""}</div>`;
@@ -364,7 +421,7 @@ document.addEventListener("click", async (e) => {
   }
   const bd = e.target.closest("[data-board]");
   if (bd) {
-    const note = prompt(`Board note (${bd.dataset.board}):`, bd.dataset.board === "approve" ? "Approved. Nothing is sent in the hackathon build." : "Veto: ") ?? null;
+    const note = prompt(`Board note (${bd.dataset.board}):`, bd.dataset.board === "approve" ? "Approved. Nothing is sent from this workspace." : "Veto: ") ?? null;
     if (note === null) return;
     await api(`/api/board/${bd.dataset.slug}/${bd.dataset.label}/${bd.dataset.id}`, { method: "POST", body: JSON.stringify({ verdict: bd.dataset.board, note }) });
     bd.dataset.label === "Pitch" ? openPitch(bd.dataset.slug, bd.dataset.id) : openRoute(bd.dataset.slug, bd.dataset.id);

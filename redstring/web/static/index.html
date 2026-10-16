@@ -20,20 +20,39 @@
       <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 25 C 12 25 14 9 27 8" fill="none" stroke="#BE2A3A" stroke-width="3" stroke-linecap="round"/><circle cx="5" cy="25" r="4" fill="#BE2A3A"/><circle cx="27" cy="8" r="4" fill="#FCFAF9" stroke="#BE2A3A" stroke-width="2.5"/></svg>
       Red String
     </h1>
-    <p class="thesis">Graph memory for agents doing client work, built on FalkorDB. Every decision traces back to its sources, and <b>Double Take</b> blocks any draft that would look like another client's work to the same people.</p>
+    <p class="thesis">The pipeline for creative agencies that pitch with real work. Red String screens every lead against your clients' audiences, traces every decision to its sources, and <b>Double Take</b> catches drafts that would look like another client's work to the same people, before they ship.</p>
   </div>
-  <div class="usecase">
-    <p><span class="label">Use case</span>An agent-run creative agency, <b id="agency">…</b> <span class="muted">(placeholder name)</span>, screening and pitching local NYC businesses. <span class="synthetic" id="biz-count">synthetic businesses</span></p>
-    <p class="graphs"><span class="label">FalkorDB</span><span id="meta"></span><span class="mode" id="mode"></span></p>
+  <div class="workspace">
+    <div>
+      <span class="label">Workspace</span>
+      <p class="workspace-agency"><b id="agency">…</b></p>
+    </div>
+    <button type="button" class="text-button" id="intro-open" aria-controls="intro" aria-expanded="true">How it works</button>
+    <p class="workspace-locations">Flatiron · NoMad · Gramercy Park · Chelsea · <span id="biz-count"></span></p>
   </div>
 </header>
 
 <section class="runner" id="runner" aria-labelledby="runner-h">
   <div class="runner-inner">
-    <h2 class="placard" id="runner-h">Demo run</h2>
+    <h2 class="placard" id="runner-h">Agent run</h2>
     <ol class="steps" id="steps"></ol>
     <p class="runner-status" id="runner-status"><span id="step-next"></span><span class="latest" id="step-latest"></span></p>
-    <p class="readonly-note" id="readonly-note" hidden>Read-only link: the demo run is hidden. Both "Try it" forms below still work.</p>
+    <p class="readonly-note" id="readonly-note" hidden>View-only workspace. Screen a lead or check a draft below; nothing you try is saved.</p>
+  </div>
+</section>
+
+<section class="panel intro" id="intro" aria-labelledby="intro-title" hidden>
+  <div class="intro-head">
+    <h2 class="placard" id="intro-title" tabindex="-1">How Red String works</h2>
+  </div>
+  <ol class="intro-steps">
+    <li><strong>Screen</strong> — Scout checks each lead against your signed clients' audiences and neighborhoods, and says pitch, pitch with a distinct angle, or decline.</li>
+    <li><strong>Pitch with spec work</strong> — Researcher, Auditor and Producer build spec posts for the business, every claim tied to a source.</li>
+    <li><strong>Double Take</strong> — Before anything ships, it's compared with every other client reaching the same people. Lookalikes are blocked and revised.</li>
+  </ol>
+  <div class="intro-actions">
+    <button type="button" class="btn primary" id="intro-see-draft">See a blocked draft</button>
+    <button type="button" class="btn" id="intro-got-it">Got it</button>
   </div>
 </section>
 
@@ -42,15 +61,11 @@
 
   <section class="board-wrap" aria-labelledby="board-h">
     <div class="section-head">
-      <h2 class="placard" id="board-h">Pipeline</h2>
+      <h2 class="placard" id="board-h" tabindex="-1">Pipeline</h2>
       <p class="muted">Pick a card to pull its thread. <button type="button" class="btn small" id="follow" hidden>Follow the run</button></p>
     </div>
     <div class="board" id="board"></div>
 
-    <section class="log-wrap" aria-labelledby="log-h">
-      <h2 class="placard small" id="log-h">Run log</h2>
-      <pre class="log" id="log" aria-live="polite" tabindex="0" aria-label="Run log"></pre>
-    </section>
   </section>
 
   <aside class="dossier" id="drawer" aria-labelledby="dossier-h" tabindex="-1">
@@ -67,7 +82,7 @@
 <div class="lower">
   <div class="try">
     <section class="panel" aria-labelledby="lead-h">
-      <div class="panel-head"><h2 class="placard" id="lead-h">Screen a new lead</h2><span class="query-tag">Q1 · live</span></div>
+      <div class="panel-head"><h2 class="placard" id="lead-h">Screen a new lead</h2></div>
       <p class="panel-sub">Describe a business and who it targets. Scout checks it against every signed client's audience and returns a verdict with the paths behind it.</p>
       <form id="lead-form" class="form">
         <div class="row2">
@@ -82,7 +97,7 @@
     </section>
 
     <section class="panel" aria-labelledby="draft-h">
-      <div class="panel-head"><h2 class="placard" id="draft-h">Double Take a draft</h2><span class="query-tag">Q2 · read only</span></div>
+      <div class="panel-head"><h2 class="placard" id="draft-h">Double Take a draft</h2></div>
       <p class="panel-sub">Pick a client and the techniques a draft would use. Double Take compares it with every other business that reaches the same people.</p>
       <form id="draft-form" class="form">
         <label class="field">For <select name="client" id="draft-client"></select></label>
@@ -98,6 +113,22 @@
     <ul class="feed" id="feed" tabindex="0" aria-label="Decisions, newest first"></ul>
   </section>
 </div>
+
+<details class="panel under-hood" id="under-hood">
+  <summary class="placard">Under the hood · FalkorDB</summary>
+  <div class="under-hood-content">
+    <div class="under-hood-meta">
+      <p class="graphs"><span class="label">Graphs</span><span id="meta"></span></p>
+      <p class="mode" id="mode"></p>
+    </div>
+    <p class="under-hood-copy">Screen a lead runs Q1 (lead conflict); Double Take runs Q2. Every query is a named MCP tool.</p>
+    <dl class="thresholds" id="thresholds" aria-label="Screening and Double Take thresholds"></dl>
+    <section class="log-wrap" aria-labelledby="log-h">
+      <h2 class="placard small" id="log-h">Run log</h2>
+      <pre class="log" id="log" aria-live="polite" tabindex="0" aria-label="Run log"></pre>
+    </section>
+  </div>
+</details>
 
 <p class="sr-only" id="sr-status" aria-live="polite"></p>
 
