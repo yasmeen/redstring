@@ -68,7 +68,7 @@ button.primary { background: var(--red); border-color: var(--red); color: #fff; 
 
 .chip { display: inline-block; font: 600 11px var(--sans); padding: 1px 7px; border-radius: 99px; margin: 3px 4px 0 0;
         background: var(--paper); border: 1px solid var(--line); color: var(--muted); }
-.chip.pass, .chip.flagged, .chip.retired, .chip.veto { background: var(--red-soft); border-color: var(--red); color: var(--red); }
+.chip.decline, .chip.flagged, .chip.retired, .chip.veto { background: var(--red-soft); border-color: var(--red); color: var(--red); }
 .chip.pursue, .chip.queued, .chip.cleared, .chip.approved, .chip.signed, .chip.active { background: var(--green-soft); border-color: var(--green); color: var(--green); }
 .chip.pursue_differentiated, .chip.borderline, .chip.hypothesized, .chip.draft { background: var(--amber-soft); border-color: var(--amber); color: var(--amber); }
 

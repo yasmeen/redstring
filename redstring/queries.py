@@ -56,7 +56,7 @@ RETURN c.id AS client_id, c.name AS client, c.category = lead.category AS same_c
        a.name AS via, la.name AS hop, tl.weight * tc.weight * o.share AS conflict
 """
 
-# Same category in the same neighborhood is an automatic pass.
+# Same category in the same neighborhood is an automatic decline.
 Q1_SAME_AREA_COMPETITOR = """
 MATCH (lead:Business {id: $lead})-[:LOCATED_IN]->(n:Neighborhood)<-[:LOCATED_IN]-(c:Business {status: 'signed'})
 WHERE c.category = lead.category

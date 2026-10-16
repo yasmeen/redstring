@@ -11,10 +11,10 @@ An agent-run creative agency that wins clients by doing the work first. It scree
 
 | Real | Synthetic, and labeled as such |
 | --- | --- |
-| The agent pipeline, the graph, the seven queries | The neighborhood (Linden Hollow), all 13 businesses, their 60 past posts, and their goals |
+| The agent pipeline, the graph, the seven queries; the real NYC neighborhoods Flatiron, NoMad, Gramercy Park, and Chelsea | All 14 businesses, their 63 past posts, and their goals |
 | Category and audience research with source URLs (`data/research/`) | The reference library, **for now**: `data/references.json` does not exist yet, so the build uses 200 placeholder references (`placeholder: true`, `example.com` URLs) with a realistic long-tail distribution. Run `redstring import-refs` on the Instinct export to replace them. |
 
-Every business name is a placeholder. Search each one before the demo and swap any that match a real business.
+Every business name is invented. Search each one before the demo and swap any that match a real business in these neighborhoods.
 
 **Spot-check the research cache.** The findings in `data/research/*.json` were gathered from search results matched to specific URLs. The pages themselves could not be loaded from the build environment, so each file carries a `verification` note. Open every `source_url` before recording.
 
@@ -63,7 +63,7 @@ Each one is a named tool (`redstring/registry.py`), served over MCP, so agents n
 
 1. P1 takes `kind` as a parameter and sets `active = true`. A revision or a Double Take block retires the old fingerprint, so a draft that never ships stops counting against anyone.
 2. Q0 clears stale `SIGNATURE` edges first, and counts only active fingerprints.
-3. Q1 stores `OVERLAPS` once per pair and matches it undirected. The same-category, same-neighborhood pass rule is its own small query. Verdicts sum conflict per signed client: at least 0.9 means pursue only with differentiated territory, at least 0.5 means borderline, and anything lower means pursue. On the seed this reproduces every verdict in the spec's lead table.
+3. Q1 stores `OVERLAPS` once per pair and matches it undirected. The same-category, same-neighborhood decline rule is its own small query. Verdicts sum conflict per signed client: at least 0.9 means pursue only with differentiated territory, at least 0.5 means borderline, and anything lower means pursue. On the seed this reproduces every verdict in the spec's lead table.
 4. Q2 counts only active fingerprints, and passed prospects count until their cooldown ends. Risk = similarity × audience overlap. Overlap uses Q1's paths between the two businesses, clamped to 1. A draft is flagged at risk 0.35 or more.
 5. Q3 treats open pursuits as claimants too, so two pitches don't converge. It also takes `$avoid` (the flagged techniques) and requires at least one reference as evidence.
 6. Q4 also labels Draft, Audit and CollisionFlag sources.
@@ -204,8 +204,8 @@ Eight agents and one human board. The revision loop is the core: Producer drafts
 
 The step runner at the top of the web app plays these in order. `redstring demo` runs them all.
 
-1. **Seed.** 13 businesses, 3 signed clients, 8 agents plus the board, 60 post fingerprints. Q0 finds Wet Paint's signature: Stop motion, Paint smear wipe, Handwritten titles. These are the planted set, in 4 of Wet Paint's posts and 4 of Cannonball's, and they are each history's best performers. That is the ghostwriter story.
-2. **Scout** passes on Byte Builders (same category as Pixel Pond, same neighborhood). It flags Tumble Town (conflict 1.58 with Wet Paint), Treble Clef and Northpoint for differentiated territory, calls Page Turn borderline (0.72), and clears the rest. It pursues Tumble Town and Treble Clef. Each verdict's thread shows its audience paths.
+1. **Seed.** 14 businesses, 3 signed clients, 8 agents plus the board, 63 post fingerprints. Q0 finds Wet Paint's signature: Stop motion, Paint smear wipe, Handwritten titles. These are the planted set, in 4 of Wet Paint's posts and 4 of Cannonball's, and they are each history's best performers. That is the ghostwriter story.
+2. **Scout** declines Deep End Swim Club (same category as Cannonball, both in Gramercy Park). Byte Builders shares Pixel Pond's category but is in Chelsea, so Scout screens it on audience: pursue differentiated (conflict 1.464). It flags Tumble Town (conflict 1.58 with Wet Paint), Treble Clef and Northpoint for differentiated territory, calls Page Turn borderline (0.72), and clears the rest. It pursues Tumble Town and Treble Clef. Each verdict's thread shows its audience paths.
 3. **Researcher and Auditor** fill both private graphs: sourced findings, a hypothesized goal, and 3 audit findings computed from the posts.
 4. **Spec posts.** Tumble Town's post 2 is blocked: it resembles Wet Paint (and Cannonball), with risk 0.55. Treble Clef's post 1 is blocked against **Tumble Town's open pitch**, with risk 0.46. Both are revised from open territory and pass on re-check.
 5. **Account Manager** assembles the Tumble Town pitch. Every claim opens to its source, and the goal is marked as our hypothesis.

@@ -1,14 +1,28 @@
 {
- "_note": "SYNTHETIC. The neighborhood, all 13 businesses, their posts, and their goals are invented for the demo.",
+ "_note": "SYNTHETIC. NYC neighborhood names are real; all 14 businesses, their posts, and their goals are invented for the demo.",
  "generated_with_seed": 1015,
  "world_date": "2026-10-15",
  "agency": {
   "name": "Corkboard Studio"
  },
- "neighborhood": {
-  "id": "n_linden_hollow",
-  "name": "Linden Hollow"
- },
+ "neighborhoods": [
+  {
+   "id": "n_flatiron",
+   "name": "Flatiron"
+  },
+  {
+   "id": "n_nomad",
+   "name": "NoMad"
+  },
+  {
+   "id": "n_gramercy",
+   "name": "Gramercy Park"
+  },
+  {
+   "id": "n_chelsea",
+   "name": "Chelsea"
+  }
+ ],
  "audiences": [
   {
    "id": "A1",
@@ -39,6 +53,11 @@
    "id": "A6",
    "name": "Local adults without kids",
    "description": "Neighbors, commuters, regulars"
+  },
+  {
+   "id": "A7",
+   "name": "Office workers near Madison Square Park",
+   "description": "Weekday lunch and after-work crowd in Flatiron and NoMad"
   }
  ],
  "overlaps": [
@@ -66,6 +85,11 @@
    "a": "A2",
    "b": "A5",
    "share": 0.2
+  },
+  {
+   "a": "A6",
+   "b": "A7",
+   "share": 0.5
   }
  ],
  "agents": [
@@ -4832,6 +4856,7 @@
    "name": "Pixel Pond Code Club",
    "category": "Kids coding",
    "status": "signed",
+   "neighborhood": "n_flatiron",
    "targets": {
     "A2": 0.8,
     "A3": 0.6,
@@ -4848,7 +4873,6 @@
     "due": "2027-02-01"
    },
    "synthetic": true,
-   "neighborhood": "n_linden_hollow",
    "posts": [
     {
      "id": "pixel-pond-post-01",
@@ -5122,6 +5146,7 @@
    "name": "Wet Paint Kids Studio",
    "category": "Kids art",
    "status": "signed",
+   "neighborhood": "n_chelsea",
    "targets": {
     "A1": 0.8,
     "A2": 0.5,
@@ -5137,7 +5162,6 @@
     "due": "2027-01-31"
    },
    "synthetic": true,
-   "neighborhood": "n_linden_hollow",
    "posts": [
     {
      "id": "wet-paint-post-01",
@@ -5418,6 +5442,7 @@
    "name": "Cannonball Swim School",
    "category": "Swim lessons",
    "status": "signed",
+   "neighborhood": "n_gramercy",
    "targets": {
     "A1": 0.7,
     "A2": 0.6,
@@ -5433,7 +5458,6 @@
     "due": "2026-12-15"
    },
    "synthetic": true,
-   "neighborhood": "n_linden_hollow",
    "posts": [
     {
      "id": "cannonball-post-01",
@@ -5718,6 +5742,7 @@
    "name": "Byte Builders Academy",
    "category": "Kids coding",
    "status": "lead",
+   "neighborhood": "n_chelsea",
    "targets": {
     "A2": 0.8,
     "A4": 0.5
@@ -5732,7 +5757,6 @@
     "due": "2026-12-20"
    },
    "synthetic": true,
-   "neighborhood": "n_linden_hollow",
    "posts": [
     {
      "id": "byte-builders-post-01",
@@ -5819,6 +5843,7 @@
    "name": "Tumble Town Gym",
    "category": "Kids gymnastics",
    "status": "lead",
+   "neighborhood": "n_chelsea",
    "targets": {
     "A1": 0.8,
     "A2": 0.6
@@ -5833,7 +5858,6 @@
     "due": "2027-01-15"
    },
    "synthetic": true,
-   "neighborhood": "n_linden_hollow",
    "posts": [
     {
      "id": "tumble-town-post-01",
@@ -5930,6 +5954,7 @@
    "name": "Treble Clef Music School",
    "category": "Music lessons",
    "status": "lead",
+   "neighborhood": "n_gramercy",
    "targets": {
     "A2": 0.6,
     "A1": 0.4
@@ -5944,7 +5969,6 @@
     "due": "2026-12-10"
    },
    "synthetic": true,
-   "neighborhood": "n_linden_hollow",
    "posts": [
     {
      "id": "treble-clef-post-01",
@@ -6038,6 +6062,7 @@
    "name": "Northpoint Tutoring",
    "category": "Tutoring",
    "status": "lead",
+   "neighborhood": "n_flatiron",
    "targets": {
     "A2": 0.7,
     "A5": 0.6,
@@ -6053,7 +6078,6 @@
     "due": "2027-01-20"
    },
    "synthetic": true,
-   "neighborhood": "n_linden_hollow",
    "posts": [
     {
      "id": "northpoint-post-01",
@@ -6140,6 +6164,7 @@
    "name": "Page Turn Books",
    "category": "Bookshop with storytime",
    "status": "lead",
+   "neighborhood": "n_gramercy",
    "targets": {
     "A1": 0.6,
     "A6": 0.5
@@ -6154,7 +6179,6 @@
     "due": "2027-01-31"
    },
    "synthetic": true,
-   "neighborhood": "n_linden_hollow",
    "posts": [
     {
      "id": "page-turn-post-01",
@@ -6246,6 +6270,7 @@
    "name": "Crux Climbing",
    "category": "Climbing gym",
    "status": "lead",
+   "neighborhood": "n_chelsea",
    "targets": {
     "A5": 0.7,
     "A6": 0.6
@@ -6260,7 +6285,6 @@
     "due": "2027-02-28"
    },
    "synthetic": true,
-   "neighborhood": "n_linden_hollow",
    "posts": [
     {
      "id": "crux-post-01",
@@ -6352,9 +6376,11 @@
    "name": "Second Rise Bakery",
    "category": "Bakery",
    "status": "lead",
+   "neighborhood": "n_nomad",
    "targets": {
     "A6": 0.6,
-    "A3": 0.3
+    "A3": 0.3,
+    "A7": 0.5
    },
    "style": "sty_cozy_local",
    "secondary": "sty_messy_process",
@@ -6366,7 +6392,6 @@
     "due": "2027-01-31"
    },
    "synthetic": true,
-   "neighborhood": "n_linden_hollow",
    "posts": [
     {
      "id": "second-rise-post-01",
@@ -6457,9 +6482,11 @@
    "name": "Corner Cup Cafe",
    "category": "Cafe",
    "status": "lead",
+   "neighborhood": "n_flatiron",
    "targets": {
     "A6": 0.8,
-    "A3": 0.3
+    "A3": 0.3,
+    "A7": 0.7
    },
    "style": "sty_cozy_local",
    "secondary": "sty_night_glow",
@@ -6471,7 +6498,6 @@
     "due": "2027-01-31"
    },
    "synthetic": true,
-   "neighborhood": "n_linden_hollow",
    "posts": [
     {
      "id": "corner-cup-post-01",
@@ -6562,8 +6588,10 @@
    "name": "Still Water Yoga",
    "category": "Yoga",
    "status": "lead",
+   "neighborhood": "n_nomad",
    "targets": {
-    "A6": 0.9
+    "A6": 0.9,
+    "A7": 0.4
    },
    "style": "sty_calm_explainer",
    "secondary": "sty_cozy_local",
@@ -6575,7 +6603,6 @@
     "due": "2027-01-31"
    },
    "synthetic": true,
-   "neighborhood": "n_linden_hollow",
    "posts": [
     {
      "id": "still-water-post-01",
@@ -6667,6 +6694,7 @@
    "name": "Good Boy Grooming",
    "category": "Pet grooming",
    "status": "lead",
+   "neighborhood": "n_gramercy",
    "targets": {
     "A6": 0.7
    },
@@ -6680,7 +6708,6 @@
     "due": "2027-01-31"
    },
    "synthetic": true,
-   "neighborhood": "n_linden_hollow",
    "posts": [
     {
      "id": "good-boy-post-01",
@@ -6768,6 +6795,109 @@
      "saves": 24
     }
    ]
+  },
+  {
+   "id": "deep-end",
+   "name": "Deep End Swim Club",
+   "category": "Swim lessons",
+   "status": "lead",
+   "neighborhood": "n_gramercy",
+   "targets": {
+    "A1": 0.6,
+    "A2": 0.5
+   },
+   "style": "sty_parent_proof",
+   "secondary": "sty_kid_pov",
+   "voice": "Brisk, coach-like",
+   "hypothesized_goal": {
+    "text": "Fill 24 spots in the winter learn-to-swim block",
+    "metric": "winter block enrollments",
+    "target": 24,
+    "due": "2027-01-10"
+   },
+   "synthetic": true,
+   "posts": [
+    {
+     "id": "deep-end-post-01",
+     "hook": "Three calm steps to your first swim lesson",
+     "technique_ids": [
+      "txt_big_number",
+      "col_brand_block",
+      "col_natural",
+      "fmt_reel_long",
+      "str_listicle",
+      "fmt_pov_cam",
+      "txt_kid_drawn"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_listicle",
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": "txt_big_number",
+     "color": "col_brand_block",
+     "audio": null,
+     "caption": "Three calm steps to your first swim lesson",
+     "posted_at": "2026-09-23",
+     "_weak": false,
+     "_planted": false,
+     "views": 2924,
+     "saves": 72
+    },
+    {
+     "id": "deep-end-post-02",
+     "hook": "Kick, float, smile: a swimmer's first win",
+     "technique_ids": [
+      "str_before_after",
+      "str_listicle",
+      "col_brand_block",
+      "str_parent_interview",
+      "fmt_pov_cam",
+      "tr_jump_through"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_before_after",
+     "pacing": null,
+     "transitions": [
+      "tr_jump_through"
+     ],
+     "text_treatment": null,
+     "color": "col_brand_block",
+     "audio": null,
+     "caption": "Kick, float, smile: a swimmer's first win",
+     "posted_at": "2026-10-01",
+     "_weak": false,
+     "_planted": false,
+     "views": 2486,
+     "saves": 57
+    },
+    {
+     "id": "deep-end-post-03",
+     "hook": "Water confidence starts with one splash",
+     "technique_ids": [
+      "col_brand_block",
+      "txt_big_number",
+      "col_natural",
+      "str_before_after",
+      "txt_sticker_pop"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_before_after",
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": "txt_big_number",
+     "color": "col_brand_block",
+     "audio": null,
+     "caption": "Water confidence starts with one splash",
+     "posted_at": "2026-10-06",
+     "_weak": false,
+     "_planted": false,
+     "views": 1851,
+     "saves": 45
+    }
+   ]
   }
  ],
  "planted": {
@@ -6809,7 +6939,7 @@
      "tr_zoom_punch",
      "col_teal_orange"
     ],
-    "note": "PLANTED: borrows the best-performing kids-art moves in Linden Hollow (Wet Paint's signature)"
+    "note": "PLANTED: borrows the best-performing kids-art moves in Chelsea (Wet Paint's signature)"
    },
    {
     "techniques": [

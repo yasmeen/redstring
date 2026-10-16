@@ -57,6 +57,7 @@ def overview():
         "businesses": tools.pipeline_board(),
         "agents": db.rows(g, "MATCH (a:Agent) RETURN a.id AS id, a.name AS name, a.desk AS desk ORDER BY a.name"),
         "audiences": db.rows(g, "MATCH (a:Audience) RETURN a.id AS id, a.name AS name ORDER BY id"),
+        "neighborhoods": db.rows(g, "MATCH (n:Neighborhood) RETURN n.id AS id, n.name AS name ORDER BY n.name"),
         "graphs": db.list_graphs(),
         "steps": [{"id": s, "label": l, "done": s in _done} for s, l in STEPS],
         "log": _log[-60:],
@@ -153,11 +154,15 @@ class LeadIn(BaseModel):
     name: str = Field(min_length=2, max_length=60)
     category: str = Field(min_length=2, max_length=60)
     targets: dict[str, float]
+    neighborhood: str = "n_flatiron"
 
 
 @app.post("/api/try/lead")
 def try_lead(body: LeadIn):
     """Screen a new lead live with Q1. It is added to the agency directory as a synthetic lead."""
+    neighborhoods = {n["id"] for n in db.rows(db.agency(), "MATCH (n:Neighborhood) RETURN n.id AS id")}
+    if body.neighborhood not in neighborhoods:
+        raise HTTPException(400, "unknown neighborhood")
     valid = {a["id"] for a in db.rows(db.agency(), "MATCH (a:Audience) RETURN a.id AS id")}
     targets = {k: max(0.0, min(1.0, float(v))) for k, v in body.targets.items() if k in valid and float(v) > 0}
     if not targets:
@@ -165,10 +170,10 @@ def try_lead(body: LeadIn):
     slug = "try-" + (re.sub(r"[^a-z0-9]+", "-", body.name.lower()).strip("-")[:40] or "lead")
     g = db.agency()
     db.run(g, "MATCH (b:Business {id: $id}) DETACH DELETE b", {"id": slug})
-    db.run(g, """MATCH (n:Neighborhood) WITH n LIMIT 1
+    db.run(g, """MATCH (n:Neighborhood {id: $neighborhood})
                  CREATE (b:Business {id: $id, name: $name, category: $category, status: 'lead', synthetic: true, user_added: true})-[:LOCATED_IN]->(n)
                  WITH b UNWIND $targets AS t MATCH (a:Audience {id: t.aud}) CREATE (b)-[:TARGETS {weight: t.w}]->(a)""",
-           {"id": slug, "name": body.name, "category": body.category,
+           {"id": slug, "name": body.name, "category": body.category, "neighborhood": body.neighborhood,
             "targets": [{"aud": k, "w": v} for k, v in targets.items()]})
     return tools.screen_lead(slug)
 

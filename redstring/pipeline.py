@@ -200,7 +200,7 @@ class Pipeline:
 
 STEPS = [
     ("reset", "Seed both graph kinds from world.json"),
-    ("screen", "Scout screens 10 leads and pursues two"),
+    ("screen", "Scout screens 11 leads and pursues two"),
     ("research", "Researcher and Auditor fill the prospects' graphs"),
     ("spec", "Spec posts through Double Take, with revisions"),
     ("pitch", "Account Manager assembles the Tumble Town pitch"),

@@ -4,7 +4,7 @@ from redstring import db, queries, seed, tools
 from redstring.pipeline import Pipeline
 
 EXPECTED_VERDICTS = {
-    "byte-builders": "pass",
+    "byte-builders": "pursue_differentiated",
     "tumble-town": "pursue_differentiated",
     "treble-clef": "pursue_differentiated",
     "northpoint": "pursue_differentiated",
@@ -14,6 +14,7 @@ EXPECTED_VERDICTS = {
     "corner-cup": "pursue",
     "still-water": "pursue",
     "good-boy": "pursue",
+    "deep-end": "decline",
 }
 
 
@@ -30,6 +31,20 @@ def test_two_graph_kinds(seeded):
 def test_q1_verdicts_match_spec(seeded):
     got = {lead: tools.lead_conflict(lead)["verdict"] for lead in EXPECTED_VERDICTS}
     assert got == EXPECTED_VERDICTS
+
+
+def test_same_category_other_neighborhood_is_not_auto_declined(seeded):
+    result = tools.lead_conflict("byte-builders")
+    assert result["competitors"] == []
+    pixel_pond = next(c for c in result["clients"] if c["client"] == "Pixel Pond Code Club")
+    assert pixel_pond["same_category"] is True
+
+
+def test_same_category_same_neighborhood_declines(seeded):
+    result = tools.lead_conflict("deep-end")
+    assert result["verdict"] == "decline"
+    assert result["competitors"][0]["client"] == "Cannonball Swim School"
+    assert result["competitors"][0]["neighborhood"] == "Gramercy Park"
 
 
 def test_q1_multi_hop_paths(seeded):
@@ -71,6 +86,7 @@ def test_tumble_town_spec_collides_with_wet_paint_then_clears(demo):
     assert [c["status"] for c in chain] == ["flagged", "queued"]
     flagged = {f["with_business"] for f in chain[0]["flags"]}
     assert "Wet Paint Kids Studio" in flagged
+    assert chain[0]["flags"][0]["with_business"] == "Wet Paint Kids Studio"
 
 
 def test_pitch_against_pitch_collision(demo):

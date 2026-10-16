@@ -36,7 +36,7 @@ def test_mcp_server_lists_and_calls_tools():
 
     listed, out = asyncio.run(go())
     assert len(listed) == len(registry.TOOLS)
-    assert '"verdict": "pass"' in str(out)
+    assert '"verdict": "pursue_differentiated"' in str(out)
 
 
 def test_web_try_inputs():
@@ -44,9 +44,23 @@ def test_web_try_inputs():
     tools._world_cache = None
     seed.seed_all()
     c = TestClient(app)
-    assert c.get("/api/overview").status_code == 200
-    r = c.post("/api/try/lead", json={"name": "Sprout Dance", "category": "Kids dance", "targets": {"A1": 0.8}}).json()
+    overview = c.get("/api/overview")
+    assert overview.status_code == 200
+    assert any(a["id"] == "A7" for a in overview.json()["audiences"])
+    assert {n["id"] for n in overview.json()["neighborhoods"]} == {
+        "n_flatiron", "n_nomad", "n_gramercy", "n_chelsea"
+    }
+    r = c.post("/api/try/lead", json={"name": "Sprout Dance", "category": "Kids dance", "targets": {"A1": 1},
+                                     "neighborhood": "n_flatiron"}).json()
     assert r["verdict"] == "pursue_differentiated"
+    r = c.post("/api/try/lead", json={"name": "Adult Culture Club", "category": "Community events",
+                                     "targets": {"A6": 1}, "neighborhood": "n_flatiron"}).json()
+    assert r["verdict"] == "pursue"
+    r = c.post("/api/try/lead", json={"name": "Swim Prospect", "category": "Swim lessons",
+                                     "targets": {"A1": 0.6}, "neighborhood": "n_gramercy"}).json()
+    assert r["verdict"] == "decline"
+    assert c.post("/api/try/lead", json={"name": "Unknown Place", "category": "Kids dance",
+                                        "targets": {"A1": 1}, "neighborhood": "n_unknown"}).status_code == 400
     planted = tools.world()["planted"]["collision_techniques"]
     r = c.post("/api/try/draft", json={"client": "cannonball", "technique_ids": planted}).json()
     assert r["flagged"]

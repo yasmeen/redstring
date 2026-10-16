@@ -36,6 +36,11 @@ async function refresh() {
     return `<div class="col"><h4>${title} · ${items.length}</h4>${items.map((b) =>
       `<button class="biz" data-biz="${esc(b.id)}"><b>${esc(b.name)}</b><small>${esc(b.category)}</small><br>${chip(b.verdict)}${b.owner ? chip("", "owner: " + b.owner) : ""}</button>`).join("")}</div>`;
   }).join("");
+  const neighborhoodSel = $("#lead-neighborhood");
+  const selectedNeighborhood = neighborhoodSel.value || "n_flatiron";
+  neighborhoodSel.innerHTML = o.neighborhoods.map((n) =>
+    `<option value="${esc(n.id)}">${esc(n.name)}</option>`).join("");
+  neighborhoodSel.value = selectedNeighborhood;
   const sel = $("#draft-client");
   const keep = sel.value;
   sel.innerHTML = o.businesses.filter((b) => ["signed", "pursued", "pitched"].includes(b.status))
@@ -77,7 +82,7 @@ async function openBusiness(slug) {
   const d = await api(`/api/business/${slug}`);
   const b = d.business;
   let h = `<button class="close" data-close>Close</button><h2>${esc(b.name)}</h2>
-    <p class="muted">${esc(b.category)} · ${esc(b.voice || "")} · synthetic</p>
+    <p class="muted">${esc(b.category)} · ${esc(b.neighborhood || "")} · ${esc(b.voice || "")} · synthetic</p>
     <dl class="kv"><dt>Status</dt><dd>${chip(b.status)}</dd>
     <dt>Targets</dt><dd>${d.audiences.map((a) => `${esc(a.audience)} <span class="muted">${n(a.weight, 1)}</span>`).join("<br>")}</dd>
     <dt>Signatures</dt><dd>${d.signatures.map((s) => `${esc(s.technique)} <span class="muted">${Math.round(s.share * 100)}%</span>`).join(", ") || "<span class='muted'>none</span>"}</dd></dl>`;
@@ -175,8 +180,8 @@ $("#lead-form").addEventListener("submit", async (e) => {
   const targets = {};
   for (const [k, v] of f.entries()) if (k.startsWith("aud-") && +v > 0) targets[k.slice(4)] = +v;
   try {
-    const r = await api("/api/try/lead", { method: "POST", body: JSON.stringify({ name: f.get("name"), category: f.get("category"), targets }) });
-    $("#lead-result").innerHTML = `<div class="${r.verdict === "pass" ? "flagbox" : r.verdict === "pursue" ? "okbox" : "warnbox"}">${chip(r.verdict)} ${esc(r.reason)}</div>
+    const r = await api("/api/try/lead", { method: "POST", body: JSON.stringify({ name: f.get("name"), category: f.get("category"), targets, neighborhood: f.get("neighborhood") }) });
+    $("#lead-result").innerHTML = `<div class="${r.verdict === "decline" ? "flagbox" : r.verdict === "pursue" ? "okbox" : "warnbox"}">${chip(r.verdict)} ${esc(r.reason)}</div>
       <div class="thread">${r.clients.map((c) => `<div class="knot"><div class="who">${esc(c.client)} · ${n(c.conflict)}</div><p class="muted">${c.paths.map((p) => `${esc(p.via)} (${n(p.conflict, 3)})`).join(" · ")}</p></div>`).join("")}</div>`;
     refresh();
   } catch (err) { $("#lead-result").innerHTML = `<div class="flagbox">${esc(err.message)}</div>`; }
