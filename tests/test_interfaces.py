@@ -109,6 +109,31 @@ def test_step_api_enforces_order():
     assert c.post("/api/step/screen").status_code == 200
 
 
+def test_analysis_views_are_readonly(monkeypatch):
+    import redstring.web.app as web
+    tools._world_cache = None
+    seed.seed_all()
+    monkeypatch.setattr(web, "READONLY", True)
+    c = TestClient(web.app)
+
+    agency = db.agency()
+    before = db.rows(agency, "MATCH (b:Business) RETURN count(b) AS count")[0]["count"]
+    response = c.get("/api/analysis")
+    assert response.status_code == 200
+    result = response.json()
+    assert {
+        "graphs", "screening", "double_take", "cleared_checks", "signatures",
+        "queries", "agents", "thresholds",
+    } <= result.keys()
+    assert any(graph["name"] == "agency" for graph in result["graphs"])
+    assert {"P1", "Q0", "Q1", "Q2"} <= {query["query"] for query in result["queries"]}
+    assert db.rows(agency, "MATCH (b:Business) RETURN count(b) AS count")[0]["count"] == before
+
+    page = c.get("/analysis")
+    assert page.status_code == 200
+    assert "text/html" in page.headers["content-type"]
+
+
 class FakeMessages:
     """Scripted model: calls lead_conflict, then record_screening, then finishes."""
 

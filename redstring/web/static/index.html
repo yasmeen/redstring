@@ -11,8 +11,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800&amp;family=Schibsted+Grotesk:wght@400;500;600;700&amp;display=swap">
 <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
-<a class="skip" href="#board">Skip to the pipeline</a>
+<body data-view="studio">
+<a class="skip studio-only" href="#board">Skip to the pipeline</a>
+<a class="skip analysis-only" href="#analysis-content">Skip to the analysis</a>
 
 <header class="top">
   <div class="brand">
@@ -20,28 +21,34 @@
       <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 25 C 12 25 14 9 27 8" fill="none" stroke="#BE2A3A" stroke-width="3" stroke-linecap="round"/><circle cx="5" cy="25" r="4" fill="#BE2A3A"/><circle cx="27" cy="8" r="4" fill="#FCFAF9" stroke="#BE2A3A" stroke-width="2.5"/></svg>
       Red String
     </h1>
-    <p class="thesis">The pipeline for creative agencies that pitch with real work. Red String screens every lead against your clients' audiences, traces every decision to its sources, and <b>Double Take</b> catches drafts that would look like another client's work to the same people, before they ship.</p>
+    <p class="studio-tagline studio-only">Corkboard Studio's pipeline</p>
   </div>
-  <div class="workspace">
-    <div>
-      <span class="label">Workspace</span>
-      <p class="workspace-agency"><b id="agency">…</b></p>
+  <div class="header-side">
+    <nav class="view-toggle" aria-label="Choose dashboard view">
+      <a href="/" data-view-link="studio" aria-current="page">Studio</a>
+      <a href="/analysis" data-view-link="analysis">Analysis</a>
+    </nav>
+    <div class="workspace">
+      <div>
+        <span class="label">Workspace</span>
+        <p class="workspace-agency"><b id="agency">…</b></p>
+      </div>
+      <button type="button" class="text-button studio-only" id="intro-open" aria-controls="intro" aria-expanded="true">How it works</button>
+      <p class="workspace-locations">Flatiron · NoMad · Gramercy Park · Chelsea · <span id="biz-count"></span></p>
     </div>
-    <button type="button" class="text-button" id="intro-open" aria-controls="intro" aria-expanded="true">How it works</button>
-    <p class="workspace-locations">Flatiron · NoMad · Gramercy Park · Chelsea · <span id="biz-count"></span></p>
   </div>
 </header>
 
-<section class="runner" id="runner" aria-labelledby="runner-h">
+<section class="runner studio-only" id="runner" aria-labelledby="runner-h">
   <div class="runner-inner">
-    <h2 class="placard" id="runner-h">Agent run</h2>
+    <h2 class="placard" id="runner-h">Agent activity</h2>
     <ol class="steps" id="steps"></ol>
     <p class="runner-status" id="runner-status"><span id="step-next"></span><span class="latest" id="step-latest"></span></p>
-    <p class="readonly-note" id="readonly-note" hidden>View-only workspace. Screen a lead or check a draft below; nothing you try is saved.</p>
+    <p class="readonly-note" id="readonly-note" hidden>Nothing you try here is saved.</p>
   </div>
 </section>
 
-<section class="panel intro" id="intro" aria-labelledby="intro-title" hidden>
+<section class="panel intro studio-only" id="intro" aria-labelledby="intro-title" hidden>
   <div class="intro-head">
     <h2 class="placard" id="intro-title" tabindex="-1">How Red String works</h2>
   </div>
@@ -56,7 +63,21 @@
   </div>
 </section>
 
-<main class="desk" id="desk">
+<section class="studio-only needs-you-section" aria-labelledby="needs-you-heading">
+  <div class="section-head">
+    <h2 class="placard" id="needs-you-heading">Needs you</h2>
+  </div>
+  <div class="needs-you" id="needs-you" aria-live="polite"></div>
+</section>
+
+<section class="studio-only clients-section" aria-labelledby="clients-heading">
+  <div class="section-head">
+    <h2 class="placard" id="clients-heading">Clients</h2>
+  </div>
+  <div class="client-cards" id="clients"></div>
+</section>
+
+<main class="desk studio-only" id="desk">
   <svg class="string-layer" id="string-layer" aria-hidden="true" focusable="false"><path id="string-path" d=""/></svg>
 
   <section class="board-wrap" aria-labelledby="board-h">
@@ -79,26 +100,28 @@
   <div class="scrim" id="scrim" hidden></div>
 </main>
 
-<div class="lower">
+<div class="lower studio-only">
   <div class="try">
     <section class="panel" aria-labelledby="lead-h">
       <div class="panel-head"><h2 class="placard" id="lead-h">Screen a new lead</h2></div>
       <p class="panel-sub">Describe a business and who it targets. Scout checks it against every signed client's audience and returns a verdict with the paths behind it.</p>
+      <p class="panel-sub readonly-form-note" hidden>Nothing you try here is saved.</p>
       <form id="lead-form" class="form">
         <div class="row2">
           <label class="field">Name <input name="name" required maxlength="60" placeholder="Sprout Dance Studio" autocomplete="off"></label>
           <label class="field">Category <input name="category" required maxlength="60" placeholder="Kids dance" autocomplete="off"></label>
           <label class="field">Neighborhood <select name="neighborhood" id="lead-neighborhood"></select></label>
         </div>
-        <fieldset id="aud-sliders"><legend>Who it targets <span class="muted">(0 to 1)</span></legend></fieldset>
+        <fieldset id="aud-sliders"><legend>Who it targets <span class="muted metric">(0 to 1)</span></legend></fieldset>
         <div><button type="submit" class="btn primary">Screen with Scout</button></div>
       </form>
       <div id="lead-result" aria-live="polite"></div>
     </section>
 
     <section class="panel" aria-labelledby="draft-h">
-      <div class="panel-head"><h2 class="placard" id="draft-h">Double Take a draft</h2></div>
+      <div class="panel-head"><h2 class="placard" id="draft-h">Check a draft idea</h2></div>
       <p class="panel-sub">Pick a client and the techniques a draft would use. Double Take compares it with every other business that reaches the same people.</p>
+      <p class="panel-sub readonly-form-note" hidden>Nothing you try here is saved.</p>
       <form id="draft-form" class="form">
         <label class="field">For <select name="client" id="draft-client"></select></label>
         <fieldset><legend>Techniques in the draft</legend><div class="tech-pick" id="tech-pick"></div></fieldset>
@@ -109,26 +132,71 @@
   </div>
 
   <section class="panel" aria-labelledby="feed-h">
-    <div class="panel-head"><h2 class="placard" id="feed-h">Decisions</h2><span class="muted">Every write has a why.</span></div>
-    <ul class="feed" id="feed" tabindex="0" aria-label="Decisions, newest first"></ul>
+    <div class="panel-head"><h2 class="placard" id="feed-h">Activity</h2><span class="muted">Every write has a why.</span></div>
+    <ul class="feed" id="feed" tabindex="0" aria-label="Activity, newest first"></ul>
   </section>
 </div>
 
-<details class="panel under-hood" id="under-hood">
-  <summary class="placard">Under the hood · FalkorDB</summary>
-  <div class="under-hood-content">
-    <div class="under-hood-meta">
-      <p class="graphs"><span class="label">Graphs</span><span id="meta"></span></p>
-      <p class="mode" id="mode"></p>
-    </div>
-    <p class="under-hood-copy">Screen a lead runs Q1 (lead conflict); Double Take runs Q2. Every query is a named MCP tool.</p>
-    <dl class="thresholds" id="thresholds" aria-label="Screening and Double Take thresholds"></dl>
+<main class="analysis-page analysis-only" id="analysis-content">
+  <section class="panel analysis-intro" aria-labelledby="analysis-intro-heading">
+    <h2 class="placard" id="analysis-intro-heading">Behind Corkboard Studio's pipeline</h2>
+    <p class="thesis">The pipeline for creative agencies that pitch with real work. Red String screens every lead against your clients' audiences, traces every decision to its sources, and <b>Double Take</b> catches drafts that would look like another client's work to the same people, before they ship.</p>
+    <p>This view shows what Red String does behind Corkboard Studio's dashboard: the FalkorDB graphs, the queries agents call, and the numbers behind every verdict.</p>
+  </section>
+
+  <section class="analysis-section" aria-labelledby="graph-architecture-heading">
+    <h2 class="placard" id="graph-architecture-heading">Graph architecture</h2>
+    <p>Each prospect or client gets its own private FalkorDB graph, <code>client:&lt;slug&gt;</code>. A shared <code>agency</code> graph holds only what the agency needs to compare clients: businesses, audiences, techniques, references, and fingerprints; when Producer writes a Draft in a client graph, P1 projects a Fingerprint into <code>agency</code> that holds technique IDs only, with no copy and no assets. Cross-client checks run only on <code>agency</code>, while threads and stale-draft checks run inside the client's own graph.</p>
+    <div class="graph-cards" id="graph-cards"></div>
+  </section>
+
+  <section class="analysis-section" aria-labelledby="screening-heading">
+    <h2 class="placard" id="screening-heading">Lead screening (Q1)</h2>
+    <p class="muted" id="screening-legend"></p>
+    <div class="table-scroll"><table class="analysis-table screening-table" id="screening-table"></table></div>
+  </section>
+
+  <section class="analysis-section" aria-labelledby="double-take-heading">
+    <h2 class="placard" id="double-take-heading">Double Take (Q2)</h2>
+    <p class="muted" id="cleared-checks"></p>
+    <div class="table-scroll"><table class="analysis-table" id="double-take-table"></table></div>
+  </section>
+
+  <section class="analysis-section" aria-labelledby="signatures-heading">
+    <h2 class="placard" id="signatures-heading">Signatures (Q0)</h2>
+    <div class="table-scroll"><table class="analysis-table" id="signatures-table"></table></div>
+  </section>
+
+  <section class="analysis-section" aria-labelledby="queries-heading">
+    <h2 class="placard" id="queries-heading">Queries</h2>
+    <div class="query-list" id="queries"></div>
+  </section>
+
+  <section class="analysis-section" aria-labelledby="agents-heading">
+    <h2 class="placard" id="agents-heading">Agents and MCP tools</h2>
+    <div class="agent-cards" id="analysis-agents"></div>
+  </section>
+
+  <section class="analysis-section" aria-labelledby="raw-logs-heading">
+    <h2 class="placard" id="raw-logs-heading">Raw logs</h2>
+    <div class="table-scroll"><table class="analysis-table raw-decisions" id="raw-decisions"></table></div>
     <section class="log-wrap" aria-labelledby="log-h">
-      <h2 class="placard small" id="log-h">Run log</h2>
+      <h3 class="placard small" id="log-h">Run log</h3>
+      <p class="muted" id="run-log-note" hidden>This deployment booted with the finished run; the step log covers runs started from this page.</p>
       <pre class="log" id="log" aria-live="polite" tabindex="0" aria-label="Run log"></pre>
     </section>
-  </div>
-</details>
+  </section>
+
+  <section class="analysis-section" aria-labelledby="thresholds-heading">
+    <h2 class="placard" id="thresholds-heading">Thresholds and runtime</h2>
+    <div class="under-hood-meta">
+      <p class="graphs"><span class="label">Graph IDs</span><span id="meta"></span></p>
+      <p class="mode" id="mode"></p>
+    </div>
+    <dl class="thresholds" id="thresholds" aria-label="Screening and Double Take thresholds"></dl>
+    <p class="under-hood-copy">Screen a lead runs Q1 (lead conflict); Double Take runs Q2. Every query is a named MCP tool.</p>
+  </section>
+</main>
 
 <p class="sr-only" id="sr-status" aria-live="polite"></p>
 
