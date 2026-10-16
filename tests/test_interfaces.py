@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import json
 from types import SimpleNamespace
 
@@ -9,6 +10,18 @@ from redstring import registry, seed, tools
 
 def test_every_spec_query_is_a_named_tool():
     assert {t.query for t in registry.TOOLS if t.query} == {"P1", "Q0", "Q1", "Q2", "Q3", "Q4", "Q5"}
+
+
+def test_tool_properties_match_function_parameters():
+    for tool in registry.TOOLS:
+        assert set(tool.properties) <= set(inspect.signature(tool.fn).parameters), tool.name
+
+
+def test_audiences_of_tool_accepts_client_argument():
+    tools._world_cache = None
+    seed.seed_all()
+    tool = next(t for t in registry.TOOLS if t.name == "audiences_of")
+    assert tool.call({"client": "wet-paint"})
 
 
 def test_mcp_server_lists_and_calls_tools():

@@ -67,10 +67,10 @@ def pipeline_board() -> list[dict]:
     return db.rows(db.agency(), queries.PIPELINE)
 
 
-def audiences_of(slug: str) -> list[dict]:
+def audiences_of(client: str) -> list[dict]:
     return db.rows(db.agency(), """MATCH (b:Business {id: $id})-[t:TARGETS]->(a:Audience)
                                    RETURN a.id AS id, a.name AS audience, t.weight AS weight ORDER BY weight DESC""",
-                   {"id": slug})
+                   {"id": client})
 
 
 def list_styles() -> list[dict]:
