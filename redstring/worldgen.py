@@ -1,8 +1,8 @@
 """Generate the synthetic world once, deterministically, into data/world.json.
 
-Everything here is synthetic and labeled as such: the neighborhood, the 13 businesses,
-their past posts, and their goals. The demo seeds from the committed world.json, so it never
-depends on a fresh LLM run producing the same collision.
+The NYC neighborhood names are real; the 14 businesses, their past posts, and their goals
+are invented. The demo seeds from the committed world.json, so it never depends on a fresh
+LLM run producing the same collision.
 """
 from __future__ import annotations
 
@@ -15,7 +15,13 @@ from . import config, rarity, references
 SEED = 1015
 WORLD_DATE = date(2026, 10, 15)
 AGENCY_NAME = "Corkboard Studio"  # placeholder; the agency is not the product
-NEIGHBORHOOD = {"id": "n_linden_hollow", "name": "Linden Hollow"}  # fictional
+NEIGHBORHOODS = [
+    {"id": "n_flatiron", "name": "Flatiron"},
+    {"id": "n_nomad", "name": "NoMad"},
+    {"id": "n_gramercy", "name": "Gramercy Park"},
+    {"id": "n_chelsea", "name": "Chelsea"},
+]
+OWN_RNG = {"deep-end"}  # added later; own RNG so the pinned world doesn't reshuffle
 
 AUDIENCES = [
     {"id": "A1", "name": "Parents of kids 3 to 6", "description": "Preschool and kindergarten families"},
@@ -24,9 +30,11 @@ AUDIENCES = [
     {"id": "A4", "name": "Homeschool families", "description": "Daytime enrichment and co-ops"},
     {"id": "A5", "name": "Teens 13 to 17 and their parents", "description": "Teens choose, parents pay"},
     {"id": "A6", "name": "Local adults without kids", "description": "Neighbors, commuters, regulars"},
+    {"id": "A7", "name": "Office workers near Madison Square Park", "description": "Weekday lunch and after-work crowd in Flatiron and NoMad"},
 ]
 # Stored once per pair; queries match OVERLAPS undirected.
-OVERLAPS = [("A1", "A2", 0.3), ("A1", "A3", 0.5), ("A2", "A3", 0.6), ("A2", "A4", 0.4), ("A2", "A5", 0.2)]
+OVERLAPS = [("A1", "A2", 0.3), ("A1", "A3", 0.5), ("A2", "A3", 0.6), ("A2", "A4", 0.4), ("A2", "A5", 0.2),
+            ("A6", "A7", 0.5)]
 
 AGENTS = [
     {"id": "scout", "name": "Scout", "desk": "New business", "model": config.MODEL},
@@ -44,6 +52,7 @@ AGENTS = [
 BUSINESSES = [
     # ---- signed clients
     dict(id="pixel-pond", name="Pixel Pond Code Club", category="Kids coding", status="signed",
+         neighborhood="n_flatiron",
          targets={"A2": 0.8, "A3": 0.6, "A4": 0.4, "A5": 0.3},
          style="sty_nerd_deadpan", secondary="sty_night_glow",
          voice="Dry, nerdy, proud of kid projects",
@@ -60,6 +69,7 @@ BUSINESSES = [
                 "Spring robotics registration is open."],
          weak=[9]),
     dict(id="wet-paint", name="Wet Paint Kids Studio", category="Kids art", status="signed",
+         neighborhood="n_chelsea",
          targets={"A1": 0.8, "A2": 0.5, "A3": 0.5},
          style="sty_messy_process", secondary="sty_cozy_local",
          voice="Messy, joyful",
@@ -76,6 +86,7 @@ BUSINESSES = [
                 "Clay day. Squish, roll, flop, repeat."],
          weak=[8]),
     dict(id="cannonball", name="Cannonball Swim School", category="Swim lessons", status="signed",
+         neighborhood="n_gramercy",
          targets={"A1": 0.7, "A2": 0.6, "A3": 0.4},
          style="sty_calm_explainer", secondary="sty_parent_proof",
          voice="Calm, safety first",
@@ -93,55 +104,71 @@ BUSINESSES = [
          weak=[6]),
     # ---- leads
     dict(id="byte-builders", name="Byte Builders Academy", category="Kids coding", status="lead",
+         neighborhood="n_chelsea",
          targets={"A2": 0.8, "A4": 0.5}, style="sty_nerd_deadpan", secondary="sty_parent_proof",
          voice="Earnest, credential-forward",
          hypothesized_goal=dict(text="Enroll 30 students in the winter coding camp", metric="camp enrollments", target=30, due="2026-12-20"),
          hooks=["Is your kid ready for Python?", "Our coding camp in 30 seconds", "Meet our new robotics kits"]),
     dict(id="tumble-town", name="Tumble Town Gym", category="Kids gymnastics", status="lead",
+         neighborhood="n_chelsea",
          targets={"A1": 0.8, "A2": 0.6}, style="sty_hype_montage", secondary="sty_kid_pov",
          voice="High energy, cheer-squad proud",
          hypothesized_goal=dict(text="Fill weekday after-school classes for ages 5 to 10", metric="weekday class enrollment", target=60, due="2027-01-15"),
          hooks=["Cartwheel progress: week 1 vs week 8", "Open gym Saturday, here's the vibe", "Can your kid do this balance beam challenge?"]),
     dict(id="treble-clef", name="Treble Clef Music School", category="Music lessons", status="lead",
+         neighborhood="n_gramercy",
          targets={"A2": 0.6, "A1": 0.4}, style="sty_kid_pov", secondary="sty_cozy_local",
          voice="Warm, a little theatrical",
          hypothesized_goal=dict(text="Book 25 new trial lessons before the winter recital", metric="trial lessons booked", target=25, due="2026-12-10"),
          hooks=["First recital nerves, and how we handle them", "Guess the song from three notes", "Our tiniest violinist"]),
     dict(id="northpoint", name="Northpoint Tutoring", category="Tutoring", status="lead",
+         neighborhood="n_flatiron",
          targets={"A2": 0.7, "A5": 0.6, "A4": 0.3}, style="sty_parent_proof", secondary="sty_calm_explainer",
          voice="Reassuring, results-focused",
          hypothesized_goal=dict(text="Sign 20 families to semester math packages", metric="semester packages", target=20, due="2027-01-20"),
          hooks=["Fractions in 20 seconds", "What a tutoring session actually looks like", "Report card season: three tips"]),
     dict(id="page-turn", name="Page Turn Books", category="Bookshop with storytime", status="lead",
+         neighborhood="n_gramercy",
          targets={"A1": 0.6, "A6": 0.5}, style="sty_cozy_local", secondary="sty_kid_pov",
          voice="Bookish, gentle humor",
          hypothesized_goal=dict(text="Double Saturday storytime attendance", metric="storytime attendance", target=40, due="2027-01-31"),
          hooks=["Storytime this Saturday", "Staff picks for 5-year-olds", "What our booksellers are reading"]),
     dict(id="crux", name="Crux Climbing", category="Climbing gym", status="lead",
+         neighborhood="n_chelsea",
          targets={"A5": 0.7, "A6": 0.6}, style="sty_night_glow", secondary="sty_hype_montage",
          voice="Stoked, community first",
          hypothesized_goal=dict(text="Sell 80 teen climb-night passes this winter", metric="teen passes", target=80, due="2027-02-28"),
          hooks=["Can you send this V2?", "Teen climb night recap", "First time on the wall"]),
     dict(id="second-rise", name="Second Rise Bakery", category="Bakery", status="lead",
-         targets={"A6": 0.6, "A3": 0.3}, style="sty_cozy_local", secondary="sty_messy_process",
+         neighborhood="n_nomad",
+         targets={"A6": 0.6, "A3": 0.3, "A7": 0.5}, style="sty_cozy_local", secondary="sty_messy_process",
          voice="Early-morning warm",
          hypothesized_goal=dict(text="Grow weekday preorders to 50 a day", metric="weekday preorders", target=50, due="2027-01-31"),
          hooks=["4am, first loaves out", "Croissant lamination, slowed down", "What's fresh this weekend"]),
     dict(id="corner-cup", name="Corner Cup Cafe", category="Cafe", status="lead",
-         targets={"A6": 0.8, "A3": 0.3}, style="sty_cozy_local", secondary="sty_night_glow",
+         neighborhood="n_flatiron",
+         targets={"A6": 0.8, "A3": 0.3, "A7": 0.7}, style="sty_cozy_local", secondary="sty_night_glow",
          voice="Friendly regulars' spot",
          hypothesized_goal=dict(text="Lift weekday afternoon sales by 20%", metric="weekday afternoon sales", target=20, due="2027-01-31"),
          hooks=["Latte art fail compilation", "Meet our regulars", "New fall menu"]),
     dict(id="still-water", name="Still Water Yoga", category="Yoga", status="lead",
-         targets={"A6": 0.9}, style="sty_calm_explainer", secondary="sty_cozy_local",
+         neighborhood="n_nomad",
+         targets={"A6": 0.9, "A7": 0.4}, style="sty_calm_explainer", secondary="sty_cozy_local",
          voice="Quiet, unhurried",
          hypothesized_goal=dict(text="Sell 40 new intro-month passes", metric="intro passes", target=40, due="2027-01-31"),
          hooks=["Five-minute desk stretch", "Sunrise class, no talking", "What to bring to your first class"]),
     dict(id="good-boy", name="Good Boy Grooming", category="Pet grooming", status="lead",
+         neighborhood="n_gramercy",
          targets={"A6": 0.7}, style="sty_kid_pov", secondary="sty_parent_proof",
          voice="Goofy, dog-obsessed",
          hypothesized_goal=dict(text="Book 30 new-client grooms a month", metric="new-client grooms", target=30, due="2027-01-31"),
          hooks=["Before and after: Biscuit's spa day", "Nail trim without the drama", "Our groomers' favorite breeds"]),
+    dict(id="deep-end", name="Deep End Swim Club", category="Swim lessons", status="lead",
+         neighborhood="n_gramercy",
+         targets={"A1": 0.6, "A2": 0.5}, style="sty_parent_proof", secondary="sty_kid_pov",
+         voice="Brisk, coach-like",
+         hypothesized_goal=dict(text="Fill 24 spots in the winter learn-to-swim block", metric="winter block enrollments", target=24, due="2027-01-10"),
+         hooks=["Three calm steps to your first swim lesson", "Kick, float, smile: a swimmer's first win", "Water confidence starts with one splash"]),
 ]
 
 CTA = {
@@ -204,20 +231,21 @@ def generate() -> dict:
     reserved = set(planted)
     posts_out: dict[str, list[dict]] = {}
     for b in BUSINESSES:
+        brng = random.Random(f"{SEED}:{b['id']}") if b["id"] in OWN_RNG else rng
         n = len(b["hooks"])
         weak = set(b.get("weak", []))
         own = in_style(b["style"], exclude=reserved)
         sec_common = in_style(b["secondary"], rare=False, exclude=reserved)
         plant_slots: set[int] = set()
         if b["id"] in ("wet-paint", "cannonball"):
-            plant_slots = set(rng.sample([i for i in range(n) if i not in weak], 4))
+            plant_slots = set(brng.sample([i for i in range(n) if i not in weak], 4))
         posts = []
         for i, hook in enumerate(b["hooks"]):
             if i in weak:
                 commonest = sorted(in_style(b["style"], rare=False, exclude=reserved), key=lambda t: idx[t]["rarity"])
-                tids = [t for t in commonest if idx[t]["category"] != "hook"][:2] + rng.sample(sec_common, 1)
+                tids = [t for t in commonest if idx[t]["category"] != "hook"][:2] + brng.sample(sec_common, 1)
             else:
-                tids = rng.sample(own, rng.choice([4, 5])) + rng.sample(sec_common, rng.choice([1, 2]))
+                tids = brng.sample(own, brng.choice([4, 5])) + brng.sample(sec_common, brng.choice([1, 2]))
                 if b["id"] == "tumble-town" and i < 2:
                     tids += [t for t in tumble_rare[:2] if t not in tids]
                 if i in plant_slots:
@@ -229,14 +257,14 @@ def generate() -> dict:
                 "technique_ids": tids,
                 **_fields(tids, idx),
                 "caption": f"{hook} {CTA.get(b['id'], '')}".strip(),
-                "posted_at": (WORLD_DATE - timedelta(days=7 * (n - i) + rng.randint(0, 3))).isoformat(),
+                "posted_at": (WORLD_DATE - timedelta(days=7 * (n - i) + brng.randint(0, 3))).isoformat(),
                 "_weak": i in weak,
                 "_planted": i in plant_slots,
             })
         # Engagement: planted posts are each history's best, weak posts its worst.
         base = {"signed": 9.0, "lead": 7.6}[b["status"]]
         for p in posts:
-            v = rng.lognormvariate(base, 0.35)
+            v = brng.lognormvariate(base, 0.35)
             if p["_planted"]:
                 v *= 3.2
             if p["_weak"]:
@@ -246,9 +274,9 @@ def generate() -> dict:
         others = [p["views"] for p in posts if not p["_planted"]]
         for p in posts:
             if p["_planted"]:
-                p["views"] = max(p["views"], int(max(others) * rng.uniform(1.3, 1.9)))
+                p["views"] = max(p["views"], int(max(others) * brng.uniform(1.3, 1.9)))
         for p in posts:
-            save_rate = 0.045 if p["_planted"] else (0.006 if p["_weak"] else rng.uniform(0.012, 0.03))
+            save_rate = 0.045 if p["_planted"] else (0.006 if p["_weak"] else brng.uniform(0.012, 0.03))
             p["saves"] = int(p["views"] * save_rate)
         posts_out[b["id"]] = posts
 
@@ -264,7 +292,7 @@ def generate() -> dict:
     spec_seeds = {
         "tumble-town": [
             {"techniques": seed(tt["style"], tumble_rare[:2], 3), "note": "Tumble Town's own house moves"},
-            {"techniques": seed(tt["style"], planted[:2], 3), "note": "PLANTED: borrows the best-performing kids-art moves in Linden Hollow (Wet Paint's signature)"},
+            {"techniques": seed(tt["style"], planted[:2], 3), "note": "PLANTED: borrows the best-performing kids-art moves in Chelsea (Wet Paint's signature)"},
             {"techniques": seed(tt["style"], tumble_rare[1:3], 3), "note": "Tumble Town's own house moves"},
         ],
         "treble-clef": [
@@ -283,16 +311,16 @@ def generate() -> dict:
     for b in BUSINESSES:
         out = {k: v for k, v in b.items() if k not in ("hooks", "weak")}
         out["synthetic"] = True
-        out["neighborhood"] = NEIGHBORHOOD["id"]
+        out["neighborhood"] = b["neighborhood"]
         out["posts"] = posts_out[b["id"]]
         businesses.append(out)
 
     return {
-        "_note": "SYNTHETIC. The neighborhood, all 13 businesses, their posts, and their goals are invented for the demo.",
+        "_note": "SYNTHETIC. NYC neighborhood names are real; all 14 businesses, their posts, and their goals are invented for the demo.",
         "generated_with_seed": SEED,
         "world_date": WORLD_DATE.isoformat(),
         "agency": {"name": AGENCY_NAME},
-        "neighborhood": NEIGHBORHOOD,
+        "neighborhoods": NEIGHBORHOODS,
         "audiences": AUDIENCES,
         "overlaps": [{"a": a, "b": b, "share": s} for a, b, s in OVERLAPS],
         "agents": AGENTS,

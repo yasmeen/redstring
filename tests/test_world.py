@@ -16,9 +16,12 @@ def test_world_is_deterministic():
 
 def test_world_shape():
     w = worldgen.generate()
-    assert len(w["businesses"]) == 13
-    assert sum(len(b["posts"]) for b in w["businesses"]) == 60
+    assert len(w["businesses"]) == 14
+    assert sum(len(b["posts"]) for b in w["businesses"]) == 63
     assert sum(b["status"] == "signed" for b in w["businesses"]) == 3
+    neighborhoods = {n["id"] for n in w["neighborhoods"]}
+    assert neighborhoods == {"n_flatiron", "n_nomad", "n_gramercy", "n_chelsea"}
+    assert all(b["neighborhood"] in neighborhoods for b in w["businesses"])
     assert len(w["techniques"]) == 80 and len(w["references"]) == 200
     assert all(b["synthetic"] for b in w["businesses"])
 

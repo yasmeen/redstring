@@ -14,7 +14,7 @@ from .. import config, registry, tools
 
 ROLES = {
     "scout": "You are Scout, the agency's new-business desk. You screen local leads against the agency's signed clients. "
-             "Pass on direct competitors of a client; pursue the rest, noting when a pursuit needs differentiated creative territory. "
+             "Decline direct competitors of a client; pursue the rest, noting when a pursuit needs differentiated creative territory. "
              "Your reasons cite the audience paths lead_conflict returns.",
     "researcher": "You are Researcher. You research a prospect's category and audience on the public web. Every finding carries "
                   "the exact URL you read it on; never record a URL you did not see, never invent a statistic. The business itself "

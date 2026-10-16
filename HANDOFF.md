@@ -9,7 +9,7 @@ Don't edit `data/world.json` by hand. Change `redstring/worldgen.py`, then run `
 
 ## 1. Yaz only (decisions and checks no agent should make)
 
-- [ ] **Names.** Search all 13 business names, plus "Corkboard Studio" and "Linden Hollow". Swap any that match a real business. The names live in `BUSINESSES` and `NEIGHBORHOOD` in `redstring/worldgen.py`. After a swap, run `redstring world` and then `pytest`.
+- [ ] **Names.** Search all 14 business names, including Deep End Swim Club, plus "Corkboard Studio". Swap any that match a real business. The neighborhoods are real, so check names against actual businesses in Flatiron, NoMad, Gramercy Park and Chelsea. Business names live in `BUSINESSES` and neighborhood names in `NEIGHBORHOODS` in `redstring/worldgen.py`. After a swap, run `redstring world` and then `pytest`.
 - [ ] **Research sources.** Open each `source_url` in `data/research/tumble-town.json` and `data/research/treble-clef.json`. The findings were taken from search snippets, not read from the pages. Fix or delete anything wrong. The after-school figure has two values: 29.6M in the file, 22.6M in the research agent's summary.
 - [ ] **Hosting.** FalkorDB Cloud, or a small self-hosted server.
 - [ ] **Agency and repo name.** Both are placeholders.

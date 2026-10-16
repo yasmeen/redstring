@@ -46,7 +46,8 @@ def seed_agency(world: dict) -> None:
 
     db.run(g, "UNWIND $rows AS r CREATE (:Agent {id: r.id, name: r.name, desk: r.desk, model: r.model})",
            {"rows": world["agents"]})
-    db.run(g, "CREATE (:Neighborhood {id: $id, name: $name})", world["neighborhood"])
+    db.run(g, "UNWIND $rows AS r CREATE (:Neighborhood {id: r.id, name: r.name})",
+           {"rows": world["neighborhoods"]})
     db.run(g, "UNWIND $rows AS r CREATE (:Audience {id: r.id, name: r.name, description: r.description})",
            {"rows": world["audiences"]})
     db.run(g, """UNWIND $rows AS r MATCH (a:Audience {id: r.a}), (b:Audience {id: r.b})

@@ -38,10 +38,13 @@ def world() -> dict:
 
 
 def business(slug: str) -> dict:
-    rows = db.rows(db.agency(), "MATCH (b:Business {id: $id}) RETURN b", {"id": slug})
+    rows = db.rows(db.agency(), """MATCH (b:Business {id: $id})-[:LOCATED_IN]->(n:Neighborhood)
+                                   RETURN b, n.name AS neighborhood""", {"id": slug})
     if not rows:
         raise ValueError(f"unknown business {slug}")
-    return rows[0]["b"]
+    biz = rows[0]["b"]
+    biz["neighborhood"] = rows[0]["neighborhood"]
+    return biz
 
 
 # ------------------------------------------------------------------ decisions
@@ -67,10 +70,10 @@ def pipeline_board() -> list[dict]:
     return db.rows(db.agency(), queries.PIPELINE)
 
 
-def audiences_of(slug: str) -> list[dict]:
+def audiences_of(client: str) -> list[dict]:
     return db.rows(db.agency(), """MATCH (b:Business {id: $id})-[t:TARGETS]->(a:Audience)
                                    RETURN a.id AS id, a.name AS audience, t.weight AS weight ORDER BY weight DESC""",
-                   {"id": slug})
+                   {"id": client})
 
 
 def list_styles() -> list[dict]:
@@ -109,7 +112,7 @@ def lead_conflict(lead: str) -> dict:
                      key=lambda x: -x["conflict"])
     top = clients[0]["conflict"] if clients else 0.0
     if competitors:
-        verdict, reason = "pass", f"Same category as {competitors[0]['client']} in {competitors[0]['neighborhood']}: a direct competitor of a client."
+        verdict, reason = "decline", f"Same category as {competitors[0]['client']} in {competitors[0]['neighborhood']}: a direct competitor of a client."
     elif top >= config.DIFFERENTIATE_CONFLICT:
         verdict, reason = "pursue_differentiated", f"Overlaps {clients[0]['client']} on the same parents (conflict {top:.2f}); pitch only with differentiated territory."
     elif top >= config.BORDERLINE_CONFLICT:
@@ -370,7 +373,8 @@ def double_take(client: str, draft_id: str) -> list[dict]:
         r["overlap"] = audience_overlap(client, r["business_id"])
         r["risk"] = round(r["similarity"] * r["overlap"], 3)
         r["flag"] = r["risk"] >= config.FLAG_RISK
-    return sorted(rows, key=lambda r: -r["risk"])
+    order = {b["id"]: i for i, b in enumerate(world()["businesses"])}
+    return sorted(rows, key=lambda r: (-r["risk"], order.get(r["business_id"], len(order))))
 
 
 def check_draft(client: str, draft_id: str, agent: str = "standards") -> dict:

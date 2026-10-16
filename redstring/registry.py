@@ -116,7 +116,7 @@ TOOLS: list[Tool] = [
 
     # ---- writes (each writes a Decision with DECIDED_BY)
     Tool("record_screening", tools.record_screening, "Write Scout's SCREENED verdict on a lead, with the reason and audience paths.",
-         {"lead": CLIENT, "verdict": {"type": "string", "enum": ["pass", "pursue", "pursue_differentiated", "borderline"]}, "reason": S,
+         {"lead": CLIENT, "verdict": {"type": "string", "enum": ["decline", "pursue", "pursue_differentiated", "borderline"]}, "reason": S,
           "paths": {"type": "array", "items": {"type": "object"}}}, ["lead", "verdict", "reason"], ["scout"]),
     Tool("pursue", tools.pursue, "Create the prospect's private graph and set its status to pursued.", {"slug": CLIENT, "rationale": S}, ["slug", "rationale"], ["scout"]),
     Tool("record_finding", tools.record_finding, "Record a Finding with its source URL. Use only URLs you actually read.",

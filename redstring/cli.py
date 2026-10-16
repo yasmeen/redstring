@@ -70,7 +70,7 @@ def check() -> None:
     """The Thursday-night checkpoint: P1 and Q0-Q5 return the expected results on the seed."""
     from . import tools
     print("Q0 signatures (Wet Paint):", [s["technique"] for s in tools.signatures("wet-paint")])
-    for lead in ("byte-builders", "tumble-town", "page-turn", "crux"):
+    for lead in ("byte-builders", "tumble-town", "page-turn", "crux", "deep-end"):
         r = tools.lead_conflict(lead)
         print(f"Q1 {lead:<14} {r['verdict']:<22} max conflict {r['max_conflict']}")
     planted = tools.world()["planted"]["collision_techniques"]
