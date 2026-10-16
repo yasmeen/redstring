@@ -3,71 +3,105 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
 <title>Red String</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2212%22 fill=%22none%22 stroke=%22%23c41e2a%22 stroke-width=%223%22/%3E%3Cpath d=%22M6 28 26 4%22 stroke=%22%23c41e2a%22 stroke-width=%223%22/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M5 25 C 12 25 14 9 27 8%22 fill=%22none%22 stroke=%22%23BE2A3A%22 stroke-width=%223.2%22 stroke-linecap=%22round%22/%3E%3Ccircle cx=%225%22 cy=%2225%22 r=%224%22 fill=%22%23BE2A3A%22/%3E%3Ccircle cx=%2227%22 cy=%228%22 r=%224%22 fill=%22%23FCFAF9%22 stroke=%22%23BE2A3A%22 stroke-width=%222.5%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800&amp;family=Schibsted+Grotesk:wght@400;500;600;700&amp;display=swap">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+<a class="skip" href="#board">Skip to the pipeline</a>
+
 <header class="top">
   <div class="brand">
-    <span class="mark" aria-hidden="true"></span>
-    <div>
-      <h1>Red String</h1>
-      <p class="sub">running <b id="agency">…</b> <span class="muted">(placeholder agency)</span> · every claim traced to FalkorDB</p>
-    </div>
+    <h1 class="wordmark">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 25 C 12 25 14 9 27 8" fill="none" stroke="#BE2A3A" stroke-width="3" stroke-linecap="round"/><circle cx="5" cy="25" r="4" fill="#BE2A3A"/><circle cx="27" cy="8" r="4" fill="#FCFAF9" stroke="#BE2A3A" stroke-width="2.5"/></svg>
+      Red String
+    </h1>
+    <p class="thesis">Graph memory for agents doing client work, built on FalkorDB. Every decision traces back to its sources, and <b>Double Take</b> blocks any draft that would look like another client's work to the same people.</p>
   </div>
-  <div class="meta" id="meta"></div>
+  <div class="usecase">
+    <p><span class="label">Use case</span>An agent-run creative agency, <b id="agency">…</b> <span class="muted">(placeholder name)</span>, screening and pitching local NYC businesses. <span class="synthetic" id="biz-count">synthetic businesses</span></p>
+    <p class="graphs"><span class="label">FalkorDB</span><span id="meta"></span><span class="mode" id="mode"></span></p>
+  </div>
 </header>
 
-<main>
-  <section class="panel" id="runner">
-    <div class="panel-head">
-      <h2>Demo run</h2>
-      <span class="muted" id="mode"></span>
-    </div>
+<section class="runner" id="runner" aria-labelledby="runner-h">
+  <div class="runner-inner">
+    <h2 class="placard" id="runner-h">Demo run</h2>
     <ol class="steps" id="steps"></ol>
-    <pre class="log" id="log" aria-live="polite"></pre>
-  </section>
+    <p class="runner-status" id="runner-status"><span id="step-next"></span><span class="latest" id="step-latest"></span></p>
+    <p class="readonly-note" id="readonly-note" hidden>Read-only link: the demo run is hidden. Both "Try it" forms below still work.</p>
+  </div>
+</section>
 
-  <section class="panel">
-    <div class="panel-head">
-      <h2>Pipeline</h2>
-      <span class="muted">14 businesses · synthetic</span>
+<main class="desk" id="desk">
+  <svg class="string-layer" id="string-layer" aria-hidden="true" focusable="false"><path id="string-path" d=""/></svg>
+
+  <section class="board-wrap" aria-labelledby="board-h">
+    <div class="section-head">
+      <h2 class="placard" id="board-h">Pipeline</h2>
+      <p class="muted">Pick a card to pull its thread. <button type="button" class="btn small" id="follow" hidden>Follow the run</button></p>
     </div>
     <div class="board" id="board"></div>
+
+    <section class="log-wrap" aria-labelledby="log-h">
+      <h2 class="placard small" id="log-h">Run log</h2>
+      <pre class="log" id="log" aria-live="polite" tabindex="0" aria-label="Run log"></pre>
+    </section>
   </section>
 
-  <div class="two">
-    <section class="panel">
-      <div class="panel-head"><h2>Screen a new lead</h2><span class="muted">Q1, live</span></div>
+  <aside class="dossier" id="drawer" aria-labelledby="dossier-h" tabindex="-1">
+    <div class="drawer-body" id="drawer-body">
+      <div class="dossier-empty">
+        <h2 class="placard" id="dossier-h">Pick a business</h2>
+        <p class="muted">Each card opens its dossier: Scout's screening, Double Take's flags, goals, pitches, drafts, and every source behind them.</p>
+      </div>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+</main>
+
+<div class="lower">
+  <div class="try">
+    <section class="panel" aria-labelledby="lead-h">
+      <div class="panel-head"><h2 class="placard" id="lead-h">Screen a new lead</h2><span class="query-tag">Q1 · live</span></div>
+      <p class="panel-sub">Describe a business and who it targets. Scout checks it against every signed client's audience and returns a verdict with the paths behind it.</p>
       <form id="lead-form" class="form">
-        <label>Name <input name="name" required maxlength="60" placeholder="Sprout Dance Studio"></label>
-        <label>Category <input name="category" required maxlength="60" placeholder="Kids dance"></label>
-        <label>Neighborhood <select name="neighborhood" id="lead-neighborhood"></select></label>
-        <fieldset id="aud-sliders"><legend>Who it targets (0 to 1)</legend></fieldset>
-        <button type="submit">Screen with Scout</button>
+        <div class="row2">
+          <label class="field">Name <input name="name" required maxlength="60" placeholder="Sprout Dance Studio" autocomplete="off"></label>
+          <label class="field">Category <input name="category" required maxlength="60" placeholder="Kids dance" autocomplete="off"></label>
+          <label class="field">Neighborhood <select name="neighborhood" id="lead-neighborhood"></select></label>
+        </div>
+        <fieldset id="aud-sliders"><legend>Who it targets <span class="muted">(0 to 1)</span></legend></fieldset>
+        <div><button type="submit" class="btn primary">Screen with Scout</button></div>
       </form>
-      <div id="lead-result"></div>
+      <div id="lead-result" aria-live="polite"></div>
     </section>
-    <section class="panel">
-      <div class="panel-head"><h2>Double Take a draft</h2><span class="muted">Q2, read only</span></div>
+
+    <section class="panel" aria-labelledby="draft-h">
+      <div class="panel-head"><h2 class="placard" id="draft-h">Double Take a draft</h2><span class="query-tag">Q2 · read only</span></div>
+      <p class="panel-sub">Pick a client and the techniques a draft would use. Double Take compares it with every other business that reaches the same people.</p>
       <form id="draft-form" class="form">
-        <label>For <select name="client" id="draft-client"></select></label>
-        <div class="tech-pick" id="tech-pick"></div>
-        <button type="submit">Run Double Take</button>
+        <label class="field">For <select name="client" id="draft-client"></select></label>
+        <fieldset><legend>Techniques in the draft</legend><div class="tech-pick" id="tech-pick"></div></fieldset>
+        <div><button type="submit" class="btn primary">Run Double Take</button></div>
       </form>
-      <div id="draft-result"></div>
+      <div id="draft-result" aria-live="polite"></div>
     </section>
   </div>
 
-  <section class="panel">
-    <div class="panel-head"><h2>Decisions</h2><span class="muted">every write has a why</span></div>
-    <ul class="feed" id="feed"></ul>
+  <section class="panel" aria-labelledby="feed-h">
+    <div class="panel-head"><h2 class="placard" id="feed-h">Decisions</h2><span class="muted">Every write has a why.</span></div>
+    <ul class="feed" id="feed" tabindex="0" aria-label="Decisions, newest first"></ul>
   </section>
-</main>
+</div>
 
-<dialog id="drawer"><div class="drawer-body" id="drawer-body"></div></dialog>
-<dialog id="card"><div class="card-body" id="card-body"></div></dialog>
+<p class="sr-only" id="sr-status" aria-live="polite"></p>
+
+<dialog id="card" aria-label="Thread"><div class="card-body" id="card-body"></div></dialog>
 
 <script src="/static/app.js"></script>
 </body>
