@@ -4,6 +4,12 @@ services:
     image: falkordb/falkordb:latest
     ports: ["6379:6379", "3000:3000"]
     volumes: ["falkordb:/var/lib/falkordb/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
   app:
     build: .
     environment:
@@ -11,6 +17,8 @@ services:
       REDSTRING_MODE: ${REDSTRING_MODE:-offline}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     ports: ["8000:8000"]
-    depends_on: [falkordb]
+    depends_on:
+      falkordb:
+        condition: service_healthy
 volumes:
   falkordb:
