@@ -1,0 +1,8 @@
+.venv/
+.git/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+data/runs/
+*.rdb
+data/instinct_export*

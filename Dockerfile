@@ -3,7 +3,7 @@ WORKDIR /app
 COPY pyproject.toml ./
 COPY redstring ./redstring
 COPY data ./data
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir -e .
 ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
 # Seeds on boot so a fresh deploy always starts from world.json.
