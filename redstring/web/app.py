@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from .. import config, db, queries, tools
+from .. import config, db, queries, registry, tools
 from ..pipeline import STEPS, Pipeline, run_step
 
 STATIC = Path(__file__).parent / "static"
@@ -41,8 +41,96 @@ def _client_or_404(slug: str) -> str:
     return slug
 
 
+def _thresholds() -> dict:
+    return {
+        "rare": config.RARE,
+        "flag_risk": config.FLAG_RISK,
+        "differentiate": config.DIFFERENTIATE_CONFLICT,
+        "borderline": config.BORDERLINE_CONFLICT,
+    }
+
+
+def _studio_context(businesses: list[dict]) -> tuple[list[dict], list[dict]]:
+    client_slugs = db.client_slugs()
+    client_data = {}
+    for slug in client_slugs:
+        client_data[slug] = {
+            "business": tools.business(slug),
+            "goals": tools.goals(slug),
+            "pitches": tools.pitches(slug),
+            "drafts": tools.drafts(slug),
+            "flags": tools.collision_flags(slug),
+        }
+
+    clients = [
+        {
+            "id": slug,
+            "name": data["business"]["name"],
+            "category": data["business"]["category"],
+            "neighborhood": data["business"].get("neighborhood", ""),
+            "goals": [goal for goal in data["goals"] if goal.get("status") == "active"],
+        }
+        for slug, data in client_data.items()
+        if data["business"].get("status") == "signed"
+    ]
+
+    needs_you = []
+    for business in businesses:
+        if business.get("status") == "lead" and business.get("verdict") == "borderline":
+            needs_you.append({
+                "type": "borderline",
+                "business_id": business["id"],
+                "message": f"Decide whether to pursue {business['name']}",
+            })
+
+    for slug, data in client_data.items():
+        business = data["business"]
+        for pitch in data["pitches"]:
+            if pitch.get("status") == "draft":
+                needs_you.append({
+                    "type": "pitch",
+                    "business_id": slug,
+                    "pitch_id": pitch["id"],
+                    "message": f"Approve or veto the pitch for {business['name']}",
+                })
+
+    for slug, data in client_data.items():
+        business = data["business"]
+        drafts = {draft["id"]: draft for draft in data["drafts"]}
+        seen = set()
+        for flag in data["flags"]:
+            draft_id = flag["draft"]
+            if draft_id in seen:
+                continue
+            seen.add(draft_id)
+            draft = drafts.get(draft_id)
+            if not draft or draft.get("status") != "flagged":
+                continue
+            needs_you.append({
+                "type": "blocked",
+                "business_id": slug,
+                "draft_id": draft_id,
+                "message": f"{business['name']}'s draft looked like {flag['with_business']}'s work to the same people. Revised.",
+            })
+
+    for business in businesses:
+        if business.get("status") == "lead" and not business.get("verdict"):
+            needs_you.append({
+                "type": "unscreened",
+                "business_id": business["id"],
+                "message": f"Screen {business['name']}",
+            })
+
+    return clients, needs_you
+
+
 @app.get("/")
 def index():
+    return FileResponse(STATIC / "index.html")
+
+
+@app.get("/analysis")
+def analysis_page():
     return FileResponse(STATIC / "index.html")
 
 
@@ -50,19 +138,106 @@ def index():
 def overview():
     w = tools.world()
     g = db.agency()
+    businesses = tools.pipeline_board()
+    clients, needs_you = _studio_context(businesses)
     return {
         "agency": w["agency"]["name"],
         "mode": MODE,
         "readonly": READONLY,
-        "businesses": tools.pipeline_board(),
+        "businesses": businesses,
+        "clients": clients,
+        "needs_you": needs_you,
         "agents": db.rows(g, "MATCH (a:Agent) RETURN a.id AS id, a.name AS name, a.desk AS desk ORDER BY a.name"),
         "audiences": db.rows(g, "MATCH (a:Audience) RETURN a.id AS id, a.name AS name ORDER BY id"),
         "neighborhoods": db.rows(g, "MATCH (n:Neighborhood) RETURN n.id AS id, n.name AS name ORDER BY n.name"),
         "graphs": db.list_graphs(),
         "steps": [{"id": s, "label": l, "done": s in _done} for s, l in STEPS],
         "log": _log[-60:],
-        "thresholds": {"rare": config.RARE, "flag_risk": config.FLAG_RISK,
-                       "differentiate": config.DIFFERENTIATE_CONFLICT, "borderline": config.BORDERLINE_CONFLICT},
+        "thresholds": _thresholds(),
+    }
+
+
+@app.get("/api/analysis")
+def analysis():
+    graph_names = db.list_graphs()
+    graphs = []
+    for name in graph_names:
+        g = db.graph(name)
+        nodes = db.rows(g, "MATCH (n) RETURN labels(n)[0] AS label, count(*) AS c")
+        edges = db.rows(g, "MATCH ()-[r]->() RETURN type(r) AS t, count(*) AS c")
+        graphs.append({
+            "name": name,
+            "nodes": {str(row["label"] or "Unlabeled"): row["c"] for row in nodes},
+            "edges": {row["t"]: row["c"] for row in edges},
+        })
+
+    agency = db.agency()
+    screening = []
+    for business in db.rows(agency, """MATCH (b:Business)-[:LOCATED_IN]->(n:Neighborhood)
+                                       WHERE b.status <> 'signed'
+                                       RETURN b.id AS id, b.name AS name, b.category AS category,
+                                              b.status AS status, n.name AS neighborhood
+                                       ORDER BY b.name"""):
+        screening.append({**business, **tools.lead_conflict(business["id"])})
+
+    double_take = []
+    for slug in db.client_slugs():
+        business = tools.business(slug)
+        drafts = {draft["id"]: draft for draft in tools.drafts(slug)}
+        for flag in tools.collision_flags(slug):
+            draft = drafts.get(flag["draft"], {})
+            double_take.append({
+                **flag,
+                "client_id": slug,
+                "client": business["name"],
+                "draft_hook": draft.get("hook", ""),
+                "draft_status": draft.get("status", ""),
+                "flag_risk": config.FLAG_RISK,
+            })
+
+    cleared_checks = 0
+    for name in graph_names:
+        rows = db.rows(db.graph(name), """MATCH (d:Decision)
+                                         WHERE d.text STARTS WITH $prefix
+                                         RETURN count(d) AS count""",
+                       {"prefix": "Double Take: cleared"})
+        cleared_checks += rows[0]["count"]
+
+    queries_by_label = {
+        name: value for name, value in vars(queries).items()
+        if isinstance(value, str)
+    }
+    named_queries = []
+    for tool in registry.TOOLS:
+        if not tool.query:
+            continue
+        cypher = [
+            {"constant": name, "text": value}
+            for name, value in queries_by_label.items()
+            if name.startswith(f"{tool.query}_")
+        ]
+        named_queries.append({
+            "query": tool.query,
+            "tool": tool.name,
+            "description": tool.description,
+            "agents": tool.agents,
+            "cypher": cypher,
+        })
+
+    agents = {}
+    for tool in registry.TOOLS:
+        for agent in tool.agents:
+            agents.setdefault(agent, []).append(tool.name)
+
+    return {
+        "graphs": graphs,
+        "screening": screening,
+        "double_take": double_take,
+        "cleared_checks": cleared_checks,
+        "signatures": tools.signatures(),
+        "queries": named_queries,
+        "agents": agents,
+        "thresholds": _thresholds(),
     }
 
 
