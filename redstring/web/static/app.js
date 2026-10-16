@@ -184,8 +184,11 @@ $("#lead-form").addEventListener("submit", async (e) => {
   for (const [k, v] of f.entries()) if (k.startsWith("aud-") && +v > 0) targets[k.slice(4)] = +v;
   try {
     const r = await api("/api/try/lead", { method: "POST", body: JSON.stringify({ name: f.get("name"), category: f.get("category"), targets, neighborhood: f.get("neighborhood") }) });
+    const savedNote = r.saved === false
+      ? `<p class="muted">Not saved: the public demo screens leads without adding them to the graph.</p>`
+      : "";
     $("#lead-result").innerHTML = `<div class="${r.verdict === "decline" ? "flagbox" : r.verdict === "pursue" ? "okbox" : "warnbox"}">${chip(r.verdict)} ${esc(r.reason)}</div>
-      <div class="thread">${r.clients.map((c) => `<div class="knot"><div class="who">${esc(c.client)} · ${n(c.conflict)}</div><p class="muted">${c.paths.map((p) => `${esc(p.via)} (${n(p.conflict, 3)})`).join(" · ")}</p></div>`).join("")}</div>`;
+      ${savedNote}<div class="thread">${r.clients.map((c) => `<div class="knot"><div class="who">${esc(c.client)} · ${n(c.conflict)}</div><p class="muted">${c.paths.map((p) => `${esc(p.via)} (${n(p.conflict, 3)})`).join(" · ")}</p></div>`).join("")}</div>`;
     refresh();
   } catch (err) { $("#lead-result").innerHTML = `<div class="flagbox">${esc(err.message)}</div>`; }
 });

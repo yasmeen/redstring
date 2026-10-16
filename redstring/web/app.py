@@ -164,7 +164,7 @@ class LeadIn(BaseModel):
 
 @app.post("/api/try/lead")
 def try_lead(body: LeadIn):
-    """Screen a new lead live with Q1. It is added to the agency directory as a synthetic lead."""
+    """Screen a new lead live with Q1; persist it only when the deployment is writable."""
     neighborhoods = {n["id"] for n in db.rows(db.agency(), "MATCH (n:Neighborhood) RETURN n.id AS id")}
     if body.neighborhood not in neighborhoods:
         raise HTTPException(400, "unknown neighborhood")
@@ -172,15 +172,26 @@ def try_lead(body: LeadIn):
     targets = {k: max(0.0, min(1.0, float(v))) for k, v in body.targets.items() if k in valid and float(v) > 0}
     if not targets:
         raise HTTPException(400, "pick at least one audience")
-    slug = "try-" + (re.sub(r"[^a-z0-9]+", "-", body.name.lower()).strip("-")[:40] or "lead")
+    readonly = READONLY
+    slug = f"try-{os.urandom(4).hex()}" if readonly else (
+        "try-" + (re.sub(r"[^a-z0-9]+", "-", body.name.lower()).strip("-")[:40] or "lead")
+    )
     g = db.agency()
+    create_query = """MATCH (n:Neighborhood {id: $neighborhood})
+                      CREATE (b:Business {id: $id, name: $name, category: $category, status: 'lead', synthetic: true, user_added: true})-[:LOCATED_IN]->(n)
+                      WITH b UNWIND $targets AS t MATCH (a:Audience {id: t.aud}) CREATE (b)-[:TARGETS {weight: t.w}]->(a)"""
+    params = {"id": slug, "name": body.name, "category": body.category, "neighborhood": body.neighborhood,
+              "targets": [{"aud": k, "w": v} for k, v in targets.items()]}
+    if readonly:
+        try:
+            db.run(g, create_query, params)
+            res = tools.lead_conflict(slug)
+        finally:
+            db.run(g, "MATCH (b:Business {id: $id}) DETACH DELETE b", {"id": slug})
+        return {**res, "saved": False}
     db.run(g, "MATCH (b:Business {id: $id}) DETACH DELETE b", {"id": slug})
-    db.run(g, """MATCH (n:Neighborhood {id: $neighborhood})
-                 CREATE (b:Business {id: $id, name: $name, category: $category, status: 'lead', synthetic: true, user_added: true})-[:LOCATED_IN]->(n)
-                 WITH b UNWIND $targets AS t MATCH (a:Audience {id: t.aud}) CREATE (b)-[:TARGETS {weight: t.w}]->(a)""",
-           {"id": slug, "name": body.name, "category": body.category, "neighborhood": body.neighborhood,
-            "targets": [{"aud": k, "w": v} for k, v in targets.items()]})
-    return tools.screen_lead(slug)
+    db.run(g, create_query, params)
+    return {**tools.screen_lead(slug), "saved": True}
 
 
 class DraftIn(BaseModel):

@@ -222,7 +222,7 @@ The two collisions are **planted**, and this README says so. `world.json` carrie
 
 ## Try it as an outsider
 
-The web app has two live inputs. *Screen a new lead* adds a synthetic lead with your audience weights and runs Q1. *Double Take a draft* projects a temporary fingerprint for any technique mix, runs Q2, and deletes it.
+The web app has two live inputs. *Screen a new lead* adds a synthetic lead with your audience weights and runs Q1; on a read-only deployment it screens the lead without saving it. *Double Take a draft* projects a temporary fingerprint for any technique mix, runs Q2, and deletes it.
 
 ## AI-use disclosure
 
