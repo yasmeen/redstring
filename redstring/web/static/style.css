@@ -75,7 +75,7 @@ h1, h2, h3, h4, p { margin: 0; }
 
 /* ------------------------------------------------------------------ first-visit intro */
 
-.intro { max-width: 1760px; margin: 10px auto 0; padding: 20px 22px; }
+.intro { width: calc(100% - var(--gutter) - var(--gutter)); max-width: calc(1760px - var(--gutter) - var(--gutter)); margin: 10px auto 0; padding: 20px 22px; }
 .intro-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .intro-steps { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 16px 0 18px; padding: 0; counter-reset: intro; }
 .intro-steps li { position: relative; min-height: 100%; padding: 13px 14px 13px 44px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(237, 230, 228, 0.35); color: var(--muted); font-size: 0.875rem; line-height: 1.5; }
@@ -281,7 +281,7 @@ legend .muted { font-weight: 400; }
 
 /* ------------------------------------------------------------------ implementation details */
 
-.under-hood { max-width: 1760px; margin: 0 auto 48px; padding: 16px 20px; }
+.under-hood { width: calc(100% - var(--gutter) - var(--gutter)); max-width: calc(1760px - var(--gutter) - var(--gutter)); margin: 0 auto 48px; padding: 16px 20px; }
 .under-hood > summary { cursor: pointer; }
 .under-hood > summary:hover { color: var(--thread-deep); }
 .under-hood-content { display: grid; gap: 12px; padding-top: 16px; }
