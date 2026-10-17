@@ -9,7 +9,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from . import tools
+from . import seed, tools
 
 
 @dataclass
@@ -42,7 +42,7 @@ def _brief(client: str) -> dict:
     w = tools.world()
     seeds = w["spec_seeds"].get(client) or w["draft_seeds"].get(client) or []
     names = {t["id"]: t["name"] for t in w["techniques"]}
-    b = next(x for x in w["businesses"] if x["id"] == client)
+    b = seed.find_business(w, client)
     return {"business": b["name"], "voice": b["voice"], "category": b["category"],
             "posts": [{"slot": i + 1, "technique_ids": s["techniques"],
                        "techniques": [names[t] for t in s["techniques"]]} for i, s in enumerate(seeds)]}
@@ -50,7 +50,7 @@ def _brief(client: str) -> dict:
 
 def _style_of(client: str) -> dict:
     w = tools.world()
-    b = next(x for x in w["businesses"] if x["id"] == client)
+    b = seed.find_business(w, client)
     styles = {s["id"]: s["name"] for s in w["styles"]}
     return {"primary_style": styles[b["style"]], "secondary_style": styles[b["secondary"]], "voice": b["voice"]}
 

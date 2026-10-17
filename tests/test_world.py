@@ -1,6 +1,6 @@
 import math
 
-from redstring import config, rarity, references, worldgen
+from redstring import config, rarity, references, seed, worldgen
 
 
 def test_rarity_matches_spec_examples():
@@ -33,7 +33,7 @@ def test_planted_collision():
     assert len(planted) == 3 and all(tech[t]["rarity"] >= config.PLANT_RARITY for t in planted)
     assert len({tech[t]["style"] for t in planted}) == 1
     for slug in ("wet-paint", "cannonball"):
-        posts = next(b for b in w["businesses"] if b["id"] == slug)["posts"]
+        posts = seed.find_business(w, slug)["posts"]
         hits = [p for p in posts if set(planted) <= set(p["technique_ids"])]
         assert len(hits) == 4
         top4 = sorted(posts, key=lambda p: -p["views"])[:4]

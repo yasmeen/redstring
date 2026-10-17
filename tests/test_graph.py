@@ -150,6 +150,19 @@ def test_fallback_hooks_are_category_specific_and_unique(monkeypatch):
     assert set(fallback_hooks) <= set(offline.SCENE[category]["hooks"])
 
 
+def test_fallback_hooks_remain_unique_after_category_hooks_are_used(monkeypatch):
+    client = "cannonball"
+    category = "Swim lessons"
+    used = [{"hook": hook} for hook in offline.SCENE[category]["hooks"]]
+    monkeypatch.setattr(tools, "drafts", lambda _client: list(used))
+
+    hook = offline._fallback_hook(client, 7, 1, category)
+
+    assert hook not in {draft["hook"] for draft in used}
+    assert len(hook.split()) <= 12
+    assert any(base in hook for base in offline.SCENE[category]["hooks"])
+
+
 def test_fallback_hook_is_in_template_opening_shot(demo):
     client = "cannonball"
     hook = offline.SCENE["Swim lessons"]["hooks"][0]

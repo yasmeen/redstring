@@ -7916,6 +7916,629 @@
    ]
   }
  ],
+ "lead_feed": [
+  {
+   "id": "half-moon-yoga",
+   "name": "Half Moon Yoga",
+   "category": "Yoga",
+   "status": "lead",
+   "neighborhood": "n_nomad",
+   "targets": {
+    "A6": 0.8,
+    "A7": 0.6
+   },
+   "style": "sty_calm_explainer",
+   "secondary": "sty_cozy_local",
+   "voice": "Quiet, neighborly, unhurried",
+   "hypothesized_goal": {
+    "text": "Sell 28 first-month passes before the December schedule begins",
+    "metric": "intro-month passes",
+    "target": 28,
+    "due": "2026-12-01"
+   },
+   "hooks": [
+    "Three slow breaths, then the shoulders drop.",
+    "The first balance pose wobbles too.",
+    "An evening class with room to breathe."
+   ],
+   "arrives": 1,
+   "synthetic": true,
+   "posts": [
+    {
+     "id": "half-moon-yoga-post-01",
+     "hook": "Three slow breaths, then the shoulders drop.",
+     "technique_ids": [
+      "txt_lower_third",
+      "hook_myth_bust",
+      "aud_voiceover",
+      "pace_slow_reveal",
+      "fmt_photo_dump",
+      "str_day_in_life"
+     ],
+     "format": "carousel",
+     "hook_technique": "hook_myth_bust",
+     "structure": "str_day_in_life",
+     "pacing": "pace_slow_reveal",
+     "transitions": [],
+     "text_treatment": "txt_lower_third",
+     "color": null,
+     "audio": "aud_voiceover",
+     "caption": "Three slow breaths, then the shoulders drop.",
+     "posted_at": "2026-09-21",
+     "views": 4948,
+     "saves": 124
+    },
+    {
+     "id": "half-moon-yoga-post-02",
+     "hook": "The first balance pose wobbles too.",
+     "technique_ids": [
+      "txt_lower_third",
+      "fmt_carousel",
+      "aud_voiceover",
+      "col_aqua_grade",
+      "tr_dissolve",
+      "col_warm_film"
+     ],
+     "format": "carousel",
+     "hook_technique": null,
+     "structure": null,
+     "pacing": null,
+     "transitions": [
+      "tr_dissolve"
+     ],
+     "text_treatment": "txt_lower_third",
+     "color": "col_aqua_grade",
+     "audio": "aud_voiceover",
+     "caption": "The first balance pose wobbles too.",
+     "posted_at": "2026-09-29",
+     "views": 1503,
+     "saves": 18
+    },
+    {
+     "id": "half-moon-yoga-post-03",
+     "hook": "An evening class with room to breathe.",
+     "technique_ids": [
+      "tr_dissolve",
+      "fmt_carousel",
+      "str_tutorial_steps",
+      "pace_slow_reveal",
+      "aud_room_tone",
+      "str_behind_scenes"
+     ],
+     "format": "carousel",
+     "hook_technique": null,
+     "structure": "str_tutorial_steps",
+     "pacing": "pace_slow_reveal",
+     "transitions": [
+      "tr_dissolve"
+     ],
+     "text_treatment": null,
+     "color": null,
+     "audio": "aud_room_tone",
+     "caption": "An evening class with room to breathe.",
+     "posted_at": "2026-10-05",
+     "views": 1061,
+     "saves": 24
+    }
+   ]
+  },
+  {
+   "id": "paper-moon-art",
+   "name": "Paper Moon Art Lab",
+   "category": "Kids art",
+   "status": "lead",
+   "neighborhood": "n_gramercy",
+   "targets": {
+    "A1": 0.7,
+    "A2": 0.5
+   },
+   "style": "sty_messy_process",
+   "secondary": "sty_cozy_local",
+   "voice": "Playful, process-loving, reassuring",
+   "hypothesized_goal": {
+    "text": "Book 18 children into the winter paper-making workshop",
+    "metric": "winter workshop bookings",
+    "target": 18,
+    "due": "2026-12-15"
+   },
+   "hooks": [
+    "A blue mark becomes a paper garden.",
+    "First the fold, then the tiny roof.",
+    "The paper crane finally holds its wings."
+   ],
+   "arrives": 2,
+   "synthetic": true,
+   "posts": [
+    {
+     "id": "paper-moon-art-post-01",
+     "hook": "A blue mark becomes a paper garden.",
+     "technique_ids": [
+      "col_primary_pop",
+      "aud_asmr_process",
+      "hook_result_first",
+      "txt_handwritten",
+      "fmt_photo_dump",
+      "col_warm_film"
+     ],
+     "format": "carousel",
+     "hook_technique": "hook_result_first",
+     "structure": null,
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": "txt_handwritten",
+     "color": "col_primary_pop",
+     "audio": "aud_asmr_process",
+     "caption": "A blue mark becomes a paper garden.",
+     "posted_at": "2026-09-24",
+     "views": 1743,
+     "saves": 33
+    },
+    {
+     "id": "paper-moon-art-post-02",
+     "hook": "First the fold, then the tiny roof.",
+     "technique_ids": [
+      "hook_result_first",
+      "fmt_overhead_cam",
+      "txt_handwritten",
+      "str_overhead_process",
+      "str_behind_scenes",
+      "fmt_photo_dump"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_result_first",
+     "structure": "str_overhead_process",
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": "txt_handwritten",
+     "color": null,
+     "audio": null,
+     "caption": "First the fold, then the tiny roof.",
+     "posted_at": "2026-09-30",
+     "views": 6301,
+     "saves": 183
+    },
+    {
+     "id": "paper-moon-art-post-03",
+     "hook": "The paper crane finally holds its wings.",
+     "technique_ids": [
+      "pace_timelapse",
+      "str_overhead_process",
+      "col_primary_pop",
+      "fmt_overhead_cam",
+      "txt_handwritten",
+      "col_warm_film",
+      "str_day_in_life"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_overhead_process",
+     "pacing": "pace_timelapse",
+     "transitions": [],
+     "text_treatment": "txt_handwritten",
+     "color": "col_primary_pop",
+     "audio": null,
+     "caption": "The paper crane finally holds its wings.",
+     "posted_at": "2026-10-06",
+     "views": 1028,
+     "saves": 17
+    }
+   ]
+  },
+  {
+   "id": "rolling-pin",
+   "name": "Rolling Pin Bakehouse",
+   "category": "Bakery",
+   "status": "lead",
+   "neighborhood": "n_flatiron",
+   "targets": {
+    "A6": 0.7,
+    "A7": 0.7
+   },
+   "style": "sty_cozy_local",
+   "secondary": "sty_messy_process",
+   "voice": "Early-rising, warm, ingredient-proud",
+   "hypothesized_goal": {
+    "text": "Take 40 holiday bread preorders by the end of November",
+    "metric": "holiday bread preorders",
+    "target": 40,
+    "due": "2026-11-30"
+   },
+   "hooks": [
+    "The cinnamon knot comes from one long fold.",
+    "First steam, then the crackle of crust.",
+    "Today's loaves started before the streetlights."
+   ],
+   "arrives": 3,
+   "synthetic": true,
+   "posts": [
+    {
+     "id": "rolling-pin-post-01",
+     "hook": "The cinnamon knot comes from one long fold.",
+     "technique_ids": [
+      "pace_slow_mo",
+      "hook_overheard",
+      "str_day_in_life",
+      "tr_snap_cut",
+      "col_warm_film",
+      "fmt_overhead_cam"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_overheard",
+     "structure": "str_day_in_life",
+     "pacing": "pace_slow_mo",
+     "transitions": [
+      "tr_snap_cut"
+     ],
+     "text_treatment": null,
+     "color": "col_warm_film",
+     "audio": null,
+     "caption": "The cinnamon knot comes from one long fold.",
+     "posted_at": "2026-09-22",
+     "views": 2295,
+     "saves": 33
+    },
+    {
+     "id": "rolling-pin-post-02",
+     "hook": "First steam, then the crackle of crust.",
+     "technique_ids": [
+      "aud_room_tone",
+      "hook_overheard",
+      "str_day_in_life",
+      "tr_snap_cut",
+      "col_warm_film",
+      "pace_timelapse",
+      "hook_result_first"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_overheard",
+     "structure": "str_day_in_life",
+     "pacing": "pace_timelapse",
+     "transitions": [
+      "tr_snap_cut"
+     ],
+     "text_treatment": null,
+     "color": "col_warm_film",
+     "audio": "aud_room_tone",
+     "caption": "First steam, then the crackle of crust.",
+     "posted_at": "2026-10-01",
+     "views": 2895,
+     "saves": 44
+    },
+    {
+     "id": "rolling-pin-post-03",
+     "hook": "Today's loaves started before the streetlights.",
+     "technique_ids": [
+      "str_behind_scenes",
+      "str_day_in_life",
+      "hook_overheard",
+      "pace_slow_mo",
+      "pace_timelapse"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_overheard",
+     "structure": "str_behind_scenes",
+     "pacing": "pace_slow_mo",
+     "transitions": [],
+     "text_treatment": null,
+     "color": null,
+     "audio": null,
+     "caption": "Today's loaves started before the streetlights.",
+     "posted_at": "2026-10-07",
+     "views": 2191,
+     "saves": 43
+    }
+   ]
+  },
+  {
+   "id": "count-on-us",
+   "name": "Count On Us Tutoring",
+   "category": "Tutoring",
+   "status": "lead",
+   "neighborhood": "n_gramercy",
+   "targets": {
+    "A2": 0.7,
+    "A3": 0.6,
+    "A4": 0.3
+   },
+   "style": "sty_parent_proof",
+   "secondary": "sty_calm_explainer",
+   "voice": "Patient, encouraging, focused on small wins",
+   "hypothesized_goal": {
+    "text": "Book 25 math trial sessions before winter break",
+    "metric": "math trial sessions",
+    "target": 25,
+    "due": "2026-12-18"
+   },
+   "hooks": [
+    "The answer changes when the sign flips.",
+    "Try the problem backward this time.",
+    "One clear step makes the fraction click."
+   ],
+   "arrives": 4,
+   "synthetic": true,
+   "posts": [
+    {
+     "id": "count-on-us-post-01",
+     "hook": "The answer changes when the sign flips.",
+     "technique_ids": [
+      "col_natural",
+      "hook_question",
+      "str_parent_interview",
+      "txt_subtitle_bar",
+      "aud_voiceover",
+      "hook_myth_bust"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_question",
+     "structure": "str_parent_interview",
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": "txt_subtitle_bar",
+     "color": "col_natural",
+     "audio": "aud_voiceover",
+     "caption": "The answer changes when the sign flips.",
+     "posted_at": "2026-09-24",
+     "views": 3112,
+     "saves": 46
+    },
+    {
+     "id": "count-on-us-post-02",
+     "hook": "Try the problem backward this time.",
+     "technique_ids": [
+      "aud_interview_bed",
+      "hook_question",
+      "col_natural",
+      "str_parent_interview",
+      "txt_lower_third",
+      "pace_hold_long"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_question",
+     "structure": "str_parent_interview",
+     "pacing": "pace_hold_long",
+     "transitions": [],
+     "text_treatment": "txt_lower_third",
+     "color": "col_natural",
+     "audio": "aud_interview_bed",
+     "caption": "Try the problem backward this time.",
+     "posted_at": "2026-10-01",
+     "views": 1525,
+     "saves": 34
+    },
+    {
+     "id": "count-on-us-post-03",
+     "hook": "One clear step makes the fraction click.",
+     "technique_ids": [
+      "col_brand_block",
+      "col_natural",
+      "str_listicle",
+      "aud_interview_bed",
+      "fmt_reel_long",
+      "str_tutorial_steps"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_listicle",
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": null,
+     "color": "col_brand_block",
+     "audio": "aud_interview_bed",
+     "caption": "One clear step makes the fraction click.",
+     "posted_at": "2026-10-06",
+     "views": 2280,
+     "saves": 28
+    }
+   ]
+  },
+  {
+   "id": "fetch-and-fluff",
+   "name": "Fetch & Fluff",
+   "category": "Pet grooming",
+   "status": "lead",
+   "neighborhood": "n_chelsea",
+   "targets": {
+    "A6": 0.9
+   },
+   "style": "sty_kid_pov",
+   "secondary": "sty_parent_proof",
+   "voice": "Goofy, gentle, dog-first",
+   "hypothesized_goal": {
+    "text": "Book 24 first-time grooming visits before the holiday week",
+    "metric": "first-time grooming visits",
+    "target": 24,
+    "due": "2026-12-20"
+   },
+   "hooks": [
+    "One gentle brush finds the little tangle.",
+    "The muddy paws are clean again.",
+    "A towel wrap earns one slow tail wag."
+   ],
+   "arrives": 5,
+   "synthetic": true,
+   "posts": [
+    {
+     "id": "fetch-and-fluff-post-01",
+     "hook": "One gentle brush finds the little tangle.",
+     "technique_ids": [
+      "col_pastel",
+      "fmt_pov_cam",
+      "str_seamless_loop",
+      "txt_kid_drawn",
+      "tr_jump_through",
+      "aud_interview_bed",
+      "col_brand_block"
+     ],
+     "format": "reel",
+     "hook_technique": null,
+     "structure": "str_seamless_loop",
+     "pacing": null,
+     "transitions": [
+      "tr_jump_through"
+     ],
+     "text_treatment": "txt_kid_drawn",
+     "color": "col_pastel",
+     "audio": "aud_interview_bed",
+     "caption": "One gentle brush finds the little tangle.",
+     "posted_at": "2026-09-23",
+     "views": 4704,
+     "saves": 100
+    },
+    {
+     "id": "fetch-and-fluff-post-02",
+     "hook": "The muddy paws are clean again.",
+     "technique_ids": [
+      "hook_kid_voice",
+      "hook_object_reveal",
+      "fmt_pov_cam",
+      "txt_kid_drawn",
+      "col_brand_block"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_kid_voice",
+     "structure": null,
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": "txt_kid_drawn",
+     "color": "col_brand_block",
+     "audio": null,
+     "caption": "The muddy paws are clean again.",
+     "posted_at": "2026-09-28",
+     "views": 3170,
+     "saves": 50
+    },
+    {
+     "id": "fetch-and-fluff-post-03",
+     "hook": "A towel wrap earns one slow tail wag.",
+     "technique_ids": [
+      "pace_rewind",
+      "col_pastel",
+      "tr_jump_through",
+      "hook_object_reveal",
+      "fmt_pov_cam",
+      "txt_big_number",
+      "str_listicle"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_object_reveal",
+     "structure": "str_listicle",
+     "pacing": "pace_rewind",
+     "transitions": [
+      "tr_jump_through"
+     ],
+     "text_treatment": "txt_big_number",
+     "color": "col_pastel",
+     "audio": null,
+     "caption": "A towel wrap earns one slow tail wag.",
+     "posted_at": "2026-10-07",
+     "views": 1458,
+     "saves": 37
+    }
+   ]
+  },
+  {
+   "id": "bright-lane-swim",
+   "name": "Bright Lane Swim",
+   "category": "Swim lessons",
+   "status": "lead",
+   "neighborhood": "n_flatiron",
+   "targets": {
+    "A1": 0.6,
+    "A2": 0.6
+   },
+   "style": "sty_calm_explainer",
+   "secondary": "sty_parent_proof",
+   "voice": "Calm, safety-first, parent reassuring",
+   "hypothesized_goal": {
+    "text": "Enroll 30 beginners in the December swim session",
+    "metric": "December beginner enrollments",
+    "target": 30,
+    "due": "2026-12-05"
+   },
+   "hooks": [
+    "First bubbles, then a face above water.",
+    "Five fingers guide the first float.",
+    "The kick reaches the pool wall today."
+   ],
+   "arrives": 6,
+   "synthetic": true,
+   "posts": [
+    {
+     "id": "bright-lane-swim-post-01",
+     "hook": "First bubbles, then a face above water.",
+     "technique_ids": [
+      "txt_checklist",
+      "aud_voiceover",
+      "txt_lower_third",
+      "hook_myth_bust",
+      "txt_big_number",
+      "str_before_after"
+     ],
+     "format": "reel",
+     "hook_technique": "hook_myth_bust",
+     "structure": "str_before_after",
+     "pacing": null,
+     "transitions": [],
+     "text_treatment": "txt_checklist",
+     "color": null,
+     "audio": "aud_voiceover",
+     "caption": "First bubbles, then a face above water.",
+     "posted_at": "2026-09-22",
+     "views": 1263,
+     "saves": 18
+    },
+    {
+     "id": "bright-lane-swim-post-02",
+     "hook": "Five fingers guide the first float.",
+     "technique_ids": [
+      "txt_lower_third",
+      "str_tutorial_steps",
+      "fmt_carousel",
+      "tr_dissolve",
+      "col_aqua_grade",
+      "aud_interview_bed"
+     ],
+     "format": "carousel",
+     "hook_technique": null,
+     "structure": "str_tutorial_steps",
+     "pacing": null,
+     "transitions": [
+      "tr_dissolve"
+     ],
+     "text_treatment": "txt_lower_third",
+     "color": "col_aqua_grade",
+     "audio": "aud_interview_bed",
+     "caption": "Five fingers guide the first float.",
+     "posted_at": "2026-10-01",
+     "views": 2406,
+     "saves": 59
+    },
+    {
+     "id": "bright-lane-swim-post-03",
+     "hook": "The kick reaches the pool wall today.",
+     "technique_ids": [
+      "txt_lower_third",
+      "fmt_carousel",
+      "col_aqua_grade",
+      "pace_slow_reveal",
+      "str_listicle"
+     ],
+     "format": "carousel",
+     "hook_technique": null,
+     "structure": "str_listicle",
+     "pacing": "pace_slow_reveal",
+     "transitions": [],
+     "text_treatment": "txt_lower_third",
+     "color": "col_aqua_grade",
+     "audio": null,
+     "caption": "The kick reaches the pool wall today.",
+     "posted_at": "2026-10-06",
+     "views": 2839,
+     "saves": 72
+    }
+   ]
+  }
+ ],
  "planted": {
   "collision_techniques": [
    "pace_stop_motion",

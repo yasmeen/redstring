@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import uuid
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from . import config, db, queries, seed
 
@@ -28,6 +28,7 @@ def _id(prefix: str) -> str:
 
 
 _world_cache: dict | None = None
+_sim_day_cache: int | None = None
 
 
 def world() -> dict:
@@ -35,6 +36,26 @@ def world() -> dict:
     if _world_cache is None:
         _world_cache = seed.load_world()
     return _world_cache
+
+
+def sim_day() -> int:
+    global _sim_day_cache
+    if _sim_day_cache is None:
+        rows = db.rows(db.agency(), "MATCH (c:Clock {id: 'studio'}) RETURN c.day AS day")
+        _sim_day_cache = int(rows[0]["day"]) if rows else 0
+    return _sim_day_cache
+
+
+def set_sim_day(day: int) -> int:
+    global _sim_day_cache
+    db.run(db.agency(), "MERGE (c:Clock {id: 'studio'}) SET c.day = $day", {"day": day})
+    _sim_day_cache = day
+    return day
+
+
+def sim_date(day: int | None = None) -> str:
+    current = sim_day() if day is None else day
+    return (date.fromisoformat(world()["world_date"]) + timedelta(days=current)).isoformat()
 
 
 def business(slug: str) -> dict:
@@ -54,9 +75,10 @@ def _decide(g, agent: str, text: str, rationale: str, affects: list[tuple[str, s
     """Write a Decision, DECIDED_BY the agent, AFFECTS each (label, id), BASED_ON each (label, id)."""
     did = _id("dec")
     db.run(g, """MERGE (a:Agent {id: $agent}) ON CREATE SET a.name = $name
-                 CREATE (d:Decision {id: $id, text: $text, rationale: $rationale, at: $at})-[:DECIDED_BY]->(a)""",
+                 CREATE (d:Decision {id: $id, text: $text, rationale: $rationale, at: $at, day: $day})
+                 -[:DECIDED_BY]->(a)""",
            {"agent": agent, "name": AGENT_NAMES.get(agent, agent), "id": did, "text": text,
-            "rationale": rationale, "at": now()})
+            "rationale": rationale, "at": now(), "day": sim_day()})
     for label, nid in affects:
         db.run(g, f"MATCH (d:Decision {{id: $d}}), (n:{label} {{id: $n}}) CREATE (d)-[:AFFECTS]->(n)", {"d": did, "n": nid})
     for label, nid in based_on:
@@ -215,6 +237,17 @@ def findings(client: str, kind: str | None = None) -> list[dict]:
 def goals(client: str) -> list[dict]:
     return db.rows(db.client(client), """MATCH (g:Goal) RETURN g.id AS id, g.text AS text, g.metric AS metric,
                                          g.target AS target, g.due AS due, g.status AS status""")
+
+
+def activate_goal(client: str, goal_id: str, agent: str = "account_manager",
+                  rationale: str = "The approved pitch was accepted.") -> dict:
+    g = db.client(client)
+    db.run(g, "MATCH (goal:Goal {id: $id}) SET goal.status = 'active'", {"id": goal_id})
+    goal = next((item for item in goals(client) if item["id"] == goal_id), None)
+    if goal is None:
+        raise ValueError(f"unknown goal {goal_id} for {client}")
+    decision = _decide(g, agent, f"Goal active: {goal['text']}", rationale, [("Goal", goal_id)])
+    return {"goal": goal_id, "status": "active", "decision": decision}
 
 
 # ------------------------------------------------------------------ Auditor
@@ -569,6 +602,8 @@ def decisions(client: str | None = None, limit: int = 200) -> list[dict]:
     g = db.client(client) if client else db.agency()
     return db.rows(g, """MATCH (d:Decision)-[:DECIDED_BY]->(a:Agent)
                          OPTIONAL MATCH (d)-[:AFFECTS]->(n)
-                         RETURN d.id AS id, d.text AS text, d.rationale AS rationale, d.at AS at, a.name AS by,
-                                collect(DISTINCT labels(n)[0]) AS affects
+                         OPTIONAL MATCH (d)-[:AFFECTS]->(b:Business)
+                         RETURN d.id AS id, d.text AS text, d.rationale AS rationale, d.at AS at,
+                                coalesce(d.day, 0) AS day, a.name AS by,
+                                collect(DISTINCT labels(n)[0]) AS affects, collect(DISTINCT b.id) AS business_ids
                          ORDER BY at DESC LIMIT $limit""", {"limit": limit})

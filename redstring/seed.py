@@ -31,6 +31,16 @@ def load_world(path=config.WORLD_PATH) -> dict:
     return json.loads(path.read_text())
 
 
+def find_business(world: dict, slug: str) -> dict:
+    for business in world["businesses"]:
+        if business["id"] == slug:
+            return business
+    for business in world.get("lead_feed", []):
+        if business["id"] == slug:
+            return business
+    raise ValueError(f"unknown business {slug}")
+
+
 def _indexes(g, stmts):
     for s in stmts:
         try:
@@ -95,7 +105,7 @@ def create_client_graph(world: dict, slug: str, include_posts: bool = True) -> N
     db.drop(config.client_graph_name(slug))
     g = db.client(slug)
     _indexes(g, CLIENT_INDEXES)
-    b = next(x for x in world["businesses"] if x["id"] == slug)
+    b = find_business(world, slug)
     db.run(g, "MERGE (:Business {id: $id, name: $name, category: $category})", b)
     if include_posts:
         load_posts(world, slug)
@@ -107,7 +117,7 @@ def create_client_graph(world: dict, slug: str, include_posts: bool = True) -> N
 
 def load_posts(world: dict, slug: str) -> int:
     g = db.client(slug)
-    b = next(x for x in world["businesses"] if x["id"] == slug)
+    b = find_business(world, slug)
     tech = {t["id"]: t["name"] for t in world["techniques"]}
     posts = [{k: v for k, v in p.items() if not k.startswith("_")} for p in b["posts"]]
     for p in posts:

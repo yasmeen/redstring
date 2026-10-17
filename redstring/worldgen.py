@@ -171,6 +171,62 @@ BUSINESSES = [
          hooks=["Three calm steps to your first swim lesson", "Kick, float, smile: a swimmer's first win", "Water confidence starts with one splash"]),
 ]
 
+FEED = [
+    dict(id="half-moon-yoga", name="Half Moon Yoga", category="Yoga", status="lead", neighborhood="n_nomad",
+         targets={"A6": 0.8, "A7": 0.6}, style="sty_calm_explainer", secondary="sty_cozy_local",
+         voice="Quiet, neighborly, unhurried",
+         hypothesized_goal=dict(text="Sell 28 first-month passes before the December schedule begins",
+                                metric="intro-month passes", target=28, due="2026-12-01"),
+         hooks=["Three slow breaths, then the shoulders drop.",
+                "The first balance pose wobbles too.",
+                "An evening class with room to breathe."], arrives=1),
+    dict(id="paper-moon-art", name="Paper Moon Art Lab", category="Kids art", status="lead",
+         neighborhood="n_gramercy", targets={"A1": 0.7, "A2": 0.5},
+         style="sty_messy_process", secondary="sty_cozy_local",
+         voice="Playful, process-loving, reassuring",
+         hypothesized_goal=dict(text="Book 18 children into the winter paper-making workshop",
+                                metric="winter workshop bookings", target=18, due="2026-12-15"),
+         hooks=["A blue mark becomes a paper garden.",
+                "First the fold, then the tiny roof.",
+                "The paper crane finally holds its wings."], arrives=2),
+    dict(id="rolling-pin", name="Rolling Pin Bakehouse", category="Bakery", status="lead",
+         neighborhood="n_flatiron", targets={"A6": 0.7, "A7": 0.7},
+         style="sty_cozy_local", secondary="sty_messy_process",
+         voice="Early-rising, warm, ingredient-proud",
+         hypothesized_goal=dict(text="Take 40 holiday bread preorders by the end of November",
+                                metric="holiday bread preorders", target=40, due="2026-11-30"),
+         hooks=["The cinnamon knot comes from one long fold.",
+                "First steam, then the crackle of crust.",
+                "Today's loaves started before the streetlights."], arrives=3),
+    dict(id="count-on-us", name="Count On Us Tutoring", category="Tutoring", status="lead",
+         neighborhood="n_gramercy", targets={"A2": 0.7, "A3": 0.6, "A4": 0.3},
+         style="sty_parent_proof", secondary="sty_calm_explainer",
+         voice="Patient, encouraging, focused on small wins",
+         hypothesized_goal=dict(text="Book 25 math trial sessions before winter break",
+                                metric="math trial sessions", target=25, due="2026-12-18"),
+         hooks=["The answer changes when the sign flips.",
+                "Try the problem backward this time.",
+                "One clear step makes the fraction click."], arrives=4),
+    dict(id="fetch-and-fluff", name="Fetch & Fluff", category="Pet grooming", status="lead",
+         neighborhood="n_chelsea", targets={"A6": 0.9},
+         style="sty_kid_pov", secondary="sty_parent_proof",
+         voice="Goofy, gentle, dog-first",
+         hypothesized_goal=dict(text="Book 24 first-time grooming visits before the holiday week",
+                                metric="first-time grooming visits", target=24, due="2026-12-20"),
+         hooks=["One gentle brush finds the little tangle.",
+                "The muddy paws are clean again.",
+                "A towel wrap earns one slow tail wag."], arrives=5),
+    dict(id="bright-lane-swim", name="Bright Lane Swim", category="Swim lessons", status="lead",
+         neighborhood="n_flatiron", targets={"A1": 0.6, "A2": 0.6},
+         style="sty_calm_explainer", secondary="sty_parent_proof",
+         voice="Calm, safety-first, parent reassuring",
+         hypothesized_goal=dict(text="Enroll 30 beginners in the December swim session",
+                                metric="December beginner enrollments", target=30, due="2026-12-05"),
+         hooks=["First bubbles, then a face above water.",
+                "Five fingers guide the first float.",
+                "The kick reaches the pool wall today."], arrives=6),
+]
+
 CTA = {
     "pixel-pond": "Spring robotics seats are open. Link in bio.",
     "wet-paint": "Book a messy birthday. Link in bio.",
@@ -280,6 +336,32 @@ def generate() -> dict:
             p["saves"] = int(p["views"] * save_rate)
         posts_out[b["id"]] = posts
 
+    lead_feed = []
+    for b in FEED:
+        brng = random.Random(f"{SEED}:{b['id']}")
+        own = in_style(b["style"], exclude=reserved)
+        sec_common = in_style(b["secondary"], rare=False, exclude=reserved)
+        posts = []
+        for i, hook in enumerate(b["hooks"]):
+            tids = brng.sample(own, brng.choice([4, 5])) + brng.sample(sec_common, brng.choice([1, 2]))
+            tids = list(dict.fromkeys(tids))
+            posts.append({
+                "id": f"{b['id']}-post-{i + 1:02d}",
+                "hook": hook,
+                "technique_ids": tids,
+                **_fields(tids, idx),
+                "caption": hook,
+                "posted_at": (WORLD_DATE - timedelta(days=7 * (len(b["hooks"]) - i) + brng.randint(0, 3))).isoformat(),
+            })
+        for post in posts:
+            post["views"] = int(brng.lognormvariate(7.6, 0.35))
+        for post in posts:
+            post["saves"] = int(post["views"] * brng.uniform(0.012, 0.03))
+        out = dict(b)
+        out["synthetic"] = True
+        out["posts"] = posts
+        lead_feed.append(out)
+
     # Spec seeds: the first technique set Producer starts from for each planned spec post.
     # Two are planted collisions; README says so. Revisions come from Q3 at run time, not from here.
     def seed(style, base_rare, k_common, extra=(), exclude=()):
@@ -328,6 +410,7 @@ def generate() -> dict:
         "techniques": vocab["techniques"],
         "references": refs,
         "businesses": businesses,
+        "lead_feed": lead_feed,
         "planted": {
             "collision_techniques": planted,
             "collision_between": ["wet-paint", "cannonball"],

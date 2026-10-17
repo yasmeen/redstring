@@ -9,7 +9,7 @@ import hashlib
 import json
 from statistics import mean
 
-from .. import config, registry, tools
+from .. import config, registry, seed, tools
 
 # Hooks for the demo's spec posts and drafts, keyed by (client, slot, version).
 HOOKS = {
@@ -215,6 +215,12 @@ def _fallback_hook(client: str, slot: int, version: int, category: str) -> str:
         hook = hooks[(start + offset) % len(hooks)]
         if hook not in used:
             return hook
+    for prefix in ("One more try:", "In close-up:", "From above:", "At half speed:", "Hold the finish:"):
+        for offset in range(len(hooks)):
+            hook = hooks[(start + offset) % len(hooks)]
+            variation = f"{prefix} {hook}"
+            if variation not in used and len(variation.split()) <= 12:
+                return variation
     raise ValueError(f"No unused fallback hooks remain for {client} ({category})")
 
 
@@ -443,12 +449,18 @@ def researcher(client: str) -> dict:
                                              f"From {f.get('source_title') or f['source_url']}")["finding"])
     else:
         aud = tools.audiences_of(client)
+        audience_names = [a["audience"] for a in aud]
+        audience_text = (
+            audience_names[0] if len(audience_names) == 1 else
+            f"{audience_names[0]} and {audience_names[1]}" if len(audience_names) == 2 else
+            f"{', '.join(audience_names[:-1])}, and {audience_names[-1]}"
+        )
         fids.append(tools.record_finding(
             client, "audience",
-            f"Targets {', '.join(a['audience'] for a in aud)}. [offline placeholder: no cached research; run with an API key for live web research]",
-            None, "researcher", "Placeholder finding, labeled as such.")["finding"])
+            f"Targets {audience_text}, from the lead's screening.",
+            None, "researcher", "From the screening's audience paths; no web research cached.")["finding"])
     w = tools.world()
-    b = next(x for x in w["businesses"] if x["id"] == client)
+    b = seed.find_business(w, client)
     g = b.get("hypothesized_goal") or b["goal"]
     status = "hypothesized" if b["status"] != "signed" else "active"
     goal = tools.record_goal(client, g["text"], g["metric"], g["target"], g["due"], status, fids, "researcher",

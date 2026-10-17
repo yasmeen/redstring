@@ -47,6 +47,7 @@ class Pipeline:
 
     def reset(self) -> dict:
         tools._world_cache = None
+        tools._sim_day_cache = None
         self.w = tools.world()
         out = seed.seed_all(self.w)
         _say(self.log, f"Seeded {out['agency']} and {', '.join(out['clients'])}")
@@ -138,9 +139,14 @@ class Pipeline:
         plan_id = plan["plan"] if isinstance(plan, dict) and "plan" in plan else tools.db.rows(
             tools.db.client(client), "MATCH (p:Plan) RETURN p.id AS id ORDER BY p.at DESC LIMIT 1")[0]["id"]
         seeds = self.w["spec_seeds"].get(client, [])
+        if seeds:
+            technique_sets = [s["techniques"] for s in seeds]
+        else:
+            tp = [p["id"] for p in sorted(tools.taste_profile(client)["prefers"], key=lambda p: -p["weight"])]
+            technique_sets = [tp[:5], tp[1:6], tp[2:7]]
         posts = []
-        for i, s in enumerate(seeds, 1):
-            posts.append(self.produce_and_check(client, plan_id, i, s["techniques"], "spec"))
+        for i, technique_ids in enumerate(technique_sets, 1):
+            posts.append(self.produce_and_check(client, plan_id, i, technique_ids, "spec"))
         return {"plan": plan_id, "posts": posts}
 
     def pitch(self, client: str) -> dict:
