@@ -183,7 +183,7 @@ $("#intro-got-it").addEventListener("click", () => {
 $("#intro-see-draft").addEventListener("click", async () => {
   const hit = firstBlocked();
   if (!hit) return;
-  await select(hit.business_id);
+  await select(hit.business_id, $("#intro-see-draft"));
   dismissIntro();
   $("#dossier-h")?.focus();
 });
@@ -341,17 +341,18 @@ function renderAttention(o) {
     : i.type === "approve_posts"
     ? `<button type="button" class="need-card pitch" data-draft="${esc(i.draft_ids[0])}" data-slug="${esc(i.business_id)}"><span class="need-kind">${icon("circle-check")}Posts to approve</span><span class="need-text">${esc(i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`
     : i.type === "ready"
-    ? `<button type="button" class="need-card" data-pick="${esc(i.business_ids[0])}"><span class="need-kind">${icon("sparkles")}Cleared to pitch</span><span class="need-text">${esc(i.message)}</span></button>`
+    ? `<button type="button" class="need-card" data-reveal-lane="screened"><span class="need-kind">${icon("sparkles")}Cleared to pitch</span><span class="need-text">${esc(i.message)}</span><span class="need-cta">See them in the pipeline <span aria-hidden="true">→</span></span></button>`
     : `<button type="button" class="need-card pitch borderline" data-pick="${esc(i.business_id)}"><span class="need-kind">${icon("gavel")}Board call</span><span class="need-text">${esc(i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`).join("");
   if (unscreened.length) {
-    h += `<button type="button" class="need-card" data-pick="${esc(unscreened[0].business_id)}"><span class="need-kind">${icon("radar")}Leads to screen</span><span class="need-text">${unscreened.length} new ${unscreened.length === 1 ? "lead is" : "leads are"} waiting for Scout</span></button>`;
+    h += `<button type="button" class="need-card" data-reveal-lane="lead"><span class="need-kind">${icon("radar")}Leads to screen</span><span class="need-text">${unscreened.length} new ${unscreened.length === 1 ? "lead is" : "leads are"} waiting for Scout</span><span class="need-cta">See them in the pipeline <span aria-hidden="true">→</span></span></button>`;
   }
   $("#needs-you").innerHTML = h || `<div class="needs-empty"><span class="needs-empty-icon">${icon("circle-check")}</span><p>All clear: nothing needs you right now.</p></div>`;
-  $("#caught").innerHTML = blocked.map((i) => `<button type="button" class="caught-card" data-pick="${esc(i.business_id)}">
+  $("#caught").innerHTML = blocked.map((i) => `<button type="button" class="caught-card" data-draft="${esc(i.draft_id)}" data-slug="${esc(i.business_id)}">
       <span class="need-kind">${icon("shield-alert")}Blocked and revised</span>
       <span class="caught-a">${esc(i.business || byId[i.business_id]?.name)}</span>
       <span class="caught-pair">${avatar(byId[i.business_id], "sm")}${TIE}${avatar(bizByName(i.with_business), "sm")}<span>looked like <b>${esc(i.with_business || "")}</b>${i.also_like?.length ? ` and <b>${i.also_like.map(esc).join(", ")}</b>` : ""}</span></span>
       ${i.hook ? `<span class="caught-hook">“${esc(i.hook)}”</span>` : ""}
+      <span class="need-cta">See what it shared <span aria-hidden="true">→</span></span>
     </button>`).join("")
     || `<p class="empty-row">Nothing caught yet. Double Take checks every draft from step 3 on.</p>`;
 }
@@ -367,7 +368,7 @@ function renderBoard(o) {
     const emptyText = title === "Pitched" && won.length
       ? `No open pitches. Won and signed: ${won.join(", ")}.`
       : empty;
-    return `<section class="stage" aria-label="${title}, ${items.length}"><h3>${title} <span class="count">${items.length}</span></h3>
+    return `<section class="stage" data-stage="${esc(title.toLowerCase())}" aria-label="${title}, ${items.length}"><h3>${title} <span class="count">${items.length}</span></h3>
       ${items.length ? `<div class="cards">${items.map(bizCard).join("")}</div>` : `<p class="empty-row">${esc(emptyText)}</p>`}</section>`;
   }).join("");
 }
@@ -1014,18 +1015,47 @@ $("#steps").addEventListener("click", async (e) => {
 
 $("#board").addEventListener("click", (e) => {
   const b = e.target.closest("[data-biz]");
-  if (b) select(b.dataset.biz);
+  if (b) select(b.dataset.biz, b);
 });
 
 $("#follow").addEventListener("click", () => { state.pinned = false; refresh(); });
 
-function select(slug) {
+const pulseTimers = new WeakMap();
+function pulseTarget(target) {
+  clearTimeout(pulseTimers.get(target));
+  target.classList.remove("click-pulse");
+  void target.offsetWidth;
+  target.classList.add("click-pulse");
+  pulseTimers.set(target, setTimeout(() => {
+    target.classList.remove("click-pulse");
+    pulseTimers.delete(target);
+  }, 1200));
+}
+
+function revealStage(name) {
+  const stage = [...$("#board").querySelectorAll(".stage")].find((item) => item.dataset.stage === name);
+  if (!stage) return;
+  stage.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "start" });
+  pulseTarget(stage);
+}
+
+async function select(slug, trigger = null) {
   const changed = slug !== state.selected;
   state.selected = slug;
   state.pinned = true;
   $("#follow").hidden = false;
   document.querySelectorAll("#board [data-biz]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.biz === slug)));
-  return openBusiness(slug, { animate: changed || !isSplit() });
+  await openBusiness(slug, { animate: changed || !isSplit() });
+  if (!isSplit()) return;
+  const panel = $("#drawer");
+  const fromBoard = trigger && $("#board").contains(trigger);
+  const topVisible = panel.getBoundingClientRect().top >= 0 && panel.getBoundingClientRect().top < window.innerHeight;
+  if (fromBoard && topVisible) return;
+  if (!topVisible) {
+    panel.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "start" });
+    $("#dossier-h")?.focus({ preventScroll: true });
+  }
+  pulseTarget(panel);
 }
 
 async function openBusiness(slug, { quiet = false, animate = false } = {}) {
@@ -1294,8 +1324,10 @@ document.addEventListener("click", async (e) => {
     }
     return;
   }
+  const lane = e.target.closest("[data-reveal-lane]");
+  if (lane) { revealStage(lane.dataset.revealLane); return; }
   const pick = e.target.closest("[data-pick]");
-  if (pick) { select(pick.dataset.pick); return; }
+  if (pick) { select(pick.dataset.pick, pick); return; }
   const dr = e.target.closest("[data-draft][data-slug]");
   if (dr) openRoute(dr.dataset.slug, dr.dataset.draft);
   const pi = e.target.closest("[data-pitch]");
@@ -1457,7 +1489,11 @@ $("#lead-form").addEventListener("submit", async (e) => {
 $("#draft-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const ids = [...document.querySelectorAll("#tech-pick input:checked")].map((x) => x.value);
-  if (!ids.length) { $("#draft-result").innerHTML = `<div class="warnbox">Pick at least one technique.</div>`; return; }
+  if (!ids.length) {
+    $("#draft-result").innerHTML = `<div class="warnbox">Pick at least one technique.</div>`;
+    $("#draft-result").scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "nearest" });
+    return;
+  }
   const btn = e.target.querySelector("button[type=submit]");
   btn.disabled = true;
   try {
@@ -1465,7 +1501,10 @@ $("#draft-form").addEventListener("submit", async (e) => {
     $("#draft-result").innerHTML = (r.flagged ? `<div class="flagbox"><b>Would be blocked.</b> Cross-client risk reaches the flag threshold. <span class="metric">Flag threshold ${n(r.threshold)}.</span></div>` : `<div class="okbox"><b>Would clear.</b> <span class="metric">Threshold ${n(r.threshold)}.</span></div>`)
       + `<ul class="list">${r.results.map((x) => `<li>${chip(x.flag ? "flagged" : "cleared", x.flag ? "flag" : "ok")} <b>${esc(x.business)}</b> <span class="muted">(${esc(x.status)})</span>: shares ${x.shared_rare.map(esc).join(", ")}<br><span class="mono metric" style="font-size:.8125rem">similarity ${n(x.similarity)} × overlap ${n(x.overlap)} = <b>${n(x.risk)}</b></span></li>`).join("") || "<li class='muted'>Shares no rare technique with anyone on the same audience.</li>"}</ul>`;
   } catch (err) { $("#draft-result").innerHTML = `<div class="flagbox">${esc(err.message)}</div>`; }
-  finally { btn.disabled = false; }
+  finally {
+    btn.disabled = false;
+    $("#draft-result").scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "nearest" });
+  }
 });
 
 async function loadTechniques() {
