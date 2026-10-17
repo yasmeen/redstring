@@ -8,7 +8,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M5 25 C 12 25 14 9 27 8%22 fill=%22none%22 stroke=%22%23BE2A3A%22 stroke-width=%223.2%22 stroke-linecap=%22round%22/%3E%3Ccircle cx=%225%22 cy=%2225%22 r=%224%22 fill=%22%23BE2A3A%22/%3E%3Ccircle cx=%2227%22 cy=%228%22 r=%224%22 fill=%22%23FCFAF9%22 stroke=%22%23BE2A3A%22 stroke-width=%222.5%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@700;800&amp;family=Schibsted+Grotesk:wght@400;500;600;700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@800&amp;family=Schibsted+Grotesk:wght@400;500;600;700&amp;display=swap">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body data-view="studio">
@@ -21,7 +21,7 @@
       <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 25 C 12 25 14 9 27 8" fill="none" stroke="#BE2A3A" stroke-width="3" stroke-linecap="round"/><circle cx="5" cy="25" r="4" fill="#BE2A3A"/><circle cx="27" cy="8" r="4" fill="#FCFAF9" stroke="#BE2A3A" stroke-width="2.5"/></svg>
       Red String
     </h1>
-    <p class="brand-sub"><span class="studio-only">Pipeline for creative agencies</span><span class="analysis-only">Pitch pipeline on FalkorDB</span></p>
+    <p class="brand-sub"><span class="studio-only">Pipeline for creative agencies</span><span class="analysis-only">Pipeline for creative agencies</span></p>
   </div>
 
   <div class="workspace">
@@ -45,7 +45,7 @@
   <div class="daybar-actions">
     <button type="button" class="text-button fold-toggle" id="activity-toggle" aria-controls="dayloop" aria-expanded="false" hidden>See today's activity</button>
     <button type="button" class="text-button fold-toggle" id="runner-toggle" aria-controls="runner" aria-expanded="false">Demo controls</button>
-    <button type="button" class="btn primary" id="next-day" hidden>Next day <span aria-hidden="true">→</span></button>
+    <button type="button" class="btn" id="next-day" hidden>Next day <span aria-hidden="true">→</span></button>
   </div>
 </section>
 
@@ -73,7 +73,7 @@
     <li><img class="intro-thumb" src="/static/img/spot-you-decide.webp" width="720" height="720" alt="A person stamps a pitch card as a robot helper waits with the next card." loading="lazy" decoding="async"><span class="intro-step-copy"><strong>You decide</strong><span>Nothing pitches or signs without you.</span></span></li>
   </ol>
   <div class="intro-actions">
-    <button type="button" class="btn small primary" id="intro-see-draft">See a blocked draft</button>
+    <button type="button" class="text-button" id="intro-see-draft">See a blocked draft</button>
     <button type="button" class="btn small" id="intro-got-it">Got it</button>
   </div>
 </section>
@@ -82,7 +82,7 @@
   <div class="focus" id="needs-panel">
     <div class="focus-head">
       <div><p class="focus-kicker">Needs you</p><h2 class="focus-title" id="needs-you-heading">Needs you</h2></div>
-      <button type="button" class="text-button" id="intro-open" aria-controls="intro" aria-expanded="false" hidden>How it works</button>
+      <button type="button" class="text-button" id="intro-open" aria-controls="intro" aria-expanded="false" hidden>New here? How it works</button>
     </div>
     <div class="needs-you" id="needs-you" aria-live="polite" aria-labelledby="needs-you-heading"></div>
   </div>
@@ -165,8 +165,8 @@
 
   <section class="a-intro" aria-labelledby="analysis-intro-heading">
     <p class="a-kicker">What Red String is</p>
-    <h2 class="a-title" id="analysis-intro-heading">An agency's AI team that never makes <em>lookalike videos</em> for clients who share an audience</h2>
-    <p class="a-lede">Agents screen leads, research, and draft social videos for local businesses. Before anything posts, Red String checks it against every other client that reaches the same people, and you approve what goes out.</p>
+    <h2 class="a-title" id="analysis-intro-heading">An AI agency that won't make two clients <em>look alike</em></h2>
+    <p class="a-lede">Agents screen leads, research, and draft social videos for local businesses. Before anything posts, Red String checks it against every other client that reaches the same people, so clients who share an audience never get lookalike videos. You approve what goes out.</p>
     <div class="story" id="ps-grid">
       <article class="story-card">
         <div class="story-media"><img src="/static/img/hero-problem.webp" width="1599" height="900" alt="A gym and an art studio film phone videos with the same handprint trick; a parent and child watch near-identical videos as red threads tangle above them." decoding="async"></div>
@@ -231,17 +231,21 @@
         </div>
         <span class="legend-item"><span class="legend-line strong" aria-hidden="true"></span>Reaches this audience strongly</span>
         <span class="legend-item"><span class="legend-line overlap" aria-hidden="true"></span>Audiences that overlap</span>
-        <span class="legend-item legend-pick">Pick a lead row to trace it</span>
+        <span class="legend-item legend-pick">Pick a lead to trace it</span>
       </div>
       <p class="why">Know a lead's client overlap before deciding to pitch.</p>
     </div>
     <div class="screen-grid">
-      <div class="table-scroll heat-wrap"><table class="heat" id="screening-table"></table></div>
       <div class="net-panel">
+        <div class="lead-picker" id="lead-picker" role="group" aria-label="Pick a lead to trace"></div>
         <div class="net" id="audience-net"></div>
         <div class="verdict-math" id="verdict-math" aria-live="polite"></div>
       </div>
     </div>
+    <details class="table-toggle">
+      <summary>See all leads as a table</summary>
+      <div class="table-scroll heat-wrap"><table class="heat" id="screening-table"></table></div>
+    </details>
     <p class="ch-foot muted" id="screening-legend"></p>
   </section>
 
@@ -277,6 +281,7 @@
       <p class="why">A signature move is how people recognize a business; don't hand it to a neighbor.</p>
     </div>
     <div class="table-scroll"><table class="territory" id="signatures-table"></table></div>
+    <button type="button" class="text-button" id="territory-all" aria-pressed="false">Show all techniques</button>
   </section>
 
   <section class="chapter" id="ch-agents" aria-labelledby="agents-heading">

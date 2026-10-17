@@ -36,7 +36,7 @@ def test_mcp_server_lists_and_calls_tools():
 
     listed, out = asyncio.run(go())
     assert len(listed) == len(registry.TOOLS)
-    assert '"verdict": "pursue_differentiated"' in str(out)
+    assert '"verdict": "decline"' in str(out)
 
 
 def test_web_try_inputs(monkeypatch):

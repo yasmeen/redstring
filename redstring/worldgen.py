@@ -104,7 +104,7 @@ BUSINESSES = [
          weak=[6]),
     # ---- leads
     dict(id="byte-builders", name="Byte Builders Academy", category="Kids coding", status="lead",
-         neighborhood="n_chelsea",
+         neighborhood="n_flatiron",
          targets={"A2": 0.8, "A4": 0.5}, style="sty_nerd_deadpan", secondary="sty_parent_proof",
          voice="Earnest, credential-forward",
          hypothesized_goal=dict(text="Enroll 30 students in the winter coding camp", metric="camp enrollments", target=30, due="2026-12-20"),

@@ -5,7 +5,7 @@ from redstring import config, db, queries, seed, tools
 from redstring.pipeline import Pipeline
 
 EXPECTED_VERDICTS = {
-    "byte-builders": "pursue_differentiated",
+    "byte-builders": "decline",
     "tumble-town": "pursue_differentiated",
     "treble-clef": "pursue_differentiated",
     "northpoint": "pursue_differentiated",
@@ -34,11 +34,12 @@ def test_q1_verdicts_match_spec(seeded):
     assert got == EXPECTED_VERDICTS
 
 
-def test_same_category_other_neighborhood_is_not_auto_declined(seeded):
+def test_same_category_same_neighborhood_competitor_is_auto_declined(seeded):
     result = tools.lead_conflict("byte-builders")
-    assert result["competitors"] == []
+    assert result["verdict"] == "decline"
     pixel_pond = next(c for c in result["clients"] if c["client"] == "Pixel Pond Code Club")
     assert pixel_pond["same_category"] is True
+    assert any(c["client"] == "Pixel Pond Code Club" and c["neighborhood"] == "Flatiron" for c in result["competitors"])
 
 
 def test_same_category_same_neighborhood_declines(seeded):
