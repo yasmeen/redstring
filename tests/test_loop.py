@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 
 from redstring import config, db, seed, tools, worldgen
 from redstring.agents import offline
-from redstring.loop import next_day
+from redstring.loop import _post_for_client, next_day
 from redstring.pipeline import Pipeline
 
 
@@ -51,6 +51,18 @@ def test_feed_categories_support_offline_helpers(demo, monkeypatch):
         assert hooks[0] in spec
         references = tools.references_for(lead["posts"][0]["technique_ids"], category=category)
         assert isinstance(references, list)
+
+
+def test_loop_post_slot_counts_all_non_revision_drafts(demo):
+    client = "tumble-town"
+    existing = [draft for draft in tools.drafts(client) if not draft.get("revision_of")]
+    existing_hooks = {draft["hook"] for draft in existing}
+
+    result = _post_for_client(Pipeline(mode="offline", log=None), client, 1)
+
+    assert result["slot"] == len(existing) + 1
+    posted = next(draft for draft in tools.drafts(client) if draft["id"] == result["draft"])
+    assert posted["hook"] not in existing_hooks
 
 
 def test_next_day_arrival_and_decision_day_stamps(demo):
@@ -152,6 +164,7 @@ def test_clock_reset_and_activity_endpoint_are_readonly_aware(demo, monkeypatch)
     assert overview["date"] == tools.sim_date(0)
     activity = client.get("/api/activity").json()
     assert len(activity["feed_left"]) == 6
+    assert all(set(lead) == {"id", "name", "category", "arrives"} for lead in activity["feed_left"])
     assert activity["can_advance"] is True
 
     monkeypatch.setattr(web, "READONLY", True)

@@ -77,7 +77,7 @@ def _post_for_client(pipeline: Pipeline, client: str, day: int, log=None) -> dic
 
     non_revision_drafts = [
         draft for draft in tools.drafts(client)
-        if draft.get("kind") == "draft" and not draft.get("revision_of")
+        if not draft.get("revision_of")
     ]
     slot = len(non_revision_drafts) + 1
     width = min(5, len(preferences))

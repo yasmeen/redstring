@@ -59,6 +59,9 @@ SCENE = {
             "Three voices, one sleepy dragon.",
             "Find the hidden moon before the story ends.",
             "This picture changes when you turn the page.",
+            "The dragon tiptoes past the last row.",
+            "A felt bookmark becomes the dragon's tail.",
+            "Everyone whispers when the moon comes out.",
         ],
     },
     "Kids art": {
@@ -72,6 +75,9 @@ SCENE = {
             "Watch the blank paper fill from corner to corner.",
             "The paint made a shape nobody planned.",
             "A tiny line turns into a garden path.",
+            "A yellow wash dries into a sunny doorway.",
+            "The paper stays white where the tape was.",
+            "Two brushstrokes meet at the edge.",
         ],
     },
     "Yoga": {
@@ -85,6 +91,9 @@ SCENE = {
             "One small shift makes this pose steadier.",
             "Hold the pose until the breath settles.",
             "First the wobble, then the stillness.",
+            "The heel settles after one careful breath.",
+            "A block brings the floor a little closer.",
+            "The room is quiet between each side.",
         ],
     },
     "Cafe": {
@@ -98,6 +107,9 @@ SCENE = {
             "The milk turns the coffee one shade lighter.",
             "One spoon, one swirl, no rush.",
             "Steam clears and the cup is ready.",
+            "The crema settles before the first sip.",
+            "A cold glass fogs beside the grinder.",
+            "The filter blooms when the water lands.",
         ],
     },
     "Climbing gym": {
@@ -111,6 +123,9 @@ SCENE = {
             "Can you reach the blue hold without rushing?",
             "Three moves, then a careful step down.",
             "The route starts easier than it looks.",
+            "A chalked thumb tests the small blue hold.",
+            "The beginner wall ends with both feet down.",
+            "A quiet reach finds the next foothold.",
         ],
     },
     "Kids coding": {
@@ -124,6 +139,9 @@ SCENE = {
             "Can the robot reach the paper flag?",
             "The bug is one arrow pointing backward.",
             "Watch the sensor stop the robot at the line.",
+            "The wheels stop when the sensor sees tape.",
+            "A single block sends the robot backward.",
+            "The paper flag waits at the end of the maze.",
         ],
     },
     "Kids gymnastics": {
@@ -137,6 +155,9 @@ SCENE = {
             "One soft landing after three quick steps.",
             "The cartwheel starts with a careful hand.",
             "Can you stay balanced for one slow count?",
+            "The foam block marks where the hands land.",
+            "One bent knee turns a cartwheel into a safe finish.",
+            "The smallest gymnast waits for the signal.",
         ],
     },
     "Pet grooming": {
@@ -150,6 +171,9 @@ SCENE = {
             "The towel comes off and the curls spring up.",
             "Watch the paws dry one at a time.",
             "The brush finds the soft spot every time.",
+            "A damp comb smooths the curls behind one ear.",
+            "The towel catches the last drops from the paws.",
+            "A soft brush pauses when the dog looks up.",
         ],
     },
     "Swim lessons": {
@@ -163,6 +187,9 @@ SCENE = {
             "The kickboard stays still while the feet move.",
             "One breath, one reach, then a rest.",
             "Watch the bubbles reach the wall.",
+            "The kickboard touches the wall after three kicks.",
+            "A slow exhale sends bubbles past the goggles.",
+            "The first float lasts one breath longer.",
         ],
     },
     "Tutoring": {
@@ -176,6 +203,9 @@ SCENE = {
             "Check the answer by working backward.",
             "Two ways to solve the same question.",
             "A scratch-paper mistake shows where to look.",
+            "A number line makes the distance visible.",
+            "The student circles the sign before solving.",
+            "One fraction bar shows why the halves match.",
         ],
     },
     "Bakery": {
@@ -189,6 +219,9 @@ SCENE = {
             "One fold turns the sticky dough smooth.",
             "The steam lifts when the oven door opens.",
             "That flour mark shows how far it rose.",
+            "The dough seam faces down before the second rise.",
+            "A floury thumb leaves one clear print.",
+            "The loaf sounds hollow after it cools.",
         ],
     },
     "Music lessons": {
@@ -202,6 +235,9 @@ SCENE = {
             "One string rings louder than the others.",
             "Listen for the melody under the warm-up.",
             "A shaky start finds its rhythm by bar four.",
+            "The bow rests before the violinist counts in.",
+            "A cello string hums under one gentle pluck.",
+            "The flute holds one note past the piano chord.",
         ],
     },
 }
@@ -218,7 +254,7 @@ def _fallback_hook(client: str, slot: int, version: int, category: str) -> str:
     for prefix in ("One more try:", "In close-up:", "From above:", "At half speed:", "Hold the finish:"):
         for offset in range(len(hooks)):
             hook = hooks[(start + offset) % len(hooks)]
-            variation = f"{prefix} {hook}"
+            variation = f"{prefix} {hook[0].lower()}{hook[1:]}"
             if variation not in used and len(variation.split()) <= 12:
                 return variation
     raise ValueError(f"No unused fallback hooks remain for {client} ({category})")

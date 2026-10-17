@@ -222,7 +222,11 @@ def activity():
     w = tools.world()
     current_day = tools.sim_day()
     existing = {row["id"] for row in db.rows(db.agency(), "MATCH (b:Business) RETURN b.id AS id")}
-    feed_left = [business for business in w.get("lead_feed", []) if business["id"] not in existing]
+    feed_left = [
+        {key: business[key] for key in ("id", "name", "category", "arrives")}
+        for business in w.get("lead_feed", [])
+        if business["id"] not in existing
+    ]
 
     decisions = [*tools.decisions(None, 500)]
     for slug in db.client_slugs():
