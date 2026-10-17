@@ -329,9 +329,15 @@ def write_draft(client: str, plan_id: str, fmt: str, hook: str, spec: str, techn
                  MERGE (t:Technique {id: r.id}) ON CREATE SET t.name = r.name
                  CREATE (d)-[:USES]->(t)""",
            {"id": did, "rows": [{"id": t, "name": names.get(t, t)} for t in technique_ids]})
-    refs = db.rows(db.agency(), "MATCH (r:Reference) WHERE r.id IN $ids RETURN r.id AS id, r.url AS url", {"ids": reference_ids})
+    refs = db.rows(db.agency(), """MATCH (r:Reference) WHERE r.id IN $ids
+                                  RETURN r.id AS id, r.url AS url, r.creator AS creator, r.category AS category""",
+                   {"ids": reference_ids})
     db.run(g, """MATCH (d:Draft {id: $id}) UNWIND $rows AS r
-                 MERGE (ref:Reference {id: r.id}) ON CREATE SET ref.url = r.url, ref.name = r.id
+                 MERGE (ref:Reference {id: r.id})
+                 ON CREATE SET ref.url = r.url, ref.creator = r.creator, ref.category = r.category, ref.name = r.id
+                 ON MATCH SET ref.url = coalesce(ref.url, r.url),
+                              ref.creator = coalesce(ref.creator, r.creator),
+                              ref.category = coalesce(ref.category, r.category)
                  CREATE (d)-[:INSPIRED_BY]->(ref)""", {"id": did, "rows": refs})
     if revision_of:
         db.run(g, "MATCH (d:Draft {id: $id}), (p:Draft {id: $prev}) CREATE (d)-[:REVISION_OF]->(p)",
@@ -482,7 +488,7 @@ def decision_trace(client: str, draft_id: str) -> dict:
     card = rows[0]
     card["decisions"] = sorted(_clean(card["decisions"], "decision"), key=lambda d: d["at"])
     card["sources"] = _clean(card["sources"], "kind")
-    card["references"] = [r for r in card["references"] if r]
+    card["references"] = [r for r in card["references"] if r and r.get("url")]
     lin = db.rows(g, queries.DRAFT_LINEAGE, {"draft": draft_id})[0]
     card["previous"] = _clean(lin["previous"], "id")
     card["flags_on_previous"] = _clean(lin["flags"], "with")

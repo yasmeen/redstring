@@ -251,7 +251,8 @@ h1, h2, h3, h4, p { margin: 0; }
 .row-btn { all: unset; box-sizing: border-box; display: block; width: 100%; cursor: pointer; border-radius: 4px; padding: 2px 0; }
 .row-btn:hover b { color: var(--thread-deep); text-decoration: underline; text-underline-offset: 3px; }
 .row-btn:focus-visible { outline: 3px solid var(--thread); outline-offset: 2px; }
-.src { font: 0.75rem/1.4 var(--mono); word-break: break-all; }
+.src { font: inherit; color: var(--ink); text-decoration-color: var(--thread); overflow-wrap: anywhere; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.src:hover { color: var(--thread-deep); }
 .goal-line { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
 .goal-meta { font-size: 0.8125rem; color: var(--muted); }
 

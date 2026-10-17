@@ -30,7 +30,19 @@ const displayStudioCopy = (text) => displayCopy(text)
     return `inspired by ${count} ${count === 1 ? "reference" : "references"}`;
   });
 const n = (x, d = 2) => (typeof x === "number" ? x.toFixed(d) : "");
-const link = (u) => u ? `<a class="src" href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a>` : `<span class="muted">no source URL</span>`;
+const link = (u, label) => {
+  if (!u) return `<span class="muted">no source URL</span>`;
+  const hostname = (() => {
+    try {
+      return new URL(u, location.href).hostname.replace(/^www\./i, "") || "source";
+    } catch {
+      return "source";
+    }
+  })();
+  const text = String(label ?? "").trim();
+  const isUrl = /^(?:https?:\/\/|www\.)/i.test(text) || /^(?:[a-z0-9-]+\.)+[a-z]{2,}(?:[/?#:][^\s]*)?$/i.test(text);
+  return `<a class="src" href="${esc(u)}" target="_blank" rel="noopener">${esc(text && !isUrl ? text : hostname)} <span aria-hidden="true">↗</span></a>`;
+};
 const hoodOf = (b) => b.neighborhood_name || b.neighborhood || "";
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const splitQuery = window.matchMedia("(min-width: 1100px)");
@@ -759,7 +771,7 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
       `<li><button type="button" class="row-btn" data-draft="${esc(x.id)}" data-slug="${esc(slug)}">${chip(x.status)}${chip("plain", x.kind)} <b><span class="metric">v${esc(x.version)} · </span>${esc(x.hook)}</b></button></li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
     if (d.taste_profile && d.taste_profile.id) draftsTab += `<h3>Taste profile <span class="muted metric">v${esc(d.taste_profile.version)}</span></h3><p>${esc(d.taste_profile.summary)}</p>
       <p class="muted" style="margin-top:6px">Prefers: ${d.taste_profile.prefers.map((p) => esc(p.name)).join(", ")}${d.taste_profile.avoids.length ? `<br>Avoids: ${d.taste_profile.avoids.map((p) => esc(p.name)).join(", ")}` : ""}</p>`;
-    research += `<h3>Findings <span class="muted">each with its source</span></h3><ul class="list">${d.findings.map((f) => `<li>${chip("plain", f.kind)} ${esc(f.text)}<br>${f.kind === "audit" ? "<span class='muted'>From the audit of past posts.</span>" : link(f.source_url)}</li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
+    research += `<h3>Findings <span class="muted">each with its source</span></h3><ul class="list">${d.findings.map((f) => `<li>${chip("plain", f.kind)} ${f.kind === "audit" ? `${esc(f.text)} <span class="muted">From the audit of past posts.</span>` : f.source_url ? link(f.source_url, f.text) : `${esc(f.text)} ${link(f.source_url)}`}</li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
     research += `<h3>Past posts</h3><ul class="list">${d.posts.map((p) => `<li>${esc(p.hook)} <span class="muted metric">${(p.views ?? 0).toLocaleString()} views · ${(p.saves ?? 0).toLocaleString()} saves</span></li>`).join("") || "<li class='muted'>Not loaded.</li>"}</ul>`;
   } else {
     overview += `<div class="warnbox"><b>No private graph yet.</b> Scout creates one when it pursues this lead.</div>`;
@@ -949,7 +961,7 @@ document.addEventListener("click", async (e) => {
 // ---------------------------------------------------------------- route cards (threads) and pitch cards
 
 function knots(decisions) {
-  return decisions.map((x) => `<div class="knot"><div class="who">${esc(x.by)}</div><p><b>${esc(x.decision)}</b></p>${x.rationale ? `<p class="muted">${esc(x.rationale)}</p>` : ""}</div>`).join("");
+  return decisions.map((x) => `<div class="knot"><div class="who">${esc(x.by)}</div><p><b>${esc(displayStudioCopy(x.decision))}</b></p>${x.rationale ? `<p class="muted">${esc(displayStudioCopy(x.rationale))}</p>` : ""}</div>`).join("");
 }
 
 function sheetTop(kicker) {
@@ -979,9 +991,12 @@ async function openRoute(slug, id) {
   else if (c.status !== "flagged") h += `<div class="okbox"><b>Cleared Double Take.</b></div>`;
   if (c.previous.length) h += `<div class="warnbox"><b>Revision</b> of ${c.previous.map((p) => `<span class="metric">v${esc(p.version)} </span>“${esc(p.hook)}”`).join(", ")}${c.flags_on_previous.length ? `, which was blocked for resembling ${c.flags_on_previous.map((f) => esc(f.with)).join(", ")} (${c.flags_on_previous.map((f) => f.shared.map(esc).join(", ")).join("; ")})` : ""}.</div>`;
   h += `<h3>Decisions</h3><div class="thread">${knots(c.decisions)}</div>`;
-  h += `<h3>Sources</h3><ul class="list">${c.sources.map((s) => `<li>${chip("plain", s.kind)} ${esc(s.text)} ${s.source_url ? "<br>" + link(s.source_url) : ""}</li>`).join("") || "<li class='muted'>None.</li>"}</ul>`;
+  h += `<h3>Sources</h3><ul class="list">${c.sources.filter((s) => s.kind !== "Reference").map((s) => `<li>${chip("plain", s.kind)} ${s.source_url ? link(s.source_url, s.text) : esc(s.text)}</li>`).join("") || "<li class='muted'>None.</li>"}</ul>`;
   h += `<h3>Techniques</h3><ul class="tech-list">${c.techniques.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>`;
-  h += `<h3>References</h3><ul class="list">${c.references.map((r) => `<li>${link(r)}</li>`).join("") || "<li class='muted'>None.</li>"}</ul>`;
+  h += `<h3>References</h3><ul class="list">${c.references.map((r) => {
+    const label = r.creator && r.category ? `${r.creator} · ${r.category}` : r.creator || r.category;
+    return `<li>${link(r.url, label)}</li>`;
+  }).join("") || "<li class='muted'>None.</li>"}</ul>`;
   h += boardButtons("Draft", id, slug, false);
   showSheet(h, `Thread for ${c.draft}`);
 }
@@ -991,7 +1006,7 @@ async function openPitch(slug, id) {
   const h = sheetTop(`<span class="studio-only">Pitch</span><span class="analysis-only">Pitch · client:${esc(slug)} · ${esc(id)}</span>`) +
     `<h2>${esc(c.angle)}</h2><p class="serves">${chip(c.status)} argues for ${chip(c.goal_status)} <b>${esc(c.goal)}</b></p>
     ${c.goal_status === "hypothesized" ? `<div class="warnbox"><b>The goal is a hypothesis.</b> It is the Researcher's inference, shown to the prospect as one.</div>` : ""}
-    <h3>Every claim, with its source</h3><ul class="list">${c.claims.map((f) => `<li>${chip("plain", f.kind)} ${esc(f.text)}<br>${f.kind === "audit" ? "<span class='muted'>From our audit of their posts.</span>" : link(f.source_url)}</li>`).join("")}</ul>
+    <h3>Every claim, with its source</h3><ul class="list">${c.claims.map((f) => `<li>${chip("plain", f.kind)} ${f.kind === "audit" ? `${esc(f.text)} <span class="muted">From our audit of their posts.</span>` : f.source_url ? link(f.source_url, f.text) : `${esc(f.text)} ${link(f.source_url)}`}</li>`).join("")}</ul>
     <h3>Spec posts</h3><ul class="list">${c.spec_posts.map((d) => `<li><button type="button" class="row-btn" data-draft="${esc(d.id)}" data-slug="${esc(slug)}">${chip(d.status)} <b>${esc(d.hook)}</b></button></li>`).join("")}</ul>
     <h3>Decisions</h3><div class="thread">${knots(c.decisions)}</div>` + boardButtons("Pitch", id, slug, true);
   showSheet(h, `Pitch for ${slug}`);
