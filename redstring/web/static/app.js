@@ -92,6 +92,59 @@ viewLinks.forEach((link) => link.addEventListener("click", async (e) => {
   await viewChanged();
 }));
 window.addEventListener("popstate", viewChanged);
+const icon = (name, cls = "") => ICON_PATHS[name]
+  ? `<svg class="ic${cls ? ` ${cls}` : ""}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name]}</svg>`
+  : "";
+const AGENT_ICONS = { scout: "radar", researcher: "search", auditor: "clipboard-check", styledirector: "palette", strategist: "target", producer: "clapperboard", standards: "shield-check", accountmanager: "briefcase", board: "gavel", yaz: "gavel" };
+const agentIcon = (name) => icon(AGENT_ICONS[String(name || "").toLowerCase().replace(/[\s_]/g, "")] || "user-round");
+const who = (name) => `${agentIcon(name)}${esc(name)}`;
+const CATEGORY_ICONS = { "Bookshop with storytime": "book-open", "Kids art": "brush", Yoga: "flower-2", Cafe: "coffee", "Climbing gym": "mountain", "Kids coding": "bot", "Kids gymnastics": "person-standing", "Pet grooming": "dog", "Swim lessons": "waves", Tutoring: "graduation-cap", Bakery: "croissant", "Music lessons": "music" };
+const CATEGORY_HUE = { "Bookshop with storytime": "#7A4E2D", "Kids art": "#B5443B", Yoga: "#56703F", Cafe: "#6B4A3A", "Climbing gym": "#4F6170", "Kids coding": "#3F5C8C", "Kids gymnastics": "#8C4A7A", "Pet grooming": "#8A5E14", "Swim lessons": "#1F6A73", Tutoring: "#5A4A8C", Bakery: "#A0522D", "Music lessons": "#7A2E4A" };
+const TECHNIQUE_ICONS = { hook: "zap", transition: "move", structure: "layout-template", pacing: "gauge", text: "type", color: "droplet", audio: "audio-lines", format: "film" };
+const categoryIcon = (category) => icon(CATEGORY_ICONS[category] || "");
+const initials = (name) => String(name || "?").replace(/^the\s+/i, "").split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+const avatar = (b, size = "") => b
+  ? `<span class="avatar${size ? ` ${size}` : ""}" style="--av:${CATEGORY_HUE[b.category] || "#5C4A4D"}" aria-hidden="true">${esc(initials(b.name))}</span>`
+  : "";
+const bizByName = (name) => state.overview?.businesses.find((b) => b.name === name);
+const techChip = (name, kinds = {}) => `<span class="chip plain tech"${kinds[name] ? ` title="${esc(kinds[name])}"` : ""}>${icon(TECHNIQUE_ICONS[kinds[name]] || "")}${esc(name)}</span>`;
+
+function mediaOf(r) {
+  const u = r.url || "";
+  const yt = u.match(/youtube\.com\/(?:shorts\/|watch\?v=)([\w-]{6,})|youtu\.be\/([\w-]{6,})/);
+  if (yt) {
+    const id = yt[1] || yt[2];
+    return { platform: "youtube", site: "YouTube", embed: `https://www.youtube-nocookie.com/embed/${id}?autoplay=1`, poster: `https://i.ytimg.com/vi/${id}/hqdefault.jpg` };
+  }
+  const ig = u.match(/instagram\.com\/(reel|p|tv)\/([\w-]+)/);
+  if (ig) return { platform: "instagram", site: "Instagram", embed: `https://www.instagram.com/${ig[1]}/${ig[2]}/embed/` };
+  return { platform: "", site: "" };
+}
+
+function refCard(r) {
+  const m = mediaOf(r);
+  const label = [r.creator, r.category].filter(Boolean).join(" · ") || "Reference";
+  const inner = `${m.poster ? `<img src="${esc(m.poster)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : `<span class="ref-glyph">${categoryIcon(r.category) || icon("film")}</span>`}
+    ${m.embed ? `<span class="ref-play">${icon("play")}</span>` : ""}${m.site ? `<span class="ref-site">${icon(m.platform)}${m.site}</span>` : ""}`;
+  const poster = m.embed
+    ? `<button type="button" class="ref-poster" data-embed="${esc(m.embed)}" data-title="${esc(label)}" aria-label="Play ${esc(label)} here" style="--av:${CATEGORY_HUE[r.category] || "#5C4A4D"}">${inner}</button>`
+    : `<div class="ref-poster" style="--av:${CATEGORY_HUE[r.category] || "#5C4A4D"}">${inner}</div>`;
+  return `<li class="ref">${poster}<div class="ref-body"><p class="ref-who">${link(r.url, label)}</p>${r.analysis ? `<p class="ref-how">${esc(r.analysis)}</p>` : ""}</div></li>`;
+}
+
+document.addEventListener("click", (e) => {
+  const poster = e.target.closest("[data-embed]");
+  if (!poster) return;
+  const frame = document.createElement("iframe");
+  frame.src = poster.dataset.embed;
+  frame.title = poster.dataset.title;
+  frame.allow = "autoplay; encrypted-media; picture-in-picture";
+  frame.allowFullscreen = true;
+  frame.className = "ref-frame";
+  poster.closest(".ref").classList.add("playing");
+  poster.replaceWith(frame);
+});
+
 document.addEventListener("click", async (e) => {
   const link = e.target.closest("a[data-analysis-link]");
   if (!link) return;
@@ -264,7 +317,7 @@ function bizCard(b) {
   const goal = client?.goals?.[0]?.text;
   const tags = chip(b.verdict);
   return `<button type="button" class="biz" data-biz="${esc(b.id)}" data-status="${esc(b.status)}" aria-pressed="${b.id === state.selected}">
-    <span class="biz-name">${esc(b.name)}</span>${meta ? `<span class="biz-meta">${meta}</span>` : ""}
+    <span class="biz-head">${avatar(b)}<span class="biz-title"><span class="biz-name">${esc(b.name)}</span>${meta ? `<span class="biz-meta">${categoryIcon(b.category)}${meta}</span>` : ""}</span></span>
     ${tags ? `<span class="biz-tags">${tags}</span>` : ""}${goal ? `<span class="biz-goal"><b>Goal:</b> ${esc(goal)}</span>` : ""}
     ${b.status === "signed" && client?.won_pitch ? `<span class="biz-goal"><b>Won with spec work</b></span>` : ""}<span class="hole" aria-hidden="true"></span></button>`;
 }
@@ -279,20 +332,20 @@ function renderAttention(o) {
   const unscreened = items.filter((i) => i.type === "unscreened");
   const blocked = items.filter((i) => i.type === "blocked");
   let h = decisions.map((i) => i.type === "pitch"
-    ? `<button type="button" class="need-card pitch" data-pitch="${esc(i.pitch_id)}" data-slug="${esc(i.business_id)}"><span class="need-kind">Pitch to approve</span><span class="need-text">${esc(byId[i.business_id]?.name || i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`
+    ? `<button type="button" class="need-card pitch" data-pitch="${esc(i.pitch_id)}" data-slug="${esc(i.business_id)}"><span class="need-kind">${icon("send")}Pitch to approve</span><span class="need-text">${esc(byId[i.business_id]?.name || i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`
     : i.type === "approve_posts"
-    ? `<button type="button" class="need-card pitch" data-draft="${esc(i.draft_ids[0])}" data-slug="${esc(i.business_id)}"><span class="need-kind">Posts to approve</span><span class="need-text">${esc(i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`
+    ? `<button type="button" class="need-card pitch" data-draft="${esc(i.draft_ids[0])}" data-slug="${esc(i.business_id)}"><span class="need-kind">${icon("circle-check")}Posts to approve</span><span class="need-text">${esc(i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`
     : i.type === "ready"
-    ? `<button type="button" class="need-card" data-pick="${esc(i.business_ids[0])}"><span class="need-kind">Cleared to pitch</span><span class="need-text">${esc(i.message)}</span></button>`
-    : `<button type="button" class="need-card pitch borderline" data-pick="${esc(i.business_id)}"><span class="need-kind">Board call</span><span class="need-text">${esc(i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`).join("");
+    ? `<button type="button" class="need-card" data-pick="${esc(i.business_ids[0])}"><span class="need-kind">${icon("sparkles")}Cleared to pitch</span><span class="need-text">${esc(i.message)}</span></button>`
+    : `<button type="button" class="need-card pitch borderline" data-pick="${esc(i.business_id)}"><span class="need-kind">${icon("gavel")}Board call</span><span class="need-text">${esc(i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`).join("");
   if (unscreened.length) {
-    h += `<button type="button" class="need-card" data-pick="${esc(unscreened[0].business_id)}"><span class="need-kind">Leads to screen</span><span class="need-text">${unscreened.length} new ${unscreened.length === 1 ? "lead is" : "leads are"} waiting for Scout</span></button>`;
+    h += `<button type="button" class="need-card" data-pick="${esc(unscreened[0].business_id)}"><span class="need-kind">${icon("radar")}Leads to screen</span><span class="need-text">${unscreened.length} new ${unscreened.length === 1 ? "lead is" : "leads are"} waiting for Scout</span></button>`;
   }
   $("#needs-you").innerHTML = h || `<p class="empty-row">Nothing needs a decision right now.</p>`;
   $("#caught").innerHTML = blocked.map((i) => `<button type="button" class="caught-card" data-pick="${esc(i.business_id)}">
-      <span class="need-kind">Blocked and revised</span>
+      <span class="need-kind">${icon("shield-alert")}Blocked and revised</span>
       <span class="caught-a">${esc(i.business || byId[i.business_id]?.name)}</span>
-      <span class="caught-pair">${TIE}<span>looked like <b>${esc(i.with_business || "")}</b>${i.also_like?.length ? ` and <b>${i.also_like.map(esc).join(", ")}</b>` : ""}</span></span>
+      <span class="caught-pair">${avatar(byId[i.business_id], "sm")}${TIE}${avatar(bizByName(i.with_business), "sm")}<span>looked like <b>${esc(i.with_business || "")}</b>${i.also_like?.length ? ` and <b>${i.also_like.map(esc).join(", ")}</b>` : ""}</span></span>
       ${i.hook ? `<span class="caught-hook">“${esc(i.hook)}”</span>` : ""}
     </button>`).join("")
     || `<p class="empty-row">Nothing caught yet. Double Take checks every draft from step 3 on.</p>`;
@@ -317,7 +370,7 @@ function renderBoard(o) {
 async function feed() {
   const ds = await api("/api/decisions");
   $("#feed").innerHTML = ds.map((d) =>
-    `<li><div><div class="who">${esc(d.by)}</div><div class="g analysis-only">${esc(d.graph)}</div></div><div><b>${esc(displayStudioCopy(d.text))}</b><div class="muted">${esc(displayStudioCopy(d.rationale))}</div></div></li>`).join("")
+    `<li><div><div class="who">${who(d.by)}</div><div class="g analysis-only">${esc(d.graph)}</div></div><div><b>${esc(displayStudioCopy(d.text))}</b><div class="muted">${esc(displayStudioCopy(d.rationale))}</div></div></li>`).join("")
     || `<li class="empty">No decisions yet. Run the steps above.</li>`;
 }
 
@@ -643,7 +696,7 @@ function renderAccess(analysis) {
     <thead><tr><td></td>${qs.map((q) => `<th scope="col"><span class="qtag">${esc(q.query)}</span>${esc(q.tool)}</th>`).join("")}<th scope="col">Other tools</th></tr></thead>
     <tbody>${agents.map(([agent, tools]) => {
       const named = qs.filter((q) => tools.includes(q.tool)).length;
-      return `<tr><th scope="row">${esc(pretty(agent))}</th>${qs.map((q) => `<td>${tools.includes(q.tool) ? `<span class="yes" title="${esc(pretty(agent))} can call ${esc(q.tool)}"></span><span class="sr-only">yes</span>` : ""}</td>`).join("")}<td class="other">${tools.length - named}</td></tr>`;
+      return `<tr><th scope="row"><span class="agent-name">${agentIcon(agent)}${esc(pretty(agent))}</span></th>${qs.map((q) => `<td>${tools.includes(q.tool) ? `<span class="yes" title="${esc(pretty(agent))} can call ${esc(q.tool)}"></span><span class="sr-only">yes</span>` : ""}</td>`).join("")}<td class="other">${tools.length - named}</td></tr>`;
     }).join("")}</tbody>`;
   $("#queries").innerHTML = qs.map((q) => `<article class="query-card">
     <h3><span class="qtag">${esc(q.query)}</span>${esc(q.tool)}</h3>
@@ -726,9 +779,9 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   const b = d.business;
   const ro = state.overview?.readonly;
   const hood = hoodOf(b);
-  let h = `<div class="dossier-meta"><span>${esc(b.category)}${hood ? ` · ${esc(hood)}` : ""}</span>
+  let h = `<div class="dossier-meta"><span class="dossier-cat">${categoryIcon(b.category)}${esc(b.category)}${hood ? ` · ${esc(hood)}` : ""}</span>
       <button type="button" class="btn small dossier-close" data-dossier-close>Close</button></div>
-    <h2 class="name" id="dossier-h" tabindex="-1">${esc(b.name)}</h2>
+    <div class="dossier-title">${avatar(b, "lg")}<h2 class="name" id="dossier-h" tabindex="-1">${esc(b.name)}</h2></div>
     <div class="status-row">${chip(b.status)}${b.voice ? `<span class="muted">Voice: ${esc(b.voice)}</span>` : ""}</div>`;
 
   let overview = "";
@@ -749,11 +802,11 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   }
   if (d.screening && d.screening.verdict) {
     const s = d.screening;
-    overview += `<h3>Scout's screening</h3><div class="thread"><div class="knot"><div class="who">${esc(s.by || "Scout")} ${chip(s.verdict)}</div><p>${esc(displayStudioCopy(s.reason))}</p></div>
+    overview += `<h3>Scout's screening</h3><div class="thread"><div class="knot"><div class="who">${who(s.by || "Scout")} ${chip(s.verdict)}</div><p>${esc(displayStudioCopy(s.reason))}</p></div>
       ${(s.paths || []).map((c) => {
         const ps = [...(c.paths || [])].sort((a, z) => z.conflict - a.conflict);
         const pill = (p) => `<li>${esc(p.via)} <span class="metric">· ${n(p.conflict)}</span></li>`;
-        return `<div class="knot minor"><div class="who">${esc(c.client)} <span class="metric">· conflict ${n(c.conflict)}</span>${c.same_category ? " · same category" : ""}</div>
+        return `<div class="knot minor"><div class="who">${avatar(bizByName(c.client), "xs")}${esc(c.client)} <span class="metric">· conflict ${n(c.conflict)}</span>${c.same_category ? " · same category" : ""}</div>
           ${ps.length ? `<p class="muted">via ${ps.slice(0, 2).map((p) => esc(p.via)).join(", ")}</p><p class="muted mono metric">Path contributions: ${ps.slice(0, 2).map((p) => `${esc(p.via)} ${n(p.conflict, 3)}`).join(" · ")}</p>` : ""}
           ${ps.length > 2 ? `<details class="metric"><summary>All ${ps.length} audience paths</summary><ul class="paths">${ps.map(pill).join("")}</ul></details>` : ""}</div>`;
       }).join("")}</div>`;
@@ -808,7 +861,7 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
       id: "activity",
       label: "Activity",
       content: `<h3>Latest decisions <span class="muted analysis-only">client:${esc(slug)}</span></h3><div class="thread">${d.decisions.slice(0, 10).map((x) =>
-        `<div class="knot minor"><div class="who">${esc(x.by)}</div><p><b>${esc(displayStudioCopy(x.text))}</b></p>${x.rationale ? `<p class="muted">${esc(displayStudioCopy(x.rationale))}</p>` : ""}</div>`).join("")}</div>`,
+        `<div class="knot minor"><div class="who">${who(x.by)}</div><p><b>${esc(displayStudioCopy(x.text))}</b></p>${x.rationale ? `<p class="muted">${esc(displayStudioCopy(x.rationale))}</p>` : ""}</div>`).join("")}</div>`,
     });
   }
   if (!tabs.some((tab) => tab.id === state.dossierTab)) state.dossierTab = "overview";
@@ -1006,7 +1059,7 @@ document.addEventListener("click", async (e) => {
 // ---------------------------------------------------------------- route cards (threads) and pitch cards
 
 function knots(decisions) {
-  return decisions.map((x) => `<div class="knot"><div class="who">${esc(x.by)}</div><p><b>${esc(displayStudioCopy(x.decision))}</b></p>${x.rationale ? `<p class="muted">${esc(displayStudioCopy(x.rationale))}</p>` : ""}</div>`).join("");
+  return decisions.map((x) => `<div class="knot"><div class="who">${who(x.by)}</div><p><b>${esc(displayStudioCopy(x.decision))}</b></p>${x.rationale ? `<p class="muted">${esc(displayStudioCopy(x.rationale))}</p>` : ""}</div>`).join("");
 }
 
 function sheetTop(kicker) {
@@ -1067,7 +1120,14 @@ async function openRoute(slug, id) {
   const c = await api(`/api/route/${slug}/${id}`);
   let h = sheetTop(`<span class="studio-only">Thread</span><span class="analysis-only">Thread · client:${esc(slug)} · ${esc(id)}</span>`) +
     `<h2>${esc(c.draft)}</h2><p class="serves">${chip(c.status)} ${c.goal ? `serves ${chip(c.goal_status)} <b>${esc(c.goal)}</b>` : ""}</p>` + decisionBar("Draft", id, slug, c);
-  if (c.status === "flagged" && c.flags.length) h += c.flags.map((f) => `<div class="flagbox"><b>Double Take blocked this draft.</b> It resembles ${esc(f.with_business)}: shares ${f.shared.map(esc).join(", ")}.
+  const kinds = c.technique_kinds || {};
+  const me = state.overview?.businesses.find((b) => b.id === slug);
+  if (c.status === "flagged" && c.flags.length) h += c.flags.map((f) => `<div class="flagbox"><b>Double Take blocked this draft.</b> It resembles ${esc(f.with_business)}'s work too closely.
+    <div class="dt-compare">
+      <div class="dt-side">${avatar(me)}<span><b>This draft</b><small>${esc(me?.name || "")}</small></span></div>
+      <div class="dt-shared"><span class="dt-string" aria-hidden="true"></span><span class="dt-label">Shares</span>${f.shared.map((t) => techChip(t, kinds)).join("")}</div>
+      <div class="dt-side">${avatar(bizByName(f.with_business))}<span><b>${esc(f.with_business)}</b><small>already uses these</small></span></div>
+    </div>
     <div class="mono metric" style="margin-top:4px;font-size:.8125rem">similarity ${n(f.similarity)} × audience overlap ${n(f.overlap)} = risk ${n(f.risk)}</div>
     <div class="muted metric" style="margin-top:4px;font-size:.8125rem">Evidence: ${f.evidence.map((e) => `${esc(e.fingerprint)} (${esc(e.kind)}, ${esc(e.hits)} shared)`).join(", ")}</div></div>`).join("");
   else if (c.status !== "flagged" && c.status !== "vetoed") h += `<div class="okbox"><b>Cleared Double Take.</b></div>`;
@@ -1079,21 +1139,20 @@ async function openRoute(slug, id) {
     h += `<h3>Shot list</h3><ol class="shots">${lines.filter(isShot).map((l) => {
       const [, time, rest] = l.match(/^\d+ · ([^·]+) · (.*)$/) || [null, "", l];
       const m = rest.match(/^(.*?)\s*\[([^\]]+)\]$/);
-      return `<li><span class="shot-time">${esc(time.trim())}</span><span>${esc(m ? m[1] : rest)}${m ? ` ${chip("plain", m[2])}` : ""}</span></li>`;
+      return `<li><span class="shot-time">${esc(time.trim())}</span><span>${esc(m ? m[1] : rest)}${m ? ` ${techChip(m[2], kinds)}` : ""}</span></li>`;
     }).join("")}</ol><dl class="shot-notes">${notes.map((l) => {
       const i = l.indexOf(":");
       const v = l.slice(i + 1).trim().replace(/\s*\[[^\]]+\]/g, "");
-      const tags = [...l.matchAll(/\[([^\]]+)\]/g)].map((t) => chip("plain", t[1])).join(" ");
+      const tags = [...l.matchAll(/\[([^\]]+)\]/g)].map((t) => techChip(t[1], kinds)).join(" ");
       return `<div><dt>${esc(l.slice(0, i))}</dt><dd>${esc(v)}${tags ? ` ${tags}` : ""}</dd></div>`;
     }).join("")}</dl>`;
   }
   h += `<h3>Decisions</h3><div class="thread">${knots(c.decisions)}</div>`;
   h += `<h3>Sources</h3><ul class="list">${c.sources.filter((s) => s.kind !== "Reference").map((s) => `<li>${chip("plain", s.kind)} ${s.source_url ? link(s.source_url, s.text) : esc(s.text)}</li>`).join("") || "<li class='muted'>None.</li>"}</ul>`;
-  h += `<h3>Techniques</h3><ul class="tech-list">${c.techniques.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>`;
-  h += `<h3>References</h3><ul class="list">${c.references.map((r) => {
-    const label = r.creator && r.category ? `${r.creator} · ${r.category}` : r.creator || r.category;
-    return `<li>${link(r.url, label)}</li>`;
-  }).join("") || "<li class='muted'>None.</li>"}</ul>`;
+  h += `<h3>Techniques</h3><ul class="tech-list">${c.techniques.map((t) => `<li>${techChip(t, kinds)}</li>`).join("")}</ul>`;
+  h += `<h3>References <span class="muted">videos the Producer drew on</span></h3>${c.references.length
+    ? `<ul class="refs">${c.references.map(refCard).join("")}</ul>`
+    : "<p class='muted'>No close reference in the library.</p>"}`;
   showSheet(h, `Thread for ${c.draft}`);
 }
 

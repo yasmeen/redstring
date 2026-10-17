@@ -164,7 +164,7 @@ RETURN d.hook AS draft, d.status AS status, g.text AS goal, g.status AS goal_sta
        collect(DISTINCT {decision: dec.text, by: a.name, at: dec.at, rationale: dec.rationale}) AS decisions,
        collect(DISTINCT {kind: labels(src)[0], text: coalesce(src.text, src.url, src.summary, src.hook, src.with_business), source_url: src.source_url}) AS sources,
        d.spec AS spec,
-       collect(DISTINCT {url: r.url, creator: r.creator, category: r.category}) AS references
+       collect(DISTINCT {id: r.id, url: r.url, creator: r.creator, category: r.category}) AS references
 """
 
 # Lineage and flags, shown under the route card.
