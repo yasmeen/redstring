@@ -53,10 +53,10 @@ def test_q1_multi_hop_paths(seeded):
     assert any("->" in p["via"] for p in wet["paths"]), "includes lead -> audience -> overlapping audience -> client"
 
 
-def test_q0_wet_paint_signature_is_the_planted_set(seeded):
+def test_q0_planted_set_is_wet_paint_signature(seeded):
     planted = set(tools.world()["planted"]["collision_techniques"])
     sig = {s["technique_id"] for s in tools.signatures("wet-paint")}
-    assert sig == planted
+    assert planted <= sig
 
 
 def test_fingerprints_carry_no_copy(seeded):

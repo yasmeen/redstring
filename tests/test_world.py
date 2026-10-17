@@ -1,13 +1,13 @@
 import math
 
-from redstring import config, rarity, worldgen
+from redstring import config, rarity, references, worldgen
 
 
 def test_rarity_matches_spec_examples():
     assert math.isclose(rarity.rarity(200, 2), 0.79, abs_tol=0.01)
     assert math.isclose(rarity.rarity(200, 40), 0.30, abs_tol=0.01)
-    # "Rare" (>= 0.6) is about 7 or fewer of 200 references.
-    assert rarity.rarity(200, 7) >= config.RARE > rarity.rarity(200, 8)
+    # "Rare" (>= 0.75) is about 2 or fewer of 200 references.
+    assert rarity.rarity(200, 2) >= config.RARE > rarity.rarity(200, 3)
 
 
 def test_world_is_deterministic():
@@ -22,7 +22,7 @@ def test_world_shape():
     neighborhoods = {n["id"] for n in w["neighborhoods"]}
     assert neighborhoods == {"n_flatiron", "n_nomad", "n_gramercy", "n_chelsea"}
     assert all(b["neighborhood"] in neighborhoods for b in w["businesses"])
-    assert len(w["techniques"]) == 80 and len(w["references"]) == 200
+    assert len(w["techniques"]) == 80 and len(w["references"]) == len(references.load())
     assert all(b["synthetic"] for b in w["businesses"])
 
 

@@ -7,7 +7,7 @@
     check            print the seven queries' key results on the current graph
     serve            run the web app
     mcp              run the MCP server (stdio, or --http PORT)
-    import-refs F    import an Instinct export (CSV/JSON) into data/references.json
+    import-refs F    import an analyzer export (CSV/JSON) into data/references.json
 """
 from __future__ import annotations
 
@@ -36,6 +36,7 @@ def main(argv: list[str] | None = None) -> None:
     i = sub.add_parser("import-refs")
     i.add_argument("path", type=Path)
     i.add_argument("--limit", type=int)
+    i.add_argument("--source", default="Instinct")
     a = ap.parse_args(argv)
 
     if a.cmd == "world":
@@ -63,7 +64,7 @@ def main(argv: list[str] | None = None) -> None:
         mcp_server.main()
     elif a.cmd == "import-refs":
         from . import extract
-        print(extract.import_references(a.path, a.limit))
+        print(extract.import_references(a.path, a.limit, a.source))
 
 
 def check() -> None:

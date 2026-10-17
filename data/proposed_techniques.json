@@ -1,0 +1,3038 @@
+[
+ {
+  "name": "On-screen question text hook",
+  "category": "hook",
+  "why": "Opens with on-screen text posing a question to the viewer ('What makes our food so special? You tell me...'), not a direct-to-camera spoken question.",
+  "reference": "https://www.instagram.com/reel/DeaIdUbSgJB/"
+ },
+ {
+  "name": "Staff dance/lip-sync moments",
+  "category": "structure",
+  "why": "Front-of-house workers dance and sing into microphones, interspersed with production shots to showcase team personality.",
+  "reference": "https://www.instagram.com/reel/DeaIdUbSgJB/"
+ },
+ {
+  "name": "Clapback reclaim reply",
+  "category": "hook",
+  "why": "Opens by quoting a stereotype then a second person retorts with a defiant reframing ('Fine, I'll cook!'), a call-and-response clapback distinct from a plain overheard quote.",
+  "reference": "https://www.instagram.com/reel/Dctradbxxa9/"
+ },
+ {
+  "name": "Persistent framing caption",
+  "category": "text",
+  "why": "A single recurring on-screen line ('Because what's wrong with being in the kitchen...') stays across the montage to frame the whole piece's message.",
+  "reference": "https://www.instagram.com/reel/Dctradbxxa9/"
+ },
+ {
+  "name": "Product montage b-roll",
+  "category": "structure",
+  "why": "Quick montage of labeled products between talking-head segments, not clearly sub-second cuts.",
+  "reference": "https://www.instagram.com/reel/DbMQM8SyFmh/"
+ },
+ {
+  "name": "Event info end card",
+  "category": "text",
+  "why": "On-screen text confirming market hours as a commercial call-to-action sign-off.",
+  "reference": "https://www.instagram.com/reel/DbMQM8SyFmh/"
+ },
+ {
+  "name": "Cheerful instrumental bed",
+  "category": "audio",
+  "why": "Upbeat instrumental music underneath, not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DbMQM8SyFmh/"
+ },
+ {
+  "name": "Product portrait close-up",
+  "category": "format",
+  "why": "Entire reel is a tight static close-up portrait of the finished product with no process shown.",
+  "reference": "https://www.instagram.com/reel/DaEpbJwsVuF/"
+ },
+ {
+  "name": "Orbiting camera finale",
+  "category": "format",
+  "why": "Finale rotates the camera around the finished boule to show the ear and slashes; no orbit/rotating-reveal technique in vocabulary.",
+  "reference": "https://www.instagram.com/reel/DZ71VbMi8Kp/"
+ },
+ {
+  "name": "Upbeat funk instrumental bed",
+  "category": "audio",
+  "why": "Upbeat instrumental funk track with no narration; not lo-fi or identified as trending sound.",
+  "reference": "https://www.instagram.com/reel/DZ71VbMi8Kp/"
+ },
+ {
+  "name": "Box-fill packing progression",
+  "category": "structure",
+  "why": "The reel's structure is a container being filled row by row until complete, a satisfying fulfillment arc distinct from a generic overhead build.",
+  "reference": "https://www.instagram.com/reel/Db_-_Jatyyu/"
+ },
+ {
+  "name": "Close-up process build",
+  "category": "structure",
+  "why": "The video is a continuous close-up, side-angle step-by-step decorating process ending in the finished reveal, not overhead and not numbered steps.",
+  "reference": "https://www.instagram.com/reel/DYi1oARjNYD/"
+ },
+ {
+  "name": "Orchestral swell score",
+  "category": "audio",
+  "why": "Instrumental track begins with a whimsical melody and builds into a full orchestral sound; not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DbQrs8JInU0/"
+ },
+ {
+  "name": "Slow overhead pan",
+  "category": "pacing",
+  "why": "Camera glides slowly across trays in one continuous move to set an unhurried rhythm, distinct from a static hold or a reveal.",
+  "reference": "https://www.instagram.com/reel/DbQrs8JInU0/"
+ },
+ {
+  "name": "Staged text build-up reveal",
+  "category": "text",
+  "why": "Overlay text appears in sequential stages (intro line, bold title, subtitle, order CTA) to introduce the product.",
+  "reference": "https://www.instagram.com/reel/DaLNCN6xzkd/"
+ },
+ {
+  "name": "Inset detail photos",
+  "category": "format",
+  "why": "Picture-in-picture inset close-up photographs highlight product details over the main shot.",
+  "reference": "https://www.instagram.com/reel/DaLNCN6xzkd/"
+ },
+ {
+  "name": "Slow product pan",
+  "category": "pacing",
+  "why": "A single slow lateral camera drift across a display case to convey abundance; not a reveal or static hold.",
+  "reference": "https://www.instagram.com/reel/DR9_hysDXLK/"
+ },
+ {
+  "name": "Caption-pinned info",
+  "category": "text",
+  "why": "Key info (open hours) lives in the post caption instead of on-screen text, turning a showcase into a daily-special announcement.",
+  "reference": "https://www.instagram.com/reel/DR9_hysDXLK/"
+ },
+ {
+  "name": "Ingredient product placement close-ups",
+  "category": "structure",
+  "why": "Close-ups of branded ingredients (rose water, lemon bar mix) serve double duty as product placement within the process build.",
+  "reference": "https://www.instagram.com/reel/DVkEuP8kSKt/"
+ },
+ {
+  "name": "Sped-up song edit",
+  "category": "audio",
+  "why": "The pop track is played sped up (nightcore-style) to drive a brisk pace, a specific treatment beyond simply using a trending sound.",
+  "reference": "https://www.instagram.com/reel/DVkEuP8kSKt/"
+ },
+ {
+  "name": "Repeated-word shout opener",
+  "category": "hook",
+  "why": "Owner opens by shouting 'NEWS NEWS NEWS' to grab attention before the update, not a question or cold open mid-action.",
+  "reference": "https://www.instagram.com/reel/DXN21HrjGYJ/"
+ },
+ {
+  "name": "Process vs product text framing",
+  "category": "text",
+  "why": "On-screen text cards 'The process versus...' / 'The product.' carry the entire narrative split, not covered by existing text styles.",
+  "reference": "https://www.instagram.com/reel/DcAd-_gTViX/"
+ },
+ {
+  "name": "Upbeat instrumental bed",
+  "category": "audio",
+  "why": "Dialogue-free upbeat instrumental music drives tone; not lo-fi or trending sound specifically.",
+  "reference": "https://www.instagram.com/reel/DcAd-_gTViX/"
+ },
+ {
+  "name": "Soft jazz music bed",
+  "category": "audio",
+  "why": "Background caf\u00e9 jazz accompanies the process; not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DZQIncUBgzM/"
+ },
+ {
+  "name": "Multi-part series framing",
+  "category": "structure",
+  "why": "Video is labeled part one of a series with an on-screen series title, encouraging follow-through viewing.",
+  "reference": "https://www.instagram.com/reel/DZQIncUBgzM/"
+ },
+ {
+  "name": "Withheld reveal cliffhanger",
+  "category": "structure",
+  "why": "Video deliberately ends before the finished result is shown, teasing a follow-up post to drive return viewing.",
+  "reference": "https://www.instagram.com/reel/DZ0zE6FvlcA/"
+ },
+ {
+  "name": "Close-up hands framing",
+  "category": "format",
+  "why": "Camera stays tight on the decorating hands throughout rather than overhead or wide shots.",
+  "reference": "https://www.instagram.com/reel/DZ0zE6FvlcA/"
+ },
+ {
+  "name": "Upbeat instrumental music bed",
+  "category": "audio",
+  "why": "No speech; an upbeat instrumental pop track carries the video, which is neither lo-fi nor explicitly a trending sound.",
+  "reference": "https://www.instagram.com/reel/DQHZIzqDqSm/"
+ },
+ {
+  "name": "Brand logo end card",
+  "category": "format",
+  "why": "The video closes with the brand logo landing on a sprinkle background as a branded outro.",
+  "reference": "https://www.instagram.com/reel/DQHZIzqDqSm/"
+ },
+ {
+  "name": "Tools lineup shot",
+  "category": "structure",
+  "why": "The camera pans across a spread of piping tips (flat, star, round) before the decoration sequences begin, establishing the tools.",
+  "reference": "https://www.instagram.com/reel/DQHZIzqDqSm/"
+ },
+ {
+  "name": "Smooth lateral product pan",
+  "category": "pacing",
+  "why": "Camera pans smoothly across a row of products to introduce each one in sequence, distinct from a whip pan transition.",
+  "reference": "https://www.instagram.com/reel/DaawszvRgOz/"
+ },
+ {
+  "name": "Packaging finale shot",
+  "category": "structure",
+  "why": "Video ends by framing the product in gift-ready packaging as the closing call-to-action.",
+  "reference": "https://www.instagram.com/reel/DaawszvRgOz/"
+ },
+ {
+  "name": "Upbeat pop music bed",
+  "category": "audio",
+  "why": "Non-trending upbeat pop track with no dialogue drives the mood; not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DaawszvRgOz/"
+ },
+ {
+  "name": "Narrated personal update over process",
+  "category": "audio",
+  "why": "Narration shares unrelated personal/business news while the craft process plays, turning a decorating video into a personal check-in.",
+  "reference": "https://www.instagram.com/reel/DZ83cHoSuxn/"
+ },
+ {
+  "name": "Founder self-introduction",
+  "category": "structure",
+  "why": "Founder speaks to camera introducing name, business, and origin story as the whole video structure.",
+  "reference": "https://www.instagram.com/reel/DZMBJ2UuPKf/"
+ },
+ {
+  "name": "Contrasting high-energy music bed",
+  "category": "audio",
+  "why": "Loud energetic rock track deliberately mismatched against calm artisanal process visuals; not a trending sound, lo-fi bed, or ASMR.",
+  "reference": "https://www.instagram.com/reel/DYSjUylvRE5/"
+ },
+ {
+  "name": "Lift-to-reveal hidden stack",
+  "category": "transition",
+  "why": "Hand lifts the featured book to reveal a stack of recommendations underneath, a physical in-frame reveal not covered by existing transitions.",
+  "reference": "https://www.instagram.com/reel/DYuN2QcoT1e/"
+ },
+ {
+  "name": "'If you loved X, try these' recommendation framing",
+  "category": "structure",
+  "why": "Comp-title recommendation format anchoring on one known title before presenting alternatives.",
+  "reference": "https://www.instagram.com/reel/DYuN2QcoT1e/"
+ },
+ {
+  "name": "Cursive script overlay text",
+  "category": "text",
+  "why": "Pink and red cursive typography used for titles, distinct from handwritten, serif, or sticker styles.",
+  "reference": "https://www.instagram.com/reel/DYuN2QcoT1e/"
+ },
+ {
+  "name": "Recurring monthly series format",
+  "category": "format",
+  "why": "Framed as a repeating 'monthly edition' episode, building audience habit across posts.",
+  "reference": "https://www.instagram.com/reel/DW6rcw3BFbi/"
+ },
+ {
+  "name": "Hold-up product showcase",
+  "category": "structure",
+  "why": "Speaker holds each book up to camera one after another as the visual anchor for each segment.",
+  "reference": "https://www.instagram.com/reel/DW6rcw3BFbi/"
+ },
+ {
+  "name": "Observational event documentation",
+  "category": "structure",
+  "why": "Unstaged fly-on-the-wall capture of a recurring community event (storytime) to show atmosphere.",
+  "reference": "https://www.instagram.com/reel/DczK5aKvHHT/"
+ },
+ {
+  "name": "Upbeat instrumental music bed",
+  "category": "audio",
+  "why": "Upbeat instrumental track layered under live room audio; not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DczK5aKvHHT/"
+ },
+ {
+  "name": "Floating cover overlay",
+  "category": "format",
+  "why": "Each featured book appears as a large floating cover composited over the static store background.",
+  "reference": "https://www.instagram.com/reel/Dan_WbSB1PM/"
+ },
+ {
+  "name": "Weekly recurring series sign-off",
+  "category": "structure",
+  "why": "Closes with 'See you next week!' framing the reel as a recurring weekly installment.",
+  "reference": "https://www.instagram.com/reel/Dan_WbSB1PM/"
+ },
+ {
+  "name": "Recurring named series format",
+  "category": "format",
+  "why": "Positioned as a branded recurring series ('Shelftalking') with each installment spotlighting a different staff member.",
+  "reference": "https://www.instagram.com/reel/DSGJN-XkXr0/"
+ },
+ {
+  "name": "Seated staff-pick direct address",
+  "category": "structure",
+  "why": "A bookseller seated among the shelves talks directly to camera through personal recommendations; this is not a parent interview or behind-the-counter piece.",
+  "reference": "https://www.instagram.com/reel/DSGJN-XkXr0/"
+ },
+ {
+  "name": "Search-bar title card",
+  "category": "hook",
+  "why": "Opens on a mock search-bar graphic reading 'What we're reading' over a cover collage, a UI-mimic title hook not covered by existing ids.",
+  "reference": "https://www.instagram.com/reel/Da6CiWVikEs/"
+ },
+ {
+  "name": "Smartphone-frame mockups",
+  "category": "format",
+  "why": "Each staff pick is presented inside a smartphone-style frame, a device-mockup presentation not in the vocabulary.",
+  "reference": "https://www.instagram.com/reel/Da6CiWVikEs/"
+ },
+ {
+  "name": "Recurring branded series template",
+  "category": "format",
+  "why": "Identical visual template, palette, and pacing reused across installments to mark it as an in-house series.",
+  "reference": "https://www.instagram.com/reel/Da6CiWVikEs/"
+ },
+ {
+  "name": "Smartphone frame mockup",
+  "category": "format",
+  "why": "Each pick is displayed inside a smartphone-style frame graphic.",
+  "reference": "https://www.instagram.com/reel/DbL_yR5CB_s/"
+ },
+ {
+  "name": "Search-bar title graphic",
+  "category": "text",
+  "why": "Opens with a search-bar graphic reading 'What we're reading' as the title card.",
+  "reference": "https://www.instagram.com/reel/DbL_yR5CB_s/"
+ },
+ {
+  "name": "Recurring branded slideshow template",
+  "category": "format",
+  "why": "Reel is built as a reusable in-house slideshow template cycling static cards.",
+  "reference": "https://www.instagram.com/reel/DbL_yR5CB_s/"
+ },
+ {
+  "name": "Bookend collage",
+  "category": "structure",
+  "why": "Opens and closes on the same cover collage, framing the sequence.",
+  "reference": "https://www.instagram.com/reel/DbL_yR5CB_s/"
+ },
+ {
+  "name": "Animated ambient background loop",
+  "category": "format",
+  "why": "Tranquil pool-water animation runs as a persistent background behind all segments.",
+  "reference": "https://www.instagram.com/reel/Dac7n7KRoOb/"
+ },
+ {
+  "name": "Ambient piano bed",
+  "category": "audio",
+  "why": "Gentle instrumental piano underscores the whole piece with no dialogue; not lo-fi or voiceover.",
+  "reference": "https://www.instagram.com/reel/Dac7n7KRoOb/"
+ },
+ {
+  "name": "Cover collage cards",
+  "category": "format",
+  "why": "Each segment shows a scrapbook collage of the staffer's book covers.",
+  "reference": "https://www.instagram.com/reel/Dac7n7KRoOb/"
+ },
+ {
+  "name": "Comment-prompt CTA ending",
+  "category": "structure",
+  "why": "Closes by asking followers to share their favorite recent read in the comments.",
+  "reference": "https://www.instagram.com/reel/Dac7n7KRoOb/"
+ },
+ {
+  "name": "Rapid-fire Q&A interview",
+  "category": "structure",
+  "why": "Interviewer asks a quick round of personal questions (favorite read, trope to defend) to a bookseller on camera; not a parent interview.",
+  "reference": "https://www.instagram.com/reel/Dai_22TEbn1/"
+ },
+ {
+  "name": "Handheld mic street-style interview",
+  "category": "format",
+  "why": "Interviewer holds microphone and phone in-store, man-on-the-street style framing of two people.",
+  "reference": "https://www.instagram.com/reel/Dai_22TEbn1/"
+ },
+ {
+  "name": "Hold product up to camera",
+  "category": "format",
+  "why": "Bookseller physically presents each book cover to the lens as the core visual device.",
+  "reference": "https://www.instagram.com/reel/DRDCO6GgIvz/"
+ },
+ {
+  "name": "Staff pick recommendation to camera",
+  "category": "structure",
+  "why": "Name-tagged bookseller holds up books one at a time and personally recommends each directly to camera.",
+  "reference": "https://www.instagram.com/reel/DTOAfIGjx6D/"
+ },
+ {
+  "name": "Handwritten shelf-talker cards as narration",
+  "category": "text",
+  "why": "In-scene handwritten staff pick cards carry the message instead of overlaid text or dialogue; not an added title overlay.",
+  "reference": "https://www.instagram.com/reel/DRzurWbicyr/"
+ },
+ {
+  "name": "Warm fairy-light ambient glow",
+  "category": "color",
+  "why": "Cozy holiday lighting from in-scene fairy lights and warm wood defines the look; not explicitly a film grade.",
+  "reference": "https://www.instagram.com/reel/DRzurWbicyr/"
+ },
+ {
+  "name": "Hold-up product showcase",
+  "category": "structure",
+  "why": "Presenter holds each item up to camera one by one in a product-tour gift guide.",
+  "reference": "https://www.instagram.com/reel/DSXr2IuES8F/"
+ },
+ {
+  "name": "Festive music bed",
+  "category": "audio",
+  "why": "Seasonal pop track throughout with no voiceover; not described as trending or lo-fi.",
+  "reference": "https://www.instagram.com/reel/DSXr2IuES8F/"
+ },
+ {
+  "name": "Establishing title card over location shot",
+  "category": "hook",
+  "why": "Opens on the storefront display with a text overlay titling the video.",
+  "reference": "https://www.instagram.com/reel/DSXr2IuES8F/"
+ },
+ {
+  "name": "Recurring named segment",
+  "category": "format",
+  "why": "Video is framed as an episode of the shop's branded 'Bookseller Nightstand' series.",
+  "reference": "https://www.instagram.com/reel/DRm5U4cEvpJ/"
+ },
+ {
+  "name": "Licensed jazz music bed",
+  "category": "audio",
+  "why": "A jazzy licensed track plays under the speech, distinct from a lo-fi bed or trending sound.",
+  "reference": "https://www.instagram.com/reel/DRm5U4cEvpJ/"
+ },
+ {
+  "name": "Jazzy solo piano bed",
+  "category": "audio",
+  "why": "A light, cheerful Peanuts-style solo piano instrumental plays throughout; this is not lo-fi, so no existing audio id fits.",
+  "reference": "https://www.instagram.com/reel/DeAB_NpS8bw/"
+ },
+ {
+  "name": "Event details text card",
+  "category": "text",
+  "why": "The overlay gives the date and time of the event, flanked by emojis, as a promo info label.",
+  "reference": "https://www.instagram.com/reel/DeAB_NpS8bw/"
+ },
+ {
+  "name": "Acoustic guitar music bed",
+  "category": "audio",
+  "why": "Gentle acoustic guitar plays under the visuals with no dialogue; this is not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DcCayl5PyIJ/"
+ },
+ {
+  "name": "Handwritten recommendation cards in frame",
+  "category": "text",
+  "why": "Physical handwritten shelf-talker cards appear beside the covers as practical in-scene text. These are not handwritten titles added in edit.",
+  "reference": "https://www.instagram.com/reel/DcCayl5PyIJ/"
+ },
+ {
+  "name": "Graphic title overlay",
+  "category": "text",
+  "why": "A glowing green 'Staff Favorites' graphic overlay opens the video as the title card.",
+  "reference": "https://www.instagram.com/reel/DcCayl5PyIJ/"
+ },
+ {
+  "name": "Staff holds up pick",
+  "category": "structure",
+  "why": "Each staff member is introduced by name while presenting their chosen book to camera in front of its shelf section, a recurring presenter-rotation device not covered by the vocabulary.",
+  "reference": "https://www.instagram.com/reel/DavFTanCH3U/"
+ },
+ {
+  "name": "Recurring series title card",
+  "category": "hook",
+  "why": "Opens on store sign with on-screen text announcing a named weekly series ('Staff Pick Monday').",
+  "reference": "https://www.instagram.com/reel/DbB6EeTSQkA/"
+ },
+ {
+  "name": "Staff presenter rotation",
+  "category": "structure",
+  "why": "Six different staff members sequentially present picks, framing the viewer to choose whose taste to trust.",
+  "reference": "https://www.instagram.com/reel/DbB6EeTSQkA/"
+ },
+ {
+  "name": "Event date overlays",
+  "category": "text",
+  "why": "On-screen book-club dates tie each recommendation to upcoming store events.",
+  "reference": "https://www.instagram.com/reel/DbB6EeTSQkA/"
+ },
+ {
+  "name": "Upbeat pop track, no narration",
+  "category": "audio",
+  "why": "An upbeat pop song carries the whole video with no voiceover; not identified as a trending sound.",
+  "reference": "https://www.instagram.com/reel/DbB6EeTSQkA/"
+ },
+ {
+  "name": "Rotating staff presenters holding up product",
+  "category": "structure",
+  "why": "Seven staff members each hold up their favorite book in turn, a recurring presenter-rotation template.",
+  "reference": "https://www.instagram.com/reel/DcuAwg-yBR6/"
+ },
+ {
+  "name": "Upbeat pop-rock music bed",
+  "category": "audio",
+  "why": "An upbeat pop-rock track plays throughout with no narration; this is not lo-fi and is not identified as a trending sound.",
+  "reference": "https://www.instagram.com/reel/DcuAwg-yBR6/"
+ },
+ {
+  "name": "Logo establishing shot opener",
+  "category": "hook",
+  "why": "The video opens on the store's circular wall logo in an arched alcove before the content begins.",
+  "reference": "https://www.instagram.com/reel/DcuAwg-yBR6/"
+ },
+ {
+  "name": "Selfie-style talking vlog",
+  "category": "format",
+  "why": "Owner films herself at arm's length addressing camera in an informal vlog style; not kid-height POV.",
+  "reference": "https://www.instagram.com/reel/DecgUYOCYxi/"
+ },
+ {
+  "name": "Product show-and-tell flip-through",
+  "category": "structure",
+  "why": "She holds up and flips through new arrivals one by one, explaining where each goes.",
+  "reference": "https://www.instagram.com/reel/DecgUYOCYxi/"
+ },
+ {
+  "name": "Direct-to-camera narration",
+  "category": "audio",
+  "why": "Calm informative speech recorded live to camera, distinct from a separately recorded voiceover.",
+  "reference": "https://www.instagram.com/reel/DecgUYOCYxi/"
+ },
+ {
+  "name": "Soft indie music bed",
+  "category": "audio",
+  "why": "Licensed indie music plays softly under the narration; this is not specifically lo-fi.",
+  "reference": "https://www.instagram.com/reel/Dc1tD5ZAE8V/"
+ },
+ {
+  "name": "Recurring branded series segment",
+  "category": "structure",
+  "why": "The video is framed as an episode of a named 'Staff Picks' series, with a presenter recommending a product.",
+  "reference": "https://www.instagram.com/reel/Dc1tD5ZAE8V/"
+ },
+ {
+  "name": "Emotional text arc over neutral process",
+  "category": "structure",
+  "why": "Cascading overlay text swings from joy to sorrow while the barista's steady hands keep the process shots neutral, so the emotional story is carried entirely by text.",
+  "reference": "https://www.instagram.com/reel/DaIeCW3xn1r/"
+ },
+ {
+  "name": "Instrumental hip-hop bed",
+  "category": "audio",
+  "why": "The video is set to an instrumental hip-hop track with no dialogue. That is not clearly lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DaIeCW3xn1r/"
+ },
+ {
+  "name": "Intentional mess / overflow moments",
+  "category": "structure",
+  "why": "Syrup deliberately spills on the wall and tonic overflows as a planned visual beat, a technique not covered by the vocabulary.",
+  "reference": "https://www.instagram.com/reel/DaGHGGqxuuN/"
+ },
+ {
+  "name": "Handheld documentary camera",
+  "category": "format",
+  "why": "Handheld shots moving between machine, monitor and printer; no matching vocabulary entry for handheld verit\u00e9 framing.",
+  "reference": "https://www.instagram.com/reel/DYSPEkNk8XZ/"
+ },
+ {
+  "name": "Vote prompt end card",
+  "category": "structure",
+  "why": "Closes on a branded end card with event dates and a call to vote, driving audience participation.",
+  "reference": "https://www.instagram.com/reel/DZ-S_bYRiNP/"
+ },
+ {
+  "name": "Stylized title card open",
+  "category": "hook",
+  "why": "Opens with a designed event title card announcing the competition rather than live action.",
+  "reference": "https://www.instagram.com/reel/DZ-S_bYRiNP/"
+ },
+ {
+  "name": "Direct-to-camera announcement",
+  "category": "structure",
+  "why": "Single musician speaks to camera announcing an event's details as a community bulletin; not jump-cut talking head or interview.",
+  "reference": "https://www.instagram.com/reel/DZBGTPFB2Fu/"
+ },
+ {
+  "name": "Location signage opener",
+  "category": "hook",
+  "why": "Opens on the venue's sign to establish place before the speaker appears.",
+  "reference": "https://www.instagram.com/reel/DZBGTPFB2Fu/"
+ },
+ {
+  "name": "Founder direct-to-camera promo",
+  "category": "structure",
+  "why": "Founder speaks directly to camera delivering a single clear offer (25% off), personality-led promo format not covered by existing structures.",
+  "reference": "https://www.instagram.com/reel/DRneMpfie91/"
+ },
+ {
+  "name": "Light instrumental music bed",
+  "category": "audio",
+  "why": "Upbeat light instrumental track under speech; not lo-fi or trending sound specifically.",
+  "reference": "https://www.instagram.com/reel/DRneMpfie91/"
+ },
+ {
+  "name": "Cream pour swirl close-up",
+  "category": "hook",
+  "why": "Video centers on a satisfying liquid-mixing visual (cream clouding into coffee) as the sensory hook, not covered by existing ids.",
+  "reference": "https://www.instagram.com/reel/DUYWU8QEZz8/"
+ },
+ {
+  "name": "Gentle instrumental bed",
+  "category": "audio",
+  "why": "Soft instrumental track under the action. It is not specified as lo-fi, trending, or ASMR, so no existing audio id clearly fits.",
+  "reference": "https://www.instagram.com/reel/DUYWU8QEZz8/"
+ },
+ {
+  "name": "First-person walking POV",
+  "category": "format",
+  "why": "Adult eye-level wandering walk-through camera; fmt_pov_cam is specifically kid-height, so not a match.",
+  "reference": "https://www.instagram.com/reel/DdY_FTSOBJ4/"
+ },
+ {
+  "name": "Parallel scene intercutting",
+  "category": "structure",
+  "why": "Alternates food close-ups with wide shots of patio atmosphere/people, building a community vibe through crosscutting rather than a process or narrative.",
+  "reference": "https://www.instagram.com/reel/DZNka-2SnzJ/"
+ },
+ {
+  "name": "Exterior establishing shot open",
+  "category": "hook",
+  "why": "Opens on the storefront exterior with customers walking in before cutting inside to the process.",
+  "reference": "https://www.instagram.com/reel/DdR2sNkSm9c/"
+ },
+ {
+  "name": "Faceless hands-only process",
+  "category": "format",
+  "why": "Process shots show only hands, never faces, keeping the focus on the craft.",
+  "reference": "https://www.instagram.com/reel/DdR2sNkSm9c/"
+ },
+ {
+  "name": "Smooth jazz instrumental bed",
+  "category": "audio",
+  "why": "Mellow jazz instrumental with no vocals sets the mood; not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DVcojVLjA3t/"
+ },
+ {
+  "name": "Gliding walkthrough tour",
+  "category": "structure",
+  "why": "Camera glides from an establishing detail through the space as a continuous visual tour of the shop.",
+  "reference": "https://www.instagram.com/reel/DVcojVLjA3t/"
+ },
+ {
+  "name": "Disposable camera handoff POV",
+  "category": "structure",
+  "why": "First-person view as a disposable camera is passed hand to hand through the team, each person playing to the lens before the reveal of the resulting film photos.",
+  "reference": "https://www.instagram.com/reel/DavcJtFES39/"
+ },
+ {
+  "name": "Real-time data graph overlay",
+  "category": "text",
+  "why": "Live temperature curves and timestamped roast milestones are tracked on screen as the process unfolds, a data-HUD style not covered by big number stats alone.",
+  "reference": "https://www.instagram.com/reel/Db-yl8mt3TN/"
+ },
+ {
+  "name": "Meme template caption",
+  "category": "hook",
+  "why": "Borrowed meme text format drives the hook and humor for a product promo.",
+  "reference": "https://www.instagram.com/reel/DVL2W6xEg6q/"
+ },
+ {
+  "name": "Ironic music contrast",
+  "category": "audio",
+  "why": "Melancholic R&B deliberately undercuts confident text for comedic effect.",
+  "reference": "https://www.instagram.com/reel/DVL2W6xEg6q/"
+ },
+ {
+  "name": "Staff mic-pass roundup",
+  "category": "structure",
+  "why": "Each barista takes a handheld mic in turn to name a pick; a team vox-pop format not covered by parent interview or listicle alone.",
+  "reference": "https://www.instagram.com/reel/Dan5GdiJM8y/"
+ },
+ {
+  "name": "Voice-assistant skit audio",
+  "category": "audio",
+  "why": "A scripted exchange with Alexa ('disable gravity') serves as the comedic audio track instead of music or narration.",
+  "reference": "https://www.instagram.com/reel/DYS6-pTRkxv/"
+ },
+ {
+  "name": "Audio-visual irony contrast",
+  "category": "structure",
+  "why": "The audio promises weightlessness while the visuals show real effort and falls; this bait-and-switch mismatch is the core device.",
+  "reference": "https://www.instagram.com/reel/DYS6-pTRkxv/"
+ },
+ {
+  "name": "Mock reaction cutaway",
+  "category": "structure",
+  "why": "A second staffer performs exaggerated mock surprise beside a ladder as a comedic reaction beat.",
+  "reference": "https://www.instagram.com/reel/DdXRZJnx7zr/"
+ },
+ {
+  "name": "Upbeat funk music bed",
+  "category": "audio",
+  "why": "Continuous upbeat funk track carries the whole clip with no voiceover; not lo-fi or a stated trending sound.",
+  "reference": "https://www.instagram.com/reel/DdXRZJnx7zr/"
+ },
+ {
+  "name": "Multi-person attempt montage",
+  "category": "structure",
+  "why": "Edit cycles through different climbers attempting the same route, using the shared problem as the repeated anchor.",
+  "reference": "https://www.instagram.com/reel/DeNfE1lRMS6/"
+ },
+ {
+  "name": "Staff interview series",
+  "category": "structure",
+  "why": "Recurring branded staff Q&A format ('CREWsday') where an employee answers questions about their role direct to camera.",
+  "reference": "https://www.instagram.com/reel/DagMTadji3J/"
+ },
+ {
+  "name": "Playful 'if you were a...' closer",
+  "category": "structure",
+  "why": "Ends on a lighthearted personality question answer as the payoff/closer.",
+  "reference": "https://www.instagram.com/reel/DagMTadji3J/"
+ },
+ {
+  "name": "Tight detail framing on body part",
+  "category": "format",
+  "why": "Tight framing on the footwork keeps focus on the technique being taught.",
+  "reference": "https://www.instagram.com/reel/DWUeZUFkzMe/"
+ },
+ {
+  "name": "Step-reiterating text overlays",
+  "category": "text",
+  "why": "On-screen text restates each demo step as it happens.",
+  "reference": "https://www.instagram.com/reel/DWUeZUFkzMe/"
+ },
+ {
+  "name": "Event logistics text overlay",
+  "category": "text",
+  "why": "Burned-in text lists event name, date, and requirements like a promo flyer, not covered by existing text styles.",
+  "reference": "https://www.instagram.com/reel/DbLbPpatJp8/"
+ },
+ {
+  "name": "End logo card",
+  "category": "format",
+  "why": "Video closes on the brand logo over a close-up shot as a branded sign-off.",
+  "reference": "https://www.instagram.com/reel/DbLbPpatJp8/"
+ },
+ {
+  "name": "Comedic testimonial escalation",
+  "category": "structure",
+  "why": "Series of increasingly absurd customer praise clips building to a punchline-style offer reveal",
+  "reference": "https://www.instagram.com/reel/Dd4yymFzMq9/"
+ },
+ {
+  "name": "Staff pitch payoff",
+  "category": "structure",
+  "why": "Ends with an employee delivering the promotional offer (10% off for members) as the closer",
+  "reference": "https://www.instagram.com/reel/Dd4yymFzMq9/"
+ },
+ {
+  "name": "Reaction-face meme",
+  "category": "structure",
+  "why": "Clip relies on a relatable caption paired with a deadpan/defeated facial reaction as the punchline.",
+  "reference": "https://www.instagram.com/reel/DSTCZdwksI6/"
+ },
+ {
+  "name": "Mood color filter wash",
+  "category": "color",
+  "why": "A blue filter washes over the frame mid-clip to signal sadness/defeat, an emotional color shift not covered by static grades.",
+  "reference": "https://www.instagram.com/reel/DSTCZdwksI6/"
+ },
+ {
+  "name": "Ironic music contrast",
+  "category": "audio",
+  "why": "Upbeat dance track deliberately mismatched with the drained expression to create comedy.",
+  "reference": "https://www.instagram.com/reel/DSTCZdwksI6/"
+ },
+ {
+  "name": "Athletic attempt montage",
+  "category": "structure",
+  "why": "Edited as a montage cycling through multiple climbers' attempts and falls without narration.",
+  "reference": "https://www.instagram.com/reel/Da1giXPzDvB/"
+ },
+ {
+  "name": "Contrasting mood soundtrack",
+  "category": "audio",
+  "why": "Soulful R&B track deliberately set against physical intensity of climbing.",
+  "reference": "https://www.instagram.com/reel/Da1giXPzDvB/"
+ },
+ {
+  "name": "Multi-person same-move cycle",
+  "category": "structure",
+  "why": "Camera cycles through several people performing identical choreography on the same route, each with their own exaggerated take.",
+  "reference": "https://www.instagram.com/reel/Dd_-xUaTZZP/"
+ },
+ {
+  "name": "Energetic electronic music bed",
+  "category": "audio",
+  "why": "An upbeat electronic track drives the effort; not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DaF5nd7hO29/"
+ },
+ {
+  "name": "Prep-to-payoff framing",
+  "category": "structure",
+  "why": "The checklist prep is set up as the lead-in to the climb, with the send as the payoff.",
+  "reference": "https://www.instagram.com/reel/DaF5nd7hO29/"
+ },
+ {
+  "name": "Recurring series title card",
+  "category": "hook",
+  "why": "Opens with 'BOULDER OF THE WEEK' text establishing a recurring weekly feature format.",
+  "reference": "https://www.instagram.com/reel/DdFD15jMr1r/"
+ },
+ {
+  "name": "Upbeat electronic pop music bed",
+  "category": "audio",
+  "why": "Energetic vocal pop track drives the promo with no dialogue; not lo-fi or explicitly trending.",
+  "reference": "https://www.instagram.com/reel/DdFD15jMr1r/"
+ },
+ {
+  "name": "Demo then info-slide bulletin",
+  "category": "structure",
+  "why": "Video splices a climbing demo with static informational slides (maps, schedules), a two-part showcase-then-bulletin structure not in vocabulary.",
+  "reference": "https://www.instagram.com/reel/DeZzxf-s77z/"
+ },
+ {
+  "name": "Bold title card overlay",
+  "category": "text",
+  "why": "Opens with large all-caps title text ('BOULDER OF THE WEEK') over footage; not handwritten, kinetic, or lower-third.",
+  "reference": "https://www.instagram.com/reel/DeZzxf-s77z/"
+ },
+ {
+  "name": "Upbeat electronic music bed",
+  "category": "audio",
+  "why": "Energetic electronic track throughout; not lo-fi or identified as trending sound.",
+  "reference": "https://www.instagram.com/reel/DeZzxf-s77z/"
+ },
+ {
+  "name": "Community member profile",
+  "category": "structure",
+  "why": "Spotlight format alternating subject's climbing b-roll with seated to-camera interview about her story; not a parent interview.",
+  "reference": "https://www.instagram.com/reel/DNn7iWUtcy4/"
+ },
+ {
+  "name": "Persona punchline cameo",
+  "category": "structure",
+  "why": "Ends with a goat cameo visual gag referencing her 'mountain goat' nickname.",
+  "reference": "https://www.instagram.com/reel/DNn7iWUtcy4/"
+ },
+ {
+  "name": "Upbeat pop-rock bed",
+  "category": "audio",
+  "why": "Energetic pop-rock track under interview, distinct from lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DNn7iWUtcy4/"
+ },
+ {
+  "name": "Masked mascot character",
+  "category": "hook",
+  "why": "An absurd costumed mascot (goat mask) acts as the recurring comedic hook and brand character.",
+  "reference": "https://www.instagram.com/reel/DORExsojaP6/"
+ },
+ {
+  "name": "Hidden Easter egg hunt",
+  "category": "structure",
+  "why": "Hidden belay devices placed in frame reward rewatching to find them for a discount, driving replays.",
+  "reference": "https://www.instagram.com/reel/DORExsojaP6/"
+ },
+ {
+  "name": "Brand logo bookends",
+  "category": "structure",
+  "why": "Opens on the tuff. logo and ends on the GOAT logo, framing the build with brand cards.",
+  "reference": "https://www.instagram.com/reel/DeH_Z1tis1C/"
+ },
+ {
+  "name": "Bold product title overlay",
+  "category": "text",
+  "why": "Uppercase on-screen product name 'RETEXTURED VOLUMES From tuff.' labels the feature; it is not a lower-third or arrow callout.",
+  "reference": "https://www.instagram.com/reel/DeH_Z1tis1C/"
+ },
+ {
+  "name": "Instrumental rock bed",
+  "category": "audio",
+  "why": "Driving instrumental rock music with no voiceover; not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DeH_Z1tis1C/"
+ },
+ {
+  "name": "Upbeat instrumental rock bed",
+  "category": "audio",
+  "why": "Video uses an upbeat instrumental rock track with no dialogue, not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DeerMPYEVAi/"
+ },
+ {
+  "name": "Bold title-card headline overlay",
+  "category": "text",
+  "why": "Large static on-screen headline 'HOW TO BE A BETTER CLIMBER IN 3 MONTHS' anchors the hook; not kinetic, sticker, or big-number stat.",
+  "reference": "https://www.instagram.com/reel/DeNQ9ByyBCF/"
+ },
+ {
+  "name": "Promise-of-outcome title hook",
+  "category": "hook",
+  "why": "Opens by promising a concrete transformation within a timeframe, distinct from question or myth-bust openers.",
+  "reference": "https://www.instagram.com/reel/DeNQ9ByyBCF/"
+ },
+ {
+  "name": "Lav mic direct-address audio, no music",
+  "category": "audio",
+  "why": "Clipped microphone speech with no music bed or b-roll; not calm voiceover or room tone.",
+  "reference": "https://www.instagram.com/reel/DeNQ9ByyBCF/"
+ },
+ {
+  "name": "Call-to-action outro invite",
+  "category": "structure",
+  "why": "Ends with direct invitation to visit the gym and try the new boulders, meet the team.",
+  "reference": "https://www.instagram.com/reel/DVSFguMDzKs/"
+ },
+ {
+  "name": "Upbeat pop music bed",
+  "category": "audio",
+  "why": "Narration sits over an energetic pop track, not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DVSFguMDzKs/"
+ },
+ {
+  "name": "Title card naming the subject",
+  "category": "text",
+  "why": "Opens with bold on-screen title text ('BOULDER BREAKDOWN', 'White V6') that names the problem before any action is shown.",
+  "reference": "https://www.instagram.com/reel/Dcy7vBOv7FV/"
+ },
+ {
+  "name": "Branded end card CTA",
+  "category": "structure",
+  "why": "Closes on an end card with a recurring-schedule message ('NEW BOULDERS EVERY OTHER WEEK') and logo.",
+  "reference": "https://www.instagram.com/reel/Dcy7vBOv7FV/"
+ },
+ {
+  "name": "Upbeat music bed",
+  "category": "audio",
+  "why": "Energetic background music carries the clip with no voiceover; this doesn't fit lo-fi or trending-sound categories.",
+  "reference": "https://www.instagram.com/reel/Dcy7vBOv7FV/"
+ },
+ {
+  "name": "Bold title text hook",
+  "category": "hook",
+  "why": "Opens with large white 'NEW BOULDER SETS' text overlay before any action; not POV text or a question.",
+  "reference": "https://www.instagram.com/reel/DedDfs6Nde2/"
+ },
+ {
+  "name": "Branded end card",
+  "category": "format",
+  "why": "Ends on a blue end card with the gym's logo.",
+  "reference": "https://www.instagram.com/reel/DedDfs6Nde2/"
+ },
+ {
+  "name": "Upbeat pop music bed",
+  "category": "audio",
+  "why": "Classic pop track with a male vocalist plays underneath. It is not lo-fi and not identified as a trending sound.",
+  "reference": "https://www.instagram.com/reel/DedDfs6Nde2/"
+ },
+ {
+  "name": "Product lineup finale",
+  "category": "structure",
+  "why": "Ends by gathering all finished pieces together as a closing group shot after the process.",
+  "reference": "https://www.instagram.com/reel/DaJhm1bJtTd/"
+ },
+ {
+  "name": "Parallel maker comparison",
+  "category": "structure",
+  "why": "Follows three painters working on identical blank sculptures in parallel, ending on how each finished piece differs.",
+  "reference": "https://www.instagram.com/reel/DaSQLwzh4o9/"
+ },
+ {
+  "name": "Electronic beat bed, no dialogue",
+  "category": "audio",
+  "why": "A steady electronic music track carries the energy with no speech; this is not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DaSQLwzh4o9/"
+ },
+ {
+  "name": "Sequential text card build",
+  "category": "text",
+  "why": "Short punchy text cards ('Something glowly,' 'Something vibey,' 'Glow mode on') appear in sequence to build the pitch in rhythm with the pours.",
+  "reference": "https://www.instagram.com/reel/DapPcUfBwKh/"
+ },
+ {
+  "name": "Orbiting camera around product",
+  "category": "format",
+  "why": "Camera rotates around the finished bear as paint swirls and drips, showcasing it from all angles.",
+  "reference": "https://www.instagram.com/reel/DapPcUfBwKh/"
+ },
+ {
+  "name": "Wide product-wall finale",
+  "category": "structure",
+  "why": "Ends by pulling out to a wall of dozens of glowing bears, making the product line read like an art installation.",
+  "reference": "https://www.instagram.com/reel/DapPcUfBwKh/"
+ },
+ {
+  "name": "Upbeat EDM bed, no dialogue",
+  "category": "audio",
+  "why": "Electronic dance music runs throughout with no speech, driving the energy of the piece.",
+  "reference": "https://www.instagram.com/reel/DapPcUfBwKh/"
+ },
+ {
+  "name": "Acoustic folk guitar bed",
+  "category": "audio",
+  "why": "Gentle acoustic folk guitar underscores footage; not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DU7-2BiEdjc/"
+ },
+ {
+  "name": "Demo/exploration alternating edit",
+  "category": "structure",
+  "why": "Edit alternates between instructor demonstrations and children's hands-on exploration in a repeating cycle.",
+  "reference": "https://www.instagram.com/reel/DU7-2BiEdjc/"
+ },
+ {
+  "name": "Values statement text overlay",
+  "category": "text",
+  "why": "On-screen text delivers a reassuring parenting philosophy ('Kids are washable. Curiosity is worth the mess') rather than a POV, label, or caption, framing the mess as the point.",
+  "reference": "https://www.instagram.com/reel/DbmdSXbxnDr/"
+ },
+ {
+  "name": "Upbeat acoustic music bed",
+  "category": "audio",
+  "why": "Cheerful acoustic guitar runs under the whole reel with no dialogue; not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/Dc2Dj70ReW-/"
+ },
+ {
+  "name": "Hands-only close-ups",
+  "category": "format",
+  "why": "Framing deliberately keeps faces out and focuses on small hands and materials.",
+  "reference": "https://www.instagram.com/reel/Dc2Dj70ReW-/"
+ },
+ {
+  "name": "Slow walkthrough pan",
+  "category": "pacing",
+  "why": "Continuous slow camera pan/walk through the exhibition space, lingering on the density of work; not a whip pan or a static hold.",
+  "reference": "https://www.instagram.com/reel/DYlVGqRxl66/"
+ },
+ {
+  "name": "Handheld montage highlight reel",
+  "category": "structure",
+  "why": "Loose handheld camera cutting between activity stations as a camp highlight montage, not covered by day-in-life or behind-scenes.",
+  "reference": "https://www.instagram.com/reel/DarLMPuRi6X/"
+ },
+ {
+  "name": "Activity montage",
+  "category": "structure",
+  "why": "Reel cycles through many different process-art stations as a montage of possibilities rather than one project.",
+  "reference": "https://www.instagram.com/reel/Db_qgPsSW5n/"
+ },
+ {
+  "name": "Title card opener",
+  "category": "hook",
+  "why": "Reel opens with a simple static title card 'Art On Paper' before the footage.",
+  "reference": "https://www.instagram.com/reel/DXo6yeGhvvL/"
+ },
+ {
+  "name": "Solo piano bed",
+  "category": "audio",
+  "why": "Gentle solo piano plays throughout with no speech; not lo-fi or voiceover.",
+  "reference": "https://www.instagram.com/reel/DXo6yeGhvvL/"
+ },
+ {
+  "name": "Repeated flip-reveal gesture",
+  "category": "structure",
+  "why": "Each student flips a blank canvas to reveal her painting in sequence, building the whole video on a repeating reveal beat.",
+  "reference": "https://www.instagram.com/reel/DeM1f4vu3ZI/"
+ },
+ {
+  "name": "Classical piano bed",
+  "category": "audio",
+  "why": "Gentle classical piano plays throughout with no voiceover; this is not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DeM1f4vu3ZI/"
+ },
+ {
+  "name": "Space walkthrough tour",
+  "category": "structure",
+  "why": "Relaxed camera tour through the finished studio interior showing the space in use, distinct from behind-the-counter or day-in-life formats.",
+  "reference": "https://www.instagram.com/reel/DdWmGbMNYDN/"
+ },
+ {
+  "name": "First-person walk-in tour",
+  "category": "format",
+  "why": "Handheld adult-eye-level POV gliding from storefront into the space as an invitation; not kid-height POV.",
+  "reference": "https://www.instagram.com/reel/DeLOnLnNRPv/"
+ },
+ {
+  "name": "Gentle acoustic guitar bed",
+  "category": "audio",
+  "why": "Soft instrumental acoustic music with no dialogue, distinct from lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DeLOnLnNRPv/"
+ },
+ {
+  "name": "Slow lateral pan across display wall",
+  "category": "format",
+  "why": "The entire video is a single slow horizontal camera pan across a gallery wall of student work, a distinct camera-movement format not covered by the vocabulary.",
+  "reference": "https://www.instagram.com/reel/Db9n60_KHTf/"
+ },
+ {
+  "name": "Gallery walkthrough pan",
+  "category": "structure",
+  "why": "Steady continuous pan across framed artworks presenting student work as a gallery exhibit.",
+  "reference": "https://www.instagram.com/reel/DcPVJ2DPxK2/"
+ },
+ {
+  "name": "Ambient instrumental bed",
+  "category": "audio",
+  "why": "Gentle ambient instrumental music with no dialogue, distinct from lo-fi bed.",
+  "reference": "https://www.instagram.com/reel/DcPVJ2DPxK2/"
+ },
+ {
+  "name": "Multi-medium process montage",
+  "category": "structure",
+  "why": "Compilation stacking many short process clips from different artworks and mediums into one reel.",
+  "reference": "https://www.instagram.com/reel/DeEA6zxKctD/"
+ },
+ {
+  "name": "Close-up tool framing",
+  "category": "format",
+  "why": "Tight close-ups keeping brushes, rulers, and sketchbooks in frame throughout.",
+  "reference": "https://www.instagram.com/reel/DeEA6zxKctD/"
+ },
+ {
+  "name": "Vocal music track",
+  "category": "audio",
+  "why": "Non-English sung track with instrumental backing; not described as trending or lo-fi.",
+  "reference": "https://www.instagram.com/reel/DeEA6zxKctD/"
+ },
+ {
+  "name": "Puppet mascot hosts",
+  "category": "structure",
+  "why": "Promo is led by plush puppet characters (bear, raccoon, goat) instead of real classroom footage.",
+  "reference": "https://www.instagram.com/reel/DSV4h3JiNcv/"
+ },
+ {
+  "name": "Paper-texture motion graphics",
+  "category": "format",
+  "why": "Animated text cards over notebook-paper and paint-splash backgrounds form the visual craft.",
+  "reference": "https://www.instagram.com/reel/DSV4h3JiNcv/"
+ },
+ {
+  "name": "Info-card end screen with QR",
+  "category": "structure",
+  "why": "Final screen consolidates dates, price, class size and a QR code as a call to action.",
+  "reference": "https://www.instagram.com/reel/DSV4h3JiNcv/"
+ },
+ {
+  "name": "Upbeat kids instrumental bed",
+  "category": "audio",
+  "why": "A cheerful children's instrumental track runs throughout; not lo-fi or trending.",
+  "reference": "https://www.instagram.com/reel/DSV4h3JiNcv/"
+ },
+ {
+  "name": "Screen-recording walkthrough",
+  "category": "format",
+  "why": "Core of the video is a phone-style screen capture navigating a website to the vote button.",
+  "reference": "https://www.instagram.com/reel/DdZeB_lIvPQ/"
+ },
+ {
+  "name": "Animated graphic bookends",
+  "category": "structure",
+  "why": "Opens and closes on animated 'Vote' graphics with contest badge, framing the screen capture.",
+  "reference": "https://www.instagram.com/reel/DdZeB_lIvPQ/"
+ },
+ {
+  "name": "QR code end card",
+  "category": "text",
+  "why": "Closes on a large QR code with 'Vote Daily' call-to-action text.",
+  "reference": "https://www.instagram.com/reel/DdZeB_lIvPQ/"
+ },
+ {
+  "name": "Upbeat instrumental bed",
+  "category": "audio",
+  "why": "Bright instrumental music throughout with no speech; not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DdZeB_lIvPQ/"
+ },
+ {
+  "name": "Animated flyer slideshow",
+  "category": "format",
+  "why": "Entire reel is flat vector slides with no filmed footage, a static flyer animated into video.",
+  "reference": "https://www.instagram.com/reel/DeaW9oeoMva/"
+ },
+ {
+  "name": "QR code call-to-action end card",
+  "category": "structure",
+  "why": "Final slide is a large QR code and sign-up URL as the closing call to action.",
+  "reference": "https://www.instagram.com/reel/DeaW9oeoMva/"
+ },
+ {
+  "name": "Thumbnail grid title card",
+  "category": "hook",
+  "why": "Opens on a title card of nine circular artwork thumbnails previewing the content.",
+  "reference": "https://www.instagram.com/reel/DeaW9oeoMva/"
+ },
+ {
+  "name": "Instrumental pop music bed",
+  "category": "audio",
+  "why": "Energetic instrumental pop with no speech; not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DeaW9oeoMva/"
+ },
+ {
+  "name": "Storefront location end card",
+  "category": "structure",
+  "why": "Ends by cutting outdoors to sidewalk signs and the storefront banner to anchor the promo to a physical location.",
+  "reference": "https://www.instagram.com/reel/DbWYMgwytVC/"
+ },
+ {
+  "name": "Kid-narrated project show-and-tell",
+  "category": "structure",
+  "why": "A child presents and explains her own creation in an unpolished, conversational delivery that carries the whole video.",
+  "reference": "https://www.instagram.com/reel/DN8JJc3ARGj/"
+ },
+ {
+  "name": "Upbeat electronic music bed",
+  "category": "audio",
+  "why": "Cheerful dance track runs throughout with no narration; not lo-fi or explicitly trending.",
+  "reference": "https://www.instagram.com/reel/DPJ8O1GEhyV/"
+ },
+ {
+  "name": "Greeting text intro",
+  "category": "text",
+  "why": "On-screen text greets viewers and introduces the robot early; style not specified to match existing text types.",
+  "reference": "https://www.instagram.com/reel/DPJ8O1GEhyV/"
+ },
+ {
+  "name": "Authentic candid reaction",
+  "category": "hook",
+  "why": "The hook relies on a genuine, unscripted surprised reaction from the child rather than a scripted line or staged reveal.",
+  "reference": "https://www.instagram.com/reel/DYSd0jmlW1s/"
+ },
+ {
+  "name": "Logo end card",
+  "category": "structure",
+  "why": "Ends with the club's logo and tagline on a simple end card.",
+  "reference": "https://www.instagram.com/reel/DeCS9xOAaVf/"
+ },
+ {
+  "name": "Building on-screen text reveal",
+  "category": "text",
+  "why": "On-screen text accumulates alongside the action to a big title reveal (MAKERSPACE + MICROBITS!).",
+  "reference": "https://www.instagram.com/reel/DeCS9xOAaVf/"
+ },
+ {
+  "name": "Handheld framing",
+  "category": "format",
+  "why": "Handheld camera framing gives a spontaneous, documentary feel.",
+  "reference": "https://www.instagram.com/reel/DeCS9xOAaVf/"
+ },
+ {
+  "name": "Group shout sign-off",
+  "category": "audio",
+  "why": "Closes with kids shouting the school name in front of the logo wall as a branded ending.",
+  "reference": "https://www.instagram.com/reel/DeM94jBklsz/"
+ },
+ {
+  "name": "Tagline word sequence",
+  "category": "text",
+  "why": "Closing text overlays LEARN CREATE BUILD act as a three-word brand tagline card.",
+  "reference": "https://www.instagram.com/reel/DeM94jBklsz/"
+ },
+ {
+  "name": "Student spotlight interview",
+  "category": "structure",
+  "why": "Video is framed as an interview with a student about his project, then moves to demonstration; str_parent_interview covers parents, not students.",
+  "reference": "https://www.instagram.com/reel/DeQEJDFIBgu/"
+ },
+ {
+  "name": "Closing question CTA text",
+  "category": "text",
+  "why": "Ends with on-screen text asking viewers what they would build, an engagement prompt not covered by existing text or hook ids.",
+  "reference": "https://www.instagram.com/reel/DeQEJDFIBgu/"
+ },
+ {
+  "name": "News segment framing",
+  "category": "format",
+  "why": "Video borrows local news broadcast look (branded mic, scrolling ticker, reporter interview) to lend credibility.",
+  "reference": "https://www.instagram.com/reel/DNpRV5vu-q5/"
+ },
+ {
+  "name": "Music contrast with visuals",
+  "category": "audio",
+  "why": "Upbeat hip-hop instrumental deliberately contrasts calm footage of kids working.",
+  "reference": "https://www.instagram.com/reel/DNpRV5vu-q5/"
+ },
+ {
+  "name": "Upbeat pop music bed",
+  "category": "audio",
+  "why": "Cheerful pop track with female vocals drives energy; not described as trending or lo-fi.",
+  "reference": "https://www.instagram.com/reel/DdsbIPSgSmh/"
+ },
+ {
+  "name": "Scarcity banner CTA",
+  "category": "text",
+  "why": "Closes with a limited-spots scarcity banner and logo to drive sign-ups.",
+  "reference": "https://www.instagram.com/reel/DbWG5jatvkf/"
+ },
+ {
+  "name": "Plot-twist overlay",
+  "category": "hook",
+  "why": "A colored overlay flips the opening complaint into a surprise outcome (they built a robot).",
+  "reference": "https://www.instagram.com/reel/DbWG5jatvkf/"
+ },
+ {
+  "name": "Award badge credibility opener",
+  "category": "hook",
+  "why": "Opens on a 'Voted Top 5' reader-favorites badge as social proof, which no existing hook covers.",
+  "reference": "https://www.instagram.com/reel/DbrSKLcv2Z_/"
+ },
+ {
+  "name": "Bold slogan text overlays with logistics info",
+  "category": "text",
+  "why": "On-screen text carries branding, bold slogans, and camp week/location details over imagery; not matched by existing text styles.",
+  "reference": "https://www.instagram.com/reel/DekgmWoyv8f/"
+ },
+ {
+  "name": "Upbeat instrumental music bed",
+  "category": "audio",
+  "why": "Cheerful instrumental track with no dialogue drives the slideshow; not lo-fi or trending sound specifically.",
+  "reference": "https://www.instagram.com/reel/DekgmWoyv8f/"
+ },
+ {
+  "name": "Mission statement text opener",
+  "category": "hook",
+  "why": "Opens with on-screen text stating the program's mission before the montage.",
+  "reference": "https://www.instagram.com/reel/DVq9JYklJnO/"
+ },
+ {
+  "name": "Upbeat electronic music bed",
+  "category": "audio",
+  "why": "Montage is set to energetic electronic music with no dialogue.",
+  "reference": "https://www.instagram.com/reel/DVq9JYklJnO/"
+ },
+ {
+  "name": "Handheld documentary b-roll montage",
+  "category": "structure",
+  "why": "Handheld real-location footage cycling through program activities without narration.",
+  "reference": "https://www.instagram.com/reel/DVq9JYklJnO/"
+ },
+ {
+  "name": "Kid testimonial interviews",
+  "category": "structure",
+  "why": "Children answer preset questions on camera in a testimonial compilation; str_parent_interview covers parents, not kids.",
+  "reference": "https://www.instagram.com/reel/DZd24GsM-Ax/"
+ },
+ {
+  "name": "Closing title card",
+  "category": "structure",
+  "why": "Ends on a closing slide framing the message (campers as game designers).",
+  "reference": "https://www.instagram.com/reel/DZd24GsM-Ax/"
+ },
+ {
+  "name": "Logo bookend open/close",
+  "category": "structure",
+  "why": "Video opens and closes with brand logo on black, framing the b-roll montage.",
+  "reference": "https://www.instagram.com/reel/DdRkM6cyrr-/"
+ },
+ {
+  "name": "Upbeat instrumental music bed",
+  "category": "audio",
+  "why": "Funk-pop instrumental track with no dialogue drives the montage; not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DdRkM6cyrr-/"
+ },
+ {
+  "name": "Classroom b-roll montage",
+  "category": "structure",
+  "why": "Footage is a montage of varied classroom activity shots rather than a narrative or tutorial.",
+  "reference": "https://www.instagram.com/reel/DdRkM6cyrr-/"
+ },
+ {
+  "name": "Handheld documentary energy",
+  "category": "format",
+  "why": "Handheld camera movement drives the momentum; no vocabulary entry for handheld shooting style.",
+  "reference": "https://www.instagram.com/reel/DbGzyQThDCQ/"
+ },
+ {
+  "name": "Upbeat electronic music bed",
+  "category": "audio",
+  "why": "Energetic electronic track is not lo-fi or explicitly trending; no matching audio entry.",
+  "reference": "https://www.instagram.com/reel/DbGzyQThDCQ/"
+ },
+ {
+  "name": "Establishing signage end card",
+  "category": "structure",
+  "why": "Ends on exterior shot of chalkboard A-frame sign advertising the camps as a closing call to action.",
+  "reference": "https://www.instagram.com/reel/DbgUzmIxn6z/"
+ },
+ {
+  "name": "On-screen session/date label",
+  "category": "text",
+  "why": "Opening text labels the session and month to contextualize the footage.",
+  "reference": "https://www.instagram.com/reel/DbgUzmIxn6z/"
+ },
+ {
+  "name": "Observational event montage",
+  "category": "structure",
+  "why": "Cuts between activity stations at a community event documenting the atmosphere without narration or a story arc.",
+  "reference": "https://www.instagram.com/reel/DdhNLOpRcyL/"
+ },
+ {
+  "name": "End logo card",
+  "category": "structure",
+  "why": "Video closes on the organization's logo as a branded sign-off.",
+  "reference": "https://www.instagram.com/reel/DUqNRd1jQ4_/"
+ },
+ {
+  "name": "Event title text overlay",
+  "category": "text",
+  "why": "On-screen text names the event at the start; not a lower-third label or kinetic caption.",
+  "reference": "https://www.instagram.com/reel/DUqNRd1jQ4_/"
+ },
+ {
+  "name": "Observational event coverage",
+  "category": "structure",
+  "why": "Simple documentary-style coverage of a community workshop, not a day-in-life or behind-the-counter piece.",
+  "reference": "https://www.instagram.com/reel/DUqNRd1jQ4_/"
+ },
+ {
+  "name": "Info text up front (dates/ages)",
+  "category": "text",
+  "why": "Opening on-screen text gives camp dates and ages immediately as a promo hook.",
+  "reference": "https://www.instagram.com/reel/DbDgMkdCaWZ/"
+ },
+ {
+  "name": "Upbeat pop music bed, no narration",
+  "category": "audio",
+  "why": "Continuous upbeat vocal pop track drives the edit without voiceover; not lo-fi or trending sound specifically.",
+  "reference": "https://www.instagram.com/reel/DbDgMkdCaWZ/"
+ },
+ {
+  "name": "Logo end card",
+  "category": "structure",
+  "why": "Video closes on the brand logo as a sign-off.",
+  "reference": "https://www.instagram.com/reel/DbDgMkdCaWZ/"
+ },
+ {
+  "name": "Build-code-drive activity montage",
+  "category": "structure",
+  "why": "Montage structured around a progression of varied activities (build, program, operate) as the selling structure, not covered by existing structures.",
+  "reference": "https://www.instagram.com/reel/DbGHkFCCQLR/"
+ },
+ {
+  "name": "Upbeat electronic music bed",
+  "category": "audio",
+  "why": "Energetic electronic track with no dialogue drives the promo; not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DbGHkFCCQLR/"
+ },
+ {
+  "name": "Persistent brand text overlays",
+  "category": "text",
+  "why": "Branding and value-word text (creativity, teamwork, STEM) shown throughout the montage.",
+  "reference": "https://www.instagram.com/reel/DbGHkFCCQLR/"
+ },
+ {
+  "name": "Persistent logo watermark",
+  "category": "text",
+  "why": "Studio logo and website watermarked throughout the video for brand recall.",
+  "reference": "https://www.instagram.com/reel/DQRzo4piU2Q/"
+ },
+ {
+  "name": "Call-to-action end text",
+  "category": "text",
+  "why": "Burned-in 'ENROLL NOW' and slogan text drive a direct promotional ask.",
+  "reference": "https://www.instagram.com/reel/DQRzo4piU2Q/"
+ },
+ {
+  "name": "Station-by-station montage",
+  "category": "structure",
+  "why": "Follows one child through a sequence of activity stations in quick succession.",
+  "reference": "https://www.instagram.com/reel/DQRzo4piU2Q/"
+ },
+ {
+  "name": "Follow-cam tracking subject",
+  "category": "format",
+  "why": "Handheld camera trails a child through stations in a loose follow style, not kid-height POV or overhead.",
+  "reference": "https://www.instagram.com/reel/DWty3jSDl4p/"
+ },
+ {
+  "name": "Persistent slogan and CTA overlay",
+  "category": "text",
+  "why": "Brand slogan, logo and 'ENROLL NOW' call-to-action overlaid throughout the video.",
+  "reference": "https://www.instagram.com/reel/DWty3jSDl4p/"
+ },
+ {
+  "name": "High-energy EDM bed",
+  "category": "audio",
+  "why": "Energetic EDM track replaces quiet gym audio; not lo-fi or a specified trending sound.",
+  "reference": "https://www.instagram.com/reel/DWty3jSDl4p/"
+ },
+ {
+  "name": "UGC-style raw capture",
+  "category": "format",
+  "why": "Unstaged, captured-not-directed footage resembling user-generated content rather than a produced reel.",
+  "reference": "https://www.instagram.com/reel/DWty3jSDl4p/"
+ },
+ {
+  "name": "Sequential text-overlay narration",
+  "category": "text",
+  "why": "Narration is delivered entirely through successive on-screen text cards explaining purpose, format, and activities, rather than voiceover or kinetic captions.",
+  "reference": "https://www.instagram.com/reel/Da_E2MvjpX6/"
+ },
+ {
+  "name": "Closing info slides",
+  "category": "structure",
+  "why": "Ends on static branded slides listing address, price, and session times as a practical call-to-action.",
+  "reference": "https://www.instagram.com/reel/Da_E2MvjpX6/"
+ },
+ {
+  "name": "Animated poster slideshow",
+  "category": "format",
+  "why": "Promo built from animated graphic cards over still photos rather than filmed footage.",
+  "reference": "https://www.instagram.com/reel/DbTXFAMFV57/"
+ },
+ {
+  "name": "Cartoon mascot overlay",
+  "category": "text",
+  "why": "A cartoon penguin mascot is added as a graphic element to carry the swim messaging.",
+  "reference": "https://www.instagram.com/reel/DbTXFAMFV57/"
+ },
+ {
+  "name": "Animated brochure slides",
+  "category": "format",
+  "why": "Reel is built from still photos and text slides over an animated illustrated backdrop with a mascot, with no filmed motion \u2014 a brochure page animated into a reel.",
+  "reference": "https://www.instagram.com/reel/DdmyCFcobht/"
+ },
+ {
+  "name": "Color-coded level breakdown",
+  "category": "text",
+  "why": "On-screen text breaks the curriculum into color-coded tiers (beginner, intermediate, advanced) to explain the progression to parents.",
+  "reference": "https://www.instagram.com/reel/DdmyCFcobht/"
+ },
+ {
+  "name": "Baked-in logo and contact info",
+  "category": "text",
+  "why": "Gym logo, USA Gymnastics mark, and contact details are permanently embedded in the frames as a branding and call-to-action layer.",
+  "reference": "https://www.instagram.com/reel/DdmyCFcobht/"
+ },
+ {
+  "name": "Themed activity montage",
+  "category": "structure",
+  "why": "Interleaves varied camp activities (gym skills, crafts, dance) under a single jungle theme to show program breadth.",
+  "reference": "https://www.instagram.com/reel/DaiGVMltvAW/"
+ },
+ {
+  "name": "Recognizable licensed song bed",
+  "category": "audio",
+  "why": "Uses a well-known classic track ('The Lion Sleeps Tonight') matching the theme rather than a trending sound or lo-fi bed.",
+  "reference": "https://www.instagram.com/reel/DaiGVMltvAW/"
+ },
+ {
+  "name": "Matching branded wardrobe",
+  "category": "color",
+  "why": "Uniform blue branded t-shirts create visual cohesion across shots, distinct from brand-color backdrops.",
+  "reference": "https://www.instagram.com/reel/DaiGVMltvAW/"
+ },
+ {
+  "name": "Bookend text callback",
+  "category": "text",
+  "why": "Closing caption 'Where we begin' mirrors and flips the opening line 'Where we began...' to frame the transformation.",
+  "reference": "https://www.instagram.com/reel/DX6lt6AghMK/"
+ },
+ {
+  "name": "Upbeat hip-hop music bed",
+  "category": "audio",
+  "why": "An energetic hip-hop track drives the whole video with no voiceover; no vocabulary entry covers a non-trending, non-lo-fi music bed.",
+  "reference": "https://www.instagram.com/reel/DX6lt6AghMK/"
+ },
+ {
+  "name": "Licensed pop track bed",
+  "category": "audio",
+  "why": "A recognizable licensed pop song ('Happy') plays underneath, explicitly not a trending sound or lo-fi bed.",
+  "reference": "https://www.instagram.com/reel/DXwfopUt1aw/"
+ },
+ {
+  "name": "Facility tour walkthrough",
+  "category": "structure",
+  "why": "Camera pans the floor and lingers on equipment close-ups as a guided tour of the new space, ending in an invitation to visit.",
+  "reference": "https://www.instagram.com/reel/DXwfopUt1aw/"
+ },
+ {
+  "name": "Upbeat instrumental piano bed",
+  "category": "audio",
+  "why": "Upbeat instrumental piano track with no voiceover drives the montage; not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DeMrfTcxN0p/"
+ },
+ {
+  "name": "Animated illustrated flyer cards",
+  "category": "format",
+  "why": "Video is built from designed illustrated slides/cards animated like a poster deck rather than filmed footage.",
+  "reference": "https://www.instagram.com/reel/DWzelT4E8_g/"
+ },
+ {
+  "name": "Upbeat instrumental pop bed",
+  "category": "audio",
+  "why": "Cheerful instrumental pop track with no voiceover; not lo-fi or identified as trending.",
+  "reference": "https://www.instagram.com/reel/DWzelT4E8_g/"
+ },
+ {
+  "name": "Event details text cards",
+  "category": "text",
+  "why": "Bold text announces date, time, location and ticket price as the core content.",
+  "reference": "https://www.instagram.com/reel/DWzelT4E8_g/"
+ },
+ {
+  "name": "End logo card",
+  "category": "structure",
+  "why": "Video closes on a static brand logo screen with website URL as a call-to-action endcard.",
+  "reference": "https://www.instagram.com/reel/DcjnLtdTwSC/"
+ },
+ {
+  "name": "Founder spokesperson promo",
+  "category": "format",
+  "why": "Owner/coach speaks directly to camera announcing giveaway and event details as the business's face.",
+  "reference": "https://www.instagram.com/reel/DcjnLtdTwSC/"
+ },
+ {
+  "name": "End logo card",
+  "category": "structure",
+  "why": "Closes on a static black-and-white brand logo card as a sign-off.",
+  "reference": "https://www.instagram.com/reel/Dczdv_0zSrs/"
+ },
+ {
+  "name": "Event recap montage",
+  "category": "structure",
+  "why": "Montage summarizing an open house event across activity stations as community proof.",
+  "reference": "https://www.instagram.com/reel/Dczdv_0zSrs/"
+ },
+ {
+  "name": "Upbeat instrumental rock bed",
+  "category": "audio",
+  "why": "Energetic instrumental rock track drives the montage with no voiceover; not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/Dczdv_0zSrs/"
+ },
+ {
+  "name": "Big bold text cards",
+  "category": "text",
+  "why": "Burned-in full-message text cards (date, event name, offerings) carry the promo message.",
+  "reference": "https://www.instagram.com/reel/Da1gv7GRQjb/"
+ },
+ {
+  "name": "End info slate",
+  "category": "structure",
+  "why": "The video closes on a static card with logo, phone, website, and email as a call to action.",
+  "reference": "https://www.instagram.com/reel/Da1gv7GRQjb/"
+ },
+ {
+  "name": "Upbeat promo music bed",
+  "category": "audio",
+  "why": "An energetic music track runs under the montage, which no existing audio technique covers.",
+  "reference": "https://www.instagram.com/reel/Da1gv7GRQjb/"
+ },
+ {
+  "name": "Promo date announcement end card",
+  "category": "structure",
+  "why": "Text overlays announcing upcoming camp dates as a call-to-action closer, not covered by the vocabulary.",
+  "reference": "https://www.instagram.com/reel/Dbwht6XRH43/"
+ },
+ {
+  "name": "End card with logo and contact info",
+  "category": "structure",
+  "why": "Video closes on gym logo and contact details as a call-to-action end card, not covered by vocabulary.",
+  "reference": "https://www.instagram.com/reel/Dd2NScmvk4t/"
+ },
+ {
+  "name": "Mid-video tagline text card",
+  "category": "text",
+  "why": "A full slogan card 'LITTLE NINJAS. BIG ADVENTURES' interrupts mid-video as a brand tagline; distinct from captions or lower thirds.",
+  "reference": "https://www.instagram.com/reel/Dd2NScmvk4t/"
+ },
+ {
+  "name": "Meme format subversion",
+  "category": "hook",
+  "why": "Familiar meme setup ('sorry, I have plans') subverted by unexpected skilled gymnastics payoff.",
+  "reference": "https://www.instagram.com/reel/DYSeDS9RFpC/"
+ },
+ {
+  "name": "Contrasting music bed",
+  "category": "audio",
+  "why": "Gentle classical piano deliberately played against high-energy visuals for comedic contrast.",
+  "reference": "https://www.instagram.com/reel/DYSeDS9RFpC/"
+ },
+ {
+  "name": "Synchronized duo performance",
+  "category": "structure",
+  "why": "Two coaches perform coordinated, mirrored skills in sync, selling partnership.",
+  "reference": "https://www.instagram.com/reel/DYSeDS9RFpC/"
+ },
+ {
+  "name": "Blooper reel / outtakes compilation",
+  "category": "structure",
+  "why": "Video is built around failed takes and flubs as the content itself, an anti-promo format.",
+  "reference": "https://www.instagram.com/reel/Da0Q_Q_RDlN/"
+ },
+ {
+  "name": "Take counter burned-in text",
+  "category": "text",
+  "why": "'Take 47' overlay marks repeated failed attempts as a comedic device.",
+  "reference": "https://www.instagram.com/reel/Da0Q_Q_RDlN/"
+ },
+ {
+  "name": "Profile end card",
+  "category": "format",
+  "why": "Ends on a TikTok profile card as the call to action.",
+  "reference": "https://www.instagram.com/reel/Da0Q_Q_RDlN/"
+ },
+ {
+  "name": "Sitcom intro parody",
+  "category": "structure",
+  "why": "Staff introduced one by one with name labels, each looking up, smiling and waving, mimicking a TV sitcom opening credits sequence.",
+  "reference": "https://www.instagram.com/reel/Dbyrq9XJUm1/"
+ },
+ {
+  "name": "Nostalgic TV theme needle-drop",
+  "category": "audio",
+  "why": "The licensed Full House theme song plays throughout as a recognizable nostalgic music cue, distinct from a generic trending sound.",
+  "reference": "https://www.instagram.com/reel/Dbyrq9XJUm1/"
+ },
+ {
+  "name": "Door-open entrance opener",
+  "category": "hook",
+  "why": "Opens with a hand pulling open the branded glass entrance door while a big title slams over the shot, inviting the viewer inside.",
+  "reference": "https://www.instagram.com/reel/Dbyrq9XJUm1/"
+ },
+ {
+  "name": "Bold title slam",
+  "category": "text",
+  "why": "Large orange-red show-title text lands over the opening shot like a TV title card.",
+  "reference": "https://www.instagram.com/reel/Dbyrq9XJUm1/"
+ },
+ {
+  "name": "Bold on-screen text mirroring the script",
+  "category": "text",
+  "why": "Large yellow headline text repeats key spoken lines ('WE ARE HIRING', 'BIG IMPACT') so the message works with sound off. These are phrase-level headlines, not word-by-word kinetic captions or a subtitle bar.",
+  "reference": "https://www.instagram.com/reel/DYAgVT7zbhB/"
+ },
+ {
+  "name": "Recruiting pitch to camera",
+  "category": "structure",
+  "why": "A staff member speaks directly to camera to recruit for a job opening, with B-roll of the workplace culture intercut. It doubles as brand advertising, and none of the listed structures cover a hiring call.",
+  "reference": "https://www.instagram.com/reel/DYAgVT7zbhB/"
+ },
+ {
+  "name": "Motivational spoken-word track",
+  "category": "audio",
+  "why": "Inspirational speech over piano building into a hip-hop beat with a 'never give up' refrain drives the edit; not covered by voiceover or trending sound.",
+  "reference": "https://www.instagram.com/reel/Db9DQ4jyJ8e/"
+ },
+ {
+  "name": "Observational coaching montage",
+  "category": "structure",
+  "why": "Clip-to-clip observational cutting of coach spotting drills with no narration or text, letting the action carry the piece.",
+  "reference": "https://www.instagram.com/reel/Dd4w14QSY3Z/"
+ },
+ {
+  "name": "Upbeat instrumental music bed",
+  "category": "audio",
+  "why": "Energetic instrumental track underscores the montage; not lo-fi, not described as trending.",
+  "reference": "https://www.instagram.com/reel/Dd4w14QSY3Z/"
+ },
+ {
+  "name": "Observational fly-on-the-wall",
+  "category": "structure",
+  "why": "Footage passively observes a student using camp learning materials without direct instruction or narration.",
+  "reference": "https://www.youtube.com/shorts/4A0UFNhWH20"
+ },
+ {
+  "name": "Handheld home-video style",
+  "category": "format",
+  "why": "Analysis explicitly describes casual handheld home-video camerawork, not covered by existing format ids.",
+  "reference": "https://www.youtube.com/shorts/Nhgt_p8afXg"
+ },
+ {
+  "name": "Observational slice-of-life social proof",
+  "category": "structure",
+  "why": "Unscripted observational glimpse of a camp activity used as social proof for prospective families; not a full day-in-the-life or behind-the-scenes structure.",
+  "reference": "https://www.youtube.com/shorts/Nhgt_p8afXg"
+ },
+ {
+  "name": "Static promo text card",
+  "category": "format",
+  "why": "Entire video is a single flat-design graphic card with bullet text and illustration, no footage.",
+  "reference": "https://www.youtube.com/shorts/gA4kh9kBaZw"
+ },
+ {
+  "name": "Cartoon illustration anchor",
+  "category": "color",
+  "why": "Flat cartoon choir illustration anchors the composition instead of live footage.",
+  "reference": "https://www.youtube.com/shorts/gA4kh9kBaZw"
+ },
+ {
+  "name": "Expert talking head direct-to-camera",
+  "category": "format",
+  "why": "The coach speaks directly to camera as the on-camera expert in a static close-up throughout, which isn't covered by jump-cut talking head since no cuts are described.",
+  "reference": "https://www.youtube.com/shorts/FtDLXUe_SEM"
+ },
+ {
+  "name": "Live vocal demonstration",
+  "category": "audio",
+  "why": "The instructor's live voice demonstrates the tone problem on camera. This is distinct from a calm voiceover or room tone.",
+  "reference": "https://www.youtube.com/shorts/FtDLXUe_SEM"
+ },
+ {
+  "name": "Consistent series look",
+  "category": "format",
+  "why": "Same setting and wardrobe across videos creates a recognizable recurring series identity.",
+  "reference": "https://www.youtube.com/shorts/MbMXDNXBDZY"
+ },
+ {
+  "name": "Direct-address talking head",
+  "category": "audio",
+  "why": "Creator speaks straight to camera carrying the lesson with no music bed; not a calm voiceover or jump-cut style.",
+  "reference": "https://www.youtube.com/shorts/MbMXDNXBDZY"
+ },
+ {
+  "name": "Direct-address talking head",
+  "category": "format",
+  "why": "Static close-up of a single presenter speaking directly to camera in live sync sound; jump-cut talking head is not described since no cuts are mentioned.",
+  "reference": "https://www.youtube.com/shorts/VYTbSSe2cSo"
+ },
+ {
+  "name": "Recurring fixed-location series set",
+  "category": "format",
+  "why": "Consistent car setting across videos creates a recognizable series format.",
+  "reference": "https://www.youtube.com/shorts/SV8TaEep15Q"
+ },
+ {
+  "name": "Handheld selfie close-up to camera",
+  "category": "format",
+  "why": "Tight handheld selfie framing of the instructor speaking directly, not kid POV or talking-head jump cuts.",
+  "reference": "https://www.youtube.com/shorts/SV8TaEep15Q"
+ },
+ {
+  "name": "Live direct-to-camera demonstration audio",
+  "category": "audio",
+  "why": "Audio is the instructor's live speaking voice with no music, distinct from calm voiceover.",
+  "reference": "https://www.youtube.com/shorts/SV8TaEep15Q"
+ },
+ {
+  "name": "Seasonal decorative frame border",
+  "category": "format",
+  "why": "A themed autumn-leaf border frames the vertical video to tie the lesson to the season; nothing in the vocabulary covers decorative frame overlays.",
+  "reference": "https://www.youtube.com/shorts/ird0IHZqTQY"
+ },
+ {
+  "name": "Hand-sign gesture demonstration",
+  "category": "structure",
+  "why": "The teacher models a pitch motion with his raised hand while singing syllables, a gesture-led musical demo that no listed technique describes.",
+  "reference": "https://www.youtube.com/shorts/ird0IHZqTQY"
+ },
+ {
+  "name": "In-car selfie talking head",
+  "category": "format",
+  "why": "Handheld selfie close-up filmed in a car, distinct from kid POV or overhead formats.",
+  "reference": "https://www.youtube.com/shorts/l7SvC0oMO1A"
+ },
+ {
+  "name": "Self-demonstration on own face",
+  "category": "structure",
+  "why": "Instructor points to his own mouth as the teaching diagram rather than using graphics or callouts.",
+  "reference": "https://www.youtube.com/shorts/l7SvC0oMO1A"
+ },
+ {
+  "name": "Live direct-to-camera voice, no music",
+  "category": "audio",
+  "why": "On-camera live speech with no music bed; not a calm voiceover or interview over b-roll.",
+  "reference": "https://www.youtube.com/shorts/l7SvC0oMO1A"
+ },
+ {
+  "name": "Bold cartoon title text",
+  "category": "text",
+  "why": "Bold cartoon-style text names the riff; not handwritten, kinetic, or sticker pop-in.",
+  "reference": "https://www.youtube.com/shorts/0YYa-tDqgN4"
+ },
+ {
+  "name": "Corner channel logo watermark",
+  "category": "format",
+  "why": "Persistent series branding logo in the corner marks the video as part of a lesson series.",
+  "reference": "https://www.youtube.com/shorts/0YYa-tDqgN4"
+ },
+ {
+  "name": "Live instructional voice with instrument audio",
+  "category": "audio",
+  "why": "Teacher speaks on camera while playing, with no music bed; distinct from calm voiceover narration.",
+  "reference": "https://www.youtube.com/shorts/0YYa-tDqgN4"
+ },
+ {
+  "name": "Time-bound promise title",
+  "category": "hook",
+  "why": "Bold '3 minute' text promises a quick, bounded lesson as the hook.",
+  "reference": "https://www.youtube.com/shorts/5UncFFrRGqc"
+ },
+ {
+  "name": "Consistent series branding",
+  "category": "format",
+  "why": "Recurring composite layout and corner channel logo make each short instantly recognizable as part of a series.",
+  "reference": "https://www.youtube.com/shorts/5UncFFrRGqc"
+ },
+ {
+  "name": "Bold 3D title text",
+  "category": "text",
+  "why": "Bold 3D-style text labels the lesson topic, not matching existing text styles.",
+  "reference": "https://www.youtube.com/shorts/nAHfQS4qdFg"
+ },
+ {
+  "name": "Live sync-sound performance audio",
+  "category": "audio",
+  "why": "Teacher's live voice and guitar carry the audio rather than a music bed or voiceover.",
+  "reference": "https://www.youtube.com/shorts/nAHfQS4qdFg"
+ },
+ {
+  "name": "Scenic travel backdrop",
+  "category": "format",
+  "why": "Lesson filmed outdoors on a road trip in front of a desert rock formation as a location hook.",
+  "reference": "https://www.youtube.com/shorts/nAHfQS4qdFg"
+ },
+ {
+  "name": "On-screen contact card CTA",
+  "category": "text",
+  "why": "A bright orange card with the school's website and phone number sits mid-frame as a persistent call to action.",
+  "reference": "https://www.youtube.com/shorts/-9dMuKqwGEc"
+ },
+ {
+  "name": "Pill label concept title",
+  "category": "text",
+  "why": "An orange pill-shaped label at the top names the lesson concept.",
+  "reference": "https://www.youtube.com/shorts/-9dMuKqwGEc"
+ },
+ {
+  "name": "Corner logo watermark",
+  "category": "text",
+  "why": "Small persistent label in top-left corner brands the school throughout.",
+  "reference": "https://www.youtube.com/shorts/-bqDzzy3tf0"
+ },
+ {
+  "name": "Whiteboard visual aid",
+  "category": "format",
+  "why": "Hand-drawn whiteboard sketch behind the speaker reinforces the lesson topic.",
+  "reference": "https://www.youtube.com/shorts/-bqDzzy3tf0"
+ },
+ {
+  "name": "Owner-as-performer showcase",
+  "category": "structure",
+  "why": "The studio owner performs on stage, positioning the teacher's skill as the product being sold.",
+  "reference": "https://www.youtube.com/shorts/wtxirOHRR8I"
+ },
+ {
+  "name": "Burned-in top title",
+  "category": "text",
+  "why": "A static title naming the piece sits at the top of the frame, distinct from lower-thirds or captions.",
+  "reference": "https://www.youtube.com/shorts/wtxirOHRR8I"
+ },
+ {
+  "name": "Bold condensed title overlay",
+  "category": "text",
+  "why": "Large condensed text overlay naming the exercise and its benefit frames the lesson; not handwritten, kinetic, or lower-third.",
+  "reference": "https://www.youtube.com/shorts/p5Dj_xG8804"
+ },
+ {
+  "name": "Instructor live demonstration",
+  "category": "structure",
+  "why": "Instructor performs the vocal exercise himself on stage, modeling the technique as the core content.",
+  "reference": "https://www.youtube.com/shorts/p5Dj_xG8804"
+ },
+ {
+  "name": "Layered background typography",
+  "category": "text",
+  "why": "Faded oversized type layered behind the performer to create depth; not covered by existing text techniques.",
+  "reference": "https://www.youtube.com/shorts/rRp99BcMA4U"
+ },
+ {
+  "name": "Bold exercise title overlay",
+  "category": "text",
+  "why": "Large bold static text naming the exercise as instructional context, distinct from kinetic or lower-third text.",
+  "reference": "https://www.youtube.com/shorts/rRp99BcMA4U"
+ },
+ {
+  "name": "Dark stage lighting",
+  "category": "color",
+  "why": "Spotlit performer against a dark background for a polished performance look; not neon, high-key, or natural.",
+  "reference": "https://www.youtube.com/shorts/rRp99BcMA4U"
+ },
+ {
+  "name": "Live demonstration audio",
+  "category": "audio",
+  "why": "The performer's sung warm-up serves as the sole soundtrack, rather than music, voiceover, or room tone.",
+  "reference": "https://www.youtube.com/shorts/rRp99BcMA4U"
+ },
+ {
+  "name": "Branded frame surround",
+  "category": "format",
+  "why": "Studio branding frames the shot persistently, unlike colored backdrops.",
+  "reference": "https://www.youtube.com/shorts/rRp99BcMA4U"
+ },
+ {
+  "name": "Visible recording setup",
+  "category": "format",
+  "why": "Phone on tripod left in frame, exposing the production setup as part of the look.",
+  "reference": "https://www.youtube.com/shorts/uan1CVc5x6I"
+ },
+ {
+  "name": "Static medium shot direct-to-camera",
+  "category": "format",
+  "why": "Locked-off medium shot with no camera movement, instructor addressing the lens.",
+  "reference": "https://www.youtube.com/shorts/uan1CVc5x6I"
+ },
+ {
+  "name": "Live sung demonstration audio",
+  "category": "audio",
+  "why": "Coach speaks and sings the fix live; the on-camera performance carries the audio rather than music or voiceover.",
+  "reference": "https://www.youtube.com/shorts/uan1CVc5x6I"
+ },
+ {
+  "name": "Bold headline text overlay",
+  "category": "text",
+  "why": "Large bold on-screen text naming the mistake as the hook, not matching existing text styles.",
+  "reference": "https://www.youtube.com/shorts/uan1CVc5x6I"
+ },
+ {
+  "name": "Dark background",
+  "category": "color",
+  "why": "Dark backdrop isolating the presenter.",
+  "reference": "https://www.youtube.com/shorts/uan1CVc5x6I"
+ },
+ {
+  "name": "Labeled multi-stage progression",
+  "category": "structure",
+  "why": "Four named stages (Dirty, Wet, Groomed, Accessorized) extend before-and-after into a staged process story.",
+  "reference": "https://www.instagram.com/reel/DdJySFpM8_C/"
+ },
+ {
+  "name": "Music-box instrumental bed",
+  "category": "audio",
+  "why": "Cheerful music-box-like instrumental throughout with no voiceover; not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DdJySFpM8_C/"
+ },
+ {
+  "name": "Inspo vs reality comparison",
+  "category": "structure",
+  "why": "Opens on an annotated reference photo of the ideal result, then shows the real client's outcome matched against it to manage expectations.",
+  "reference": "https://www.instagram.com/reel/DZq87v7NAnx/"
+ },
+ {
+  "name": "Acoustic guitar bed",
+  "category": "audio",
+  "why": "Soft acoustic guitar plays throughout; this is not lo-fi and has no near-synonym on the list.",
+  "reference": "https://www.instagram.com/reel/DZq87v7NAnx/"
+ },
+ {
+  "name": "Client montage sampler",
+  "category": "structure",
+  "why": "Rolling montage of many different clients' results to show volume as credibility.",
+  "reference": "https://www.instagram.com/reel/DelACqWNrcs/"
+ },
+ {
+  "name": "Seasonal greeting frame",
+  "category": "text",
+  "why": "Video is framed by a seasonal well-wish to local pet owners.",
+  "reference": "https://www.instagram.com/reel/DelACqWNrcs/"
+ },
+ {
+  "name": "Cheerful instrumental bed",
+  "category": "audio",
+  "why": "Upbeat instrumental track under the montage, not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DelACqWNrcs/"
+ },
+ {
+  "name": "Orbiting reveal shot",
+  "category": "format",
+  "why": "Camera slowly circles the subject to show it from all sides before the transformation.",
+  "reference": "https://www.instagram.com/reel/DefuZYBMRUr/"
+ },
+ {
+  "name": "Hard cut transformation",
+  "category": "transition",
+  "why": "A plain hard cut jumps directly from the before state to the after state with no effect.",
+  "reference": "https://www.instagram.com/reel/DefuZYBMRUr/"
+ },
+ {
+  "name": "Cheerful instrumental bed",
+  "category": "audio",
+  "why": "Upbeat instrumental music plays throughout with no speech; not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DefuZYBMRUr/"
+ },
+ {
+  "name": "Subject-height handheld camera",
+  "category": "format",
+  "why": "Gentle handheld shots at the dog's eye level, distinct from the kid-height POV camera.",
+  "reference": "https://www.instagram.com/reel/DefuZYBMRUr/"
+ },
+ {
+  "name": "Archival footage retrospective",
+  "category": "structure",
+  "why": "Cuts between dated 2013-2016 archival clips and present-day footage to tell a business history.",
+  "reference": "https://www.instagram.com/reel/DefjVn6xKKj/"
+ },
+ {
+  "name": "Next-episode teaser ending",
+  "category": "structure",
+  "why": "Ends on a teaser for the next installment of a named series.",
+  "reference": "https://www.instagram.com/reel/DefjVn6xKKj/"
+ },
+ {
+  "name": "Follower acknowledgment text opener",
+  "category": "hook",
+  "why": "Opens with on-screen text thanking new followers.",
+  "reference": "https://www.instagram.com/reel/DefjVn6xKKj/"
+ },
+ {
+  "name": "Screen-recorded website walkthrough",
+  "category": "format",
+  "why": "The entire video is a screen capture of the salon's website with scrolling and clicks as the only motion. No vocabulary entry covers screen-recording formats.",
+  "reference": "https://www.instagram.com/reel/Dec_rBoPPWw/"
+ },
+ {
+  "name": "Booking flow walkthrough",
+  "category": "structure",
+  "why": "The video follows the site's own sequence (offer, services, packages, intake form, appointment request) to remove booking friction. That is a guided user-flow structure, not numbered tutorial steps.",
+  "reference": "https://www.instagram.com/reel/Dec_rBoPPWw/"
+ },
+ {
+  "name": "Screen recording walkthrough",
+  "category": "format",
+  "why": "Entire video is a phone screen capture tapping through the booking UI; no vocabulary item covers screen-recording format.",
+  "reference": "https://www.instagram.com/reel/DdJlZyCxXnC/"
+ },
+ {
+  "name": "Bilingual presentation",
+  "category": "text",
+  "why": "Steps are presented in both English and Spanish, a distinct accessibility technique not in the list.",
+  "reference": "https://www.instagram.com/reel/DdJlZyCxXnC/"
+ },
+ {
+  "name": "Upbeat instrumental bed",
+  "category": "audio",
+  "why": "Upbeat instrumental music with no narration; not lo-fi or trending sound specifically.",
+  "reference": "https://www.instagram.com/reel/DdJlZyCxXnC/"
+ },
+ {
+  "name": "Pricing-transparency explainer",
+  "category": "structure",
+  "why": "Video exists to justify extra fees by showing the problem condition, an educational business-case framing not covered by the vocabulary.",
+  "reference": "https://www.instagram.com/reel/DXuIBPcjtEY/"
+ },
+ {
+  "name": "Handheld verit\u00e9 walkthrough",
+  "category": "format",
+  "why": "Unpolished handheld drift through the business as proof of legitimacy; not a single static or POV kid cam.",
+  "reference": "https://www.instagram.com/reel/DPJmgiRkTKZ/"
+ },
+ {
+  "name": "Emoji phone-number caption",
+  "category": "text",
+  "why": "Caption reduced to a contact number in emoji digits as the only call to action.",
+  "reference": "https://www.instagram.com/reel/DPJmgiRkTKZ/"
+ },
+ {
+  "name": "Playful children's melody bed",
+  "category": "audio",
+  "why": "Soft xylophone-style kids' instrumental underscores the clip; not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DUv8HgUkcqm/"
+ },
+ {
+  "name": "Hands-only framing",
+  "category": "format",
+  "why": "Only the groomer's hands enter frame, keeping focus on the subject and the craft.",
+  "reference": "https://www.instagram.com/reel/DUv8HgUkcqm/"
+ },
+ {
+  "name": "Repeated signature gesture montage",
+  "category": "structure",
+  "why": "Each clip repeats the same groomer chin-hold-and-kiss gesture, creating a rhythmic ritual across subjects.",
+  "reference": "https://www.instagram.com/reel/DeBBbtvxy0P/"
+ },
+ {
+  "name": "Step-by-step routine captions",
+  "category": "text",
+  "why": "Simple on-screen captions narrate each grooming stage ('Nail trim time!', 'Now it's time to dry off!') without numbered steps or voiceover.",
+  "reference": "https://www.instagram.com/reel/Db3bqEaNcSZ/"
+ },
+ {
+  "name": "Happy reunion ending",
+  "category": "structure",
+  "why": "The video closes on the groomed dog trotting back to its waiting owners as an emotional payoff.",
+  "reference": "https://www.instagram.com/reel/Db3bqEaNcSZ/"
+ },
+ {
+  "name": "Upbeat music bed",
+  "category": "audio",
+  "why": "Upbeat background music plays throughout with no dialogue; it is not described as lo-fi or trending.",
+  "reference": "https://www.instagram.com/reel/Db3bqEaNcSZ/"
+ },
+ {
+  "name": "Labeled triptych end card (Before/Process/After stills)",
+  "category": "format",
+  "why": "Video closes on three side-by-side labeled stills summarizing the transformation, distinct from a generic photo dump or split screen.",
+  "reference": "https://www.instagram.com/reel/DbGk9wARyNc/"
+ },
+ {
+  "name": "Contact info end card",
+  "category": "text",
+  "why": "On-screen text lists services, shop address, and phone number as a direct-response call to action.",
+  "reference": "https://www.instagram.com/reel/DbGk9wARyNc/"
+ },
+ {
+  "name": "Upbeat brass-led instrumental",
+  "category": "audio",
+  "why": "Cheerful horn-melody music bed runs throughout, not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DbGk9wARyNc/"
+ },
+ {
+  "name": "Service skill montage",
+  "category": "structure",
+  "why": "Rapid montage of varied grooming process close-ups showcasing each service skill, not a narrative or tutorial.",
+  "reference": "https://www.instagram.com/reel/DefTS6myiNs/"
+ },
+ {
+  "name": "Persistent CTA text",
+  "category": "text",
+  "why": "A single call-to-action line ('book the appointment') stays on screen for the entire video.",
+  "reference": "https://www.instagram.com/reel/DefTS6myiNs/"
+ },
+ {
+  "name": "End-payoff tease text",
+  "category": "hook",
+  "why": "On-screen text promises a 360 reveal at the end to drive retention.",
+  "reference": "https://www.instagram.com/reel/DbOY6RcuHaJ/"
+ },
+ {
+  "name": "Problem-workaround pivot",
+  "category": "structure",
+  "why": "Narrative centers on abandoning clippers for scissors due to a biting puppy.",
+  "reference": "https://www.instagram.com/reel/DbOY6RcuHaJ/"
+ },
+ {
+  "name": "360 turntable reveal",
+  "category": "structure",
+  "why": "Finished dog shown in a full rotation as the payoff.",
+  "reference": "https://www.instagram.com/reel/DbOY6RcuHaJ/"
+ },
+ {
+  "name": "Split-sentence caption across shots",
+  "category": "text",
+  "why": "A single sentence is broken into three text overlays spanning three shots, creating a three-beat narrative arc.",
+  "reference": "https://www.instagram.com/reel/DbmC6BSO0iV/"
+ },
+ {
+  "name": "Gentle acoustic music bed",
+  "category": "audio",
+  "why": "Soft acoustic guitar track sets an emotional, warm tone; not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DbmC6BSO0iV/"
+ },
+ {
+  "name": "Teaser text promise hook",
+  "category": "hook",
+  "why": "Opens with on-screen text promising a payoff ('Wait until you see this dog's transformation'), a curiosity-gap hook not covered by existing hook ids.",
+  "reference": "https://www.instagram.com/reel/DYdQdhXN2fr/"
+ },
+ {
+  "name": "Soft piano music bed",
+  "category": "audio",
+  "why": "Light piano underscores the process; distinct from the lo-fi bed or trending sound.",
+  "reference": "https://www.instagram.com/reel/DYdQdhXN2fr/"
+ },
+ {
+  "name": "Licensed rock track as energy driver",
+  "category": "audio",
+  "why": "Loud recognizable INXS song drives the pacing with no narration; not identified as a trending sound or lo-fi bed.",
+  "reference": "https://www.instagram.com/reel/DcYv8TJxRIY/"
+ },
+ {
+  "name": "Performer dancing while working",
+  "category": "structure",
+  "why": "Groomer's dancing personality is the core hook alongside the process, a personality-forward work performance not covered by behind-the-scenes alone.",
+  "reference": "https://www.instagram.com/reel/DcYv8TJxRIY/"
+ },
+ {
+  "name": "Rescue transformation narrative",
+  "category": "structure",
+  "why": "Story arc of a neglected, scared animal transformed, with emotional beats and a time-jump follow-up showing lasting change.",
+  "reference": "https://www.instagram.com/reel/Ddfl9xfOpY8/"
+ },
+ {
+  "name": "Emotional beat text captions",
+  "category": "text",
+  "why": "Short on-screen text lines ('Kisses and trust!', 'She's all done!') narrate and pace emotional moments rather than labeling objects.",
+  "reference": "https://www.instagram.com/reel/Ddfl9xfOpY8/"
+ },
+ {
+  "name": "Time-jump follow-up epilogue",
+  "category": "structure",
+  "why": "A 'two months later' segment revisits the subject to show long-term payoff.",
+  "reference": "https://www.instagram.com/reel/Ddfl9xfOpY8/"
+ },
+ {
+  "name": "Hip-hop music bed",
+  "category": "audio",
+  "why": "A hip-hop track with explicit lyrics plays under the whole clip. It is not described as trending or lo-fi, so no existing audio id fits.",
+  "reference": "https://www.instagram.com/reel/DefUnqnMrtg/"
+ },
+ {
+  "name": "Static single-setup framing",
+  "category": "format",
+  "why": "One locked medium shot of the groomer and dog is used for the entire video, with one hard cut and no camera movement.",
+  "reference": "https://www.instagram.com/reel/DefUnqnMrtg/"
+ },
+ {
+  "name": "Logo end card",
+  "category": "structure",
+  "why": "Video closes on a 'WD ESTD 2025' brand logo card after the finished-dog reveal.",
+  "reference": "https://www.instagram.com/reel/Dc9mWnfupmp/"
+ },
+ {
+  "name": "Steady close-up on tool work",
+  "category": "format",
+  "why": "Framing stays tight and steady on the scissor work throughout, emphasizing craft detail.",
+  "reference": "https://www.instagram.com/reel/Dc9mWnfupmp/"
+ },
+ {
+  "name": "Water-level camera",
+  "category": "format",
+  "why": "Camera stays close and steady at water level tracking the demo, a distinct in-water vantage not covered by overhead or kid-height POV.",
+  "reference": "https://www.instagram.com/reel/DbCAVCQhRoR/"
+ },
+ {
+  "name": "Instructor live verbal cues",
+  "category": "audio",
+  "why": "Audio is the instructor's on-location spoken coaching, not a recorded voiceover or interview bed.",
+  "reference": "https://www.instagram.com/reel/DbCAVCQhRoR/"
+ },
+ {
+  "name": "Drill name text label",
+  "category": "text",
+  "why": "On-screen text labels the drill; style is unspecified, so it does not clearly match lower-third or other listed text types.",
+  "reference": "https://www.instagram.com/reel/DbCAVCQhRoR/"
+ },
+ {
+  "name": "Serialized episode numbering",
+  "category": "structure",
+  "why": "Video is framed as 'Part 8' and 'Day 2 of 5' of an ongoing series, with on-screen text marking the part to drive follow-through viewing.",
+  "reference": "https://www.instagram.com/reel/DZGaZp5Nx-y/"
+ },
+ {
+  "name": "Stated-goal direct address opener",
+  "category": "hook",
+  "why": "Coach opens to camera by introducing the student and announcing the day's concrete target (25 feet across and back) before any action; this is a statement rather than a question, so hook_question does not fit.",
+  "reference": "https://www.instagram.com/reel/DZGaZp5Nx-y/"
+ },
+ {
+  "name": "Water-level camera",
+  "category": "format",
+  "why": "Camera held close and steady at water surface level throughout, a distinct framing not covered by overhead or kid-height POV.",
+  "reference": "https://www.instagram.com/reel/DZ8hoj0PJq_/"
+ },
+ {
+  "name": "Handheld documentary camera",
+  "category": "format",
+  "why": "Shot handheld for a casual, documentary feel; no vocabulary entry covers handheld v\u00e9rit\u00e9 camerawork.",
+  "reference": "https://www.instagram.com/reel/DbDeO_axq8H/"
+ },
+ {
+  "name": "Wide static demonstration shot",
+  "category": "format",
+  "why": "Camera stays wide and steady so the full skill is visible start to finish, a locked-off framing choice not covered by existing format ids.",
+  "reference": "https://www.instagram.com/reel/DbNx6duRgnU/"
+ },
+ {
+  "name": "Student testimonial interview",
+  "category": "structure",
+  "why": "Video is an instructor-led on-camera conversation with an adult student as a testimonial; str_parent_interview is parent-specific and aud_interview_bed requires b-roll, which is absent.",
+  "reference": "https://www.instagram.com/reel/DdETEXTRhBY/"
+ },
+ {
+  "name": "Premise text promise ('watch')",
+  "category": "hook",
+  "why": "On-screen text states a setup and promises a payoff ('She couldn't swim before this lesson... watch'), which is not a POV overlay or a question.",
+  "reference": "https://www.instagram.com/reel/Dc04RymRV_z/"
+ },
+ {
+  "name": "Handheld follow framing",
+  "category": "format",
+  "why": "Handheld camera stays on the subject throughout; not covered by overhead or kid-height POV formats.",
+  "reference": "https://www.instagram.com/reel/Dc04RymRV_z/"
+ },
+ {
+  "name": "Student testimonial interview",
+  "category": "structure",
+  "why": "Instructor interviews a student on camera who explains her backstory; her testimonial is the selling device, not covered by parent interview.",
+  "reference": "https://www.instagram.com/reel/DdrPwtRRsyr/"
+ },
+ {
+  "name": "Audience call-out text hook",
+  "category": "hook",
+  "why": "Overlay text 'Adults who can't swim need to see this' directly addresses a target audience segment; not a POV or question-to-camera hook.",
+  "reference": "https://www.instagram.com/reel/DdrPwtRRsyr/"
+ },
+ {
+  "name": "Callout text hook addressing target audience",
+  "category": "hook",
+  "why": "Bold on-screen text 'Adults who can't swim need to see this' directly calls out the target viewer; not a question to camera or POV overlay.",
+  "reference": "https://www.instagram.com/reel/DeCNP5PxDcK/"
+ },
+ {
+  "name": "Testimonial segment",
+  "category": "structure",
+  "why": "Back half shifts to testimonial footage explaining the offer; distinct from parent interview.",
+  "reference": "https://www.instagram.com/reel/DeCNP5PxDcK/"
+ },
+ {
+  "name": "Handheld documentary family footage",
+  "category": "format",
+  "why": "Observational handheld camera capturing unscripted family moments, not covered by existing format ids.",
+  "reference": "https://www.instagram.com/reel/DZGQANnyczo/"
+ },
+ {
+  "name": "Close-up to wide reveal cut",
+  "category": "structure",
+  "why": "Opens on intimate tight close-up of the child, then cuts to a wide overhead establishing shot; the scale contrast carries the piece.",
+  "reference": "https://www.instagram.com/reel/DbWOpB2vbKE/"
+ },
+ {
+  "name": "Persistent logo watermark",
+  "category": "format",
+  "why": "A circular brand logo sits in the upper left corner of every frame, branding the whole video.",
+  "reference": "https://www.instagram.com/reel/DbdzwtaB1oJ/"
+ },
+ {
+  "name": "Imagined-stakes framing",
+  "category": "hook",
+  "why": "Text poses a hypothetical danger scenario that the following lesson footage resolves; distinct from a plain POV overlay in its problem-solution stakes setup.",
+  "reference": "https://www.instagram.com/reel/DaAx_nWw9TY/"
+ },
+ {
+  "name": "Direct-address instructor demo",
+  "category": "structure",
+  "why": "Instructor alternates between explaining a cue to camera and demonstrating it live with the student.",
+  "reference": "https://www.instagram.com/reel/DZSeWHjxJlU/"
+ },
+ {
+  "name": "Kaleidoscope mirror effect",
+  "category": "format",
+  "why": "Symmetrical mirror effect splits the frame into a kaleidoscope, doubling the swimmer's motion.",
+  "reference": "https://www.instagram.com/reel/DdfK11upAMC/"
+ },
+ {
+  "name": "Sequential quote build-up text",
+  "category": "text",
+  "why": "Yellow on-screen text appears line by line to assemble an inspirational quote timed to the action; not word-by-word kinetic captions.",
+  "reference": "https://www.instagram.com/reel/DdfK11upAMC/"
+ },
+ {
+  "name": "Repeated static caption across clips",
+  "category": "text",
+  "why": "The same on-screen phrase persists unchanged over every clip, unifying the montage rather than labeling individual moments.",
+  "reference": "https://www.instagram.com/reel/DbvY5FfFJp6/"
+ },
+ {
+  "name": "Upbeat music bed",
+  "category": "audio",
+  "why": "An energetic music track drives the montage. It is not identified as trending, lo-fi, or beat-synced, so no listed audio technique fits.",
+  "reference": "https://www.instagram.com/reel/DbvY5FfFJp6/"
+ },
+ {
+  "name": "Handheld camera feel",
+  "category": "format",
+  "why": "Loose handheld shooting gives the montage a casual, in-the-moment energy. No listed format covers it.",
+  "reference": "https://www.instagram.com/reel/DbvY5FfFJp6/"
+ },
+ {
+  "name": "Fear-scenario hypothetical hook",
+  "category": "hook",
+  "why": "Opens with an alarming hypothetical (child falling into pool, parent can't help) to drive urgency before a program pitch; not covered by question, myth-bust, or other hooks.",
+  "reference": "https://www.instagram.com/reel/DbAyb9Xkd1m/"
+ },
+ {
+  "name": "Direct program pitch CTA",
+  "category": "structure",
+  "why": "Talking head ends by urging viewers to enroll in a named program ('Zero to Swim'), a sales call-to-action structure not in the vocabulary.",
+  "reference": "https://www.instagram.com/reel/DbAyb9Xkd1m/"
+ },
+ {
+  "name": "Duo co-host address to camera",
+  "category": "format",
+  "why": "Two presenters side by side speaking directly to camera in a two-shot, signaling a family-run business; not covered by existing talking-head or interview entries.",
+  "reference": "https://www.instagram.com/reel/DcOI_vTABJM/"
+ },
+ {
+  "name": "Seasonal greeting into announcement",
+  "category": "structure",
+  "why": "Opens with timely well-wishes (first day of school) then pivots to event details (grand opening); no vocabulary entry captures this greeting-to-announcement arc.",
+  "reference": "https://www.instagram.com/reel/DcOI_vTABJM/"
+ },
+ {
+  "name": "Matching branded wardrobe",
+  "category": "color",
+  "why": "Matching light-blue branded t-shirts provide the brand color in an otherwise bare room, distinct from brand-color backdrops.",
+  "reference": "https://www.instagram.com/reel/DcOI_vTABJM/"
+ },
+ {
+  "name": "Exterior establishing shot to interior",
+  "category": "structure",
+  "why": "Opens on the roadside sign then moves inside, creating a find-us, meet-us, come-celebrate tour arc.",
+  "reference": "https://www.instagram.com/reel/DczebjWmzBt/"
+ },
+ {
+  "name": "Event announcement to camera",
+  "category": "hook",
+  "why": "Hosts directly announce a grand opening with a list of offers and a raffle prize as the core call to action.",
+  "reference": "https://www.instagram.com/reel/DczebjWmzBt/"
+ },
+ {
+  "name": "Static event flyer as video",
+  "category": "format",
+  "why": "Entire reel is a single designed flyer image held for full length, no footage.",
+  "reference": "https://www.instagram.com/reel/DdEj_wpiUDX/"
+ },
+ {
+  "name": "Community event hook",
+  "category": "hook",
+  "why": "Leads with an invitation to a community event (open house/Grandparents' Day) rather than an offer or discount.",
+  "reference": "https://www.instagram.com/reel/DdEj_wpiUDX/"
+ },
+ {
+  "name": "Single still photo as reel",
+  "category": "format",
+  "why": "The entire reel is one static photograph with no motion or audio, a distinct format from photo dump or carousel.",
+  "reference": "https://www.instagram.com/reel/DcRXkAylaAe/"
+ },
+ {
+  "name": "Back-of-room establishing composition",
+  "category": "format",
+  "why": "Shot from the back of the room to show a full, active classroom; composition-driven framing not covered by vocabulary.",
+  "reference": "https://www.instagram.com/reel/DcRXkAylaAe/"
+ },
+ {
+  "name": "Invitation call-to-action graphic",
+  "category": "text",
+  "why": "A star graphic reading 'your spot here!' turns the image into a direct invitation to the viewer.",
+  "reference": "https://www.instagram.com/reel/DcRXkAylaAe/"
+ },
+ {
+  "name": "Signage as the message",
+  "category": "text",
+  "why": "All information is carried by text on a physical sign in frame rather than by overlays or speech; the sign itself is the ad.",
+  "reference": "https://www.instagram.com/reel/DTMbPu-jY5D/"
+ },
+ {
+  "name": "Still photo presented as reel",
+  "category": "format",
+  "why": "The video is effectively a single static photograph with no motion, a distinct minimal format not covered by photo dump or carousel.",
+  "reference": "https://www.instagram.com/reel/DTMbPu-jY5D/"
+ },
+ {
+  "name": "Static flyer as video",
+  "category": "format",
+  "why": "The reel is a single static promotional graphic with event details, posted as video purely to place the flyer in the feed.",
+  "reference": "https://www.instagram.com/reel/DefJCdivKG2/"
+ },
+ {
+  "name": "Upbeat instrumental music bed",
+  "category": "audio",
+  "why": "Energetic instrumental music with no speech plays over the graphic; not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DefJCdivKG2/"
+ },
+ {
+  "name": "Credibility-then-offer pitch",
+  "category": "structure",
+  "why": "Video builds proof (student scores, logos, personal story) then closes with a guarantee and scarcity offer (eight seats this month).",
+  "reference": "https://www.instagram.com/reel/Dc1et4iAiYD/"
+ },
+ {
+  "name": "Screenshot proof overlays",
+  "category": "text",
+  "why": "Screenshots of score reports and college logos are overlaid on the talking head as social proof.",
+  "reference": "https://www.instagram.com/reel/Dc1et4iAiYD/"
+ },
+ {
+  "name": "Mascot character branding",
+  "category": "color",
+  "why": "A cartoon bee mascot anchors the brand identity and palette, making a new business feel established.",
+  "reference": "https://www.instagram.com/reel/DTczG6wDp9s/"
+ },
+ {
+  "name": "Static poster as video",
+  "category": "format",
+  "why": "The entire post is a single static flyer image set to music, with no motion or cuts.",
+  "reference": "https://www.instagram.com/reel/DTczG6wDp9s/"
+ },
+ {
+  "name": "Upbeat instrumental music bed",
+  "category": "audio",
+  "why": "An energetic electronic instrumental track with no speech carries the cheerful tone; it is not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DTczG6wDp9s/"
+ },
+ {
+  "name": "Sequential animated contact-info text build",
+  "category": "text",
+  "why": "Large white animated text overlays build business name, service, then phone and website in sequence; not word-by-word kinetic captions or stickers.",
+  "reference": "https://www.instagram.com/reel/DbG-1P7hdKm/"
+ },
+ {
+  "name": "Calm instrumental music bed",
+  "category": "audio",
+  "why": "Calm instrumental background music with no speech; not lo-fi or trending sound specifically.",
+  "reference": "https://www.instagram.com/reel/DbG-1P7hdKm/"
+ },
+ {
+  "name": "Car selfie announcement",
+  "category": "format",
+  "why": "Handheld selfie shot from a parked car's driver seat frames a commercial pitch as an informal personal update.",
+  "reference": "https://www.instagram.com/reel/DcRf4S5vKYt/"
+ },
+ {
+  "name": "Pet co-star for warmth",
+  "category": "hook",
+  "why": "The dog beside the speaker softens the sales message and adds personal, relatable appeal.",
+  "reference": "https://www.instagram.com/reel/DcRf4S5vKYt/"
+ },
+ {
+  "name": "Persistent event info banner",
+  "category": "text",
+  "why": "Fixed yellow text with event time and date stays on screen throughout as a constant call-to-action, distinct from spoken subtitles.",
+  "reference": "https://www.instagram.com/reel/DcRf4S5vKYt/"
+ },
+ {
+  "name": "Lesson-to-sales-pitch pivot",
+  "category": "structure",
+  "why": "Mini-lesson that transitions into a bootcamp pitch with times, prices, and a student cap; not covered by existing structures.",
+  "reference": "https://www.instagram.com/reel/DV6Uo6NE5Xj/"
+ },
+ {
+  "name": "Static slide screen capture",
+  "category": "format",
+  "why": "Entire reel is a single screen-captured slide with a logo, with no presenter or camera footage.",
+  "reference": "https://www.instagram.com/reel/DV6Uo6NE5Xj/"
+ },
+ {
+  "name": "Upbeat licensed music bed",
+  "category": "audio",
+  "why": "An upbeat instrumental rock track with vocals plays throughout. It is not lo-fi and not identified as a trending sound.",
+  "reference": "https://www.instagram.com/reel/Dd49t1FRkSy/"
+ },
+ {
+  "name": "Persistent logo watermark",
+  "category": "format",
+  "why": "The owl logo appears on every slide as a constant brand mark.",
+  "reference": "https://www.instagram.com/reel/Dd49t1FRkSy/"
+ },
+ {
+  "name": "Single static promo graphic",
+  "category": "format",
+  "why": "The entire reel is one information-dense flyer-style image with no footage, a format not covered by photo dump or carousel.",
+  "reference": "https://www.instagram.com/reel/DekJNzcMlLe/"
+ },
+ {
+  "name": "Upbeat instrumental music bed",
+  "category": "audio",
+  "why": "A cheerful rhythmic instrumental with wordless vocals carries the mood. It is not described as trending or lo-fi.",
+  "reference": "https://www.instagram.com/reel/DekJNzcMlLe/"
+ },
+ {
+  "name": "Review screenshot montage",
+  "category": "structure",
+  "why": "Entire reel is a scroll of static five-star review screenshots used as testimonial social proof, with no people or voiceover.",
+  "reference": "https://www.instagram.com/reel/Dbx7lgdROzR/"
+ },
+ {
+  "name": "Offer title card interrupts",
+  "category": "text",
+  "why": "Title cards break up the review scroll to name the offerings (SAT/ACT bootcamp, subject tutoring).",
+  "reference": "https://www.instagram.com/reel/Dbx7lgdROzR/"
+ },
+ {
+  "name": "Upbeat instrumental bed",
+  "category": "audio",
+  "why": "Upbeat instrumental music drives the reel, distinct from lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/Dbx7lgdROzR/"
+ },
+ {
+  "name": "Slow observational pan",
+  "category": "pacing",
+  "why": "Single slow camera pan across the room observing subjects, distinct from a reveal or static hold.",
+  "reference": "https://www.instagram.com/reel/DeibvFVMx6D/"
+ },
+ {
+  "name": "Persistent question text overlay",
+  "category": "text",
+  "why": "A bold on-screen question held for the entire video carries the pitch; not a lower third, subtitle, or kinetic caption.",
+  "reference": "https://www.instagram.com/reel/DeibvFVMx6D/"
+ },
+ {
+  "name": "Icon graphic pop-ins",
+  "category": "text",
+  "why": "Simple animated graphics (rising graph, clock, schedule icon, strategy banner) punctuate each spoken point and supply the visual variety in place of b-roll.",
+  "reference": "https://www.instagram.com/reel/DdySEcjzwGB/"
+ },
+ {
+  "name": "AI-generated synthetic presenter",
+  "category": "format",
+  "why": "The talking head is AI-generated, as shown by the watermark and overly smooth delivery, rather than a filmed person.",
+  "reference": "https://www.instagram.com/reel/DdySEcjzwGB/"
+ },
+ {
+  "name": "Problem-then-solution pitch",
+  "category": "structure",
+  "why": "The video diagnoses why scores plateau, then pitches personalized prep as the fix. No existing structure id covers this.",
+  "reference": "https://www.instagram.com/reel/DdySEcjzwGB/"
+ },
+ {
+  "name": "Static flyer voiceover pitch",
+  "category": "format",
+  "why": "Entire reel is a single static promotional poster with a narrated sales pitch over it; no on-camera talent or motion, not covered by the existing formats.",
+  "reference": "https://www.instagram.com/reel/DcACI5_owc6/"
+ },
+ {
+  "name": "Branded end card",
+  "category": "structure",
+  "why": "Video closes on black screen with logo and contact details as a clean branded end card.",
+  "reference": "https://www.instagram.com/reel/Dee6SIdhSCW/"
+ },
+ {
+  "name": "Proof-then-pitch",
+  "category": "structure",
+  "why": "Shows real instructional session footage as evidence, then delivers the service pitch and contact info.",
+  "reference": "https://www.instagram.com/reel/Dee6SIdhSCW/"
+ },
+ {
+  "name": "Sequential message text overlays",
+  "category": "text",
+  "why": "Tagline, service promise, and brand line appear in sequence over footage, carrying the message without voiceover.",
+  "reference": "https://www.instagram.com/reel/Dee6SIdhSCW/"
+ },
+ {
+  "name": "Explanatory text overlays",
+  "category": "text",
+  "why": "On-screen text introduces the student and explains the phonics method, guiding what the viewer should watch for; not lower-thirds, subtitles, or kinetic captions.",
+  "reference": "https://www.instagram.com/reel/DecJx1LxZ2Z/"
+ },
+ {
+  "name": "Observational documentary session",
+  "category": "structure",
+  "why": "Unscripted real session filmed fly-on-the-wall with intimate framing on the instructional interaction; distinct from behind-the-scenes or day-in-the-life.",
+  "reference": "https://www.instagram.com/reel/DecJx1LxZ2Z/"
+ },
+ {
+  "name": "Testimonial montage",
+  "category": "structure",
+  "why": "Owner intro followed by a sequence of student and tutor testimonials describing outcomes; not a parent interview.",
+  "reference": "https://www.instagram.com/reel/DdoYBQaxL4r/"
+ },
+ {
+  "name": "Contact info end card",
+  "category": "structure",
+  "why": "Closes with the director and phone/email details as a call-to-action end card.",
+  "reference": "https://www.instagram.com/reel/DdW08TpN0NX/"
+ },
+ {
+  "name": "Star rating social proof graphic",
+  "category": "text",
+  "why": "A 5.0-star rating graphic is used as a trust signal.",
+  "reference": "https://www.instagram.com/reel/DdW08TpN0NX/"
+ },
+ {
+  "name": "Class menu montage",
+  "category": "structure",
+  "why": "Video cycles through each class offering as a vignette, functioning as a service catalog ending on a CTA.",
+  "reference": "https://www.instagram.com/reel/DcgylDYuDt3/"
+ },
+ {
+  "name": "End-card call to action",
+  "category": "text",
+  "why": "Closes on an empty studio with 'Find your class at Ahimsa Chicago' as a location/brand CTA.",
+  "reference": "https://www.instagram.com/reel/DcgylDYuDt3/"
+ },
+ {
+  "name": "Continuous funk instrumental bed",
+  "category": "audio",
+  "why": "A single non-lofi funk instrumental runs under the whole piece with no speech; not lofi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DICKiUcRNp4/"
+ },
+ {
+  "name": "Close-up to wide group reveal",
+  "category": "hook",
+  "why": "Opens tight on one person meditating, then widens to reveal a whole synchronized class.",
+  "reference": "https://www.instagram.com/reel/DICKiUcRNp4/"
+ },
+ {
+  "name": "Event logistics text card",
+  "category": "text",
+  "why": "On-screen text lists event name, date, time and after-party venue as an invitation.",
+  "reference": "https://www.instagram.com/reel/DP6zOk5kQZd/"
+ },
+ {
+  "name": "Ambient instrumental bed",
+  "category": "audio",
+  "why": "Gentle ambient instrumental music with no dialogue, not lo-fi specifically.",
+  "reference": "https://www.instagram.com/reel/DP6zOk5kQZd/"
+ },
+ {
+  "name": "Event announcement text overlay",
+  "category": "text",
+  "why": "Bold on-screen text announces event details (date, time, potluck, dogs) as an invitation/promo.",
+  "reference": "https://www.instagram.com/reel/DcB1LR7N87R/"
+ },
+ {
+  "name": "Crowd-scale wide shot hook",
+  "category": "hook",
+  "why": "Opening relies on wide steady shots showing the size of a synchronized group as the visual hook.",
+  "reference": "https://www.instagram.com/reel/DcB1LR7N87R/"
+ },
+ {
+  "name": "Light instrumental music bed",
+  "category": "audio",
+  "why": "Light instrumental music with no dialogue; not described as lo-fi or trending.",
+  "reference": "https://www.instagram.com/reel/DcB1LR7N87R/"
+ },
+ {
+  "name": "Location/transit info end card",
+  "category": "structure",
+  "why": "Closes on exterior night shot with transit stop text and line icons to tell viewers how to get there.",
+  "reference": "https://www.instagram.com/reel/DdPgSQ-SU0H/"
+ },
+ {
+  "name": "Class schedule title stamp",
+  "category": "text",
+  "why": "On-screen text stamps class name, day and time over the opening shot.",
+  "reference": "https://www.instagram.com/reel/DdPgSQ-SU0H/"
+ },
+ {
+  "name": "Upbeat instrumental bed",
+  "category": "audio",
+  "why": "Rhythmic upbeat instrumental music underneath, not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DdPgSQ-SU0H/"
+ },
+ {
+  "name": "Selfie walking tour",
+  "category": "format",
+  "why": "Host films herself selfie-style while walking through the space, narrating each stop direct to camera.",
+  "reference": "https://www.instagram.com/reel/Dd_jPohRNxe/"
+ },
+ {
+  "name": "Offer close CTA",
+  "category": "structure",
+  "why": "Video ends on a new-student offer as the call to action.",
+  "reference": "https://www.instagram.com/reel/Dd_jPohRNxe/"
+ },
+ {
+  "name": "End-card logo",
+  "category": "structure",
+  "why": "Closes on the studio logo as a branded end card.",
+  "reference": "https://www.instagram.com/reel/DaJfwYsunlw/"
+ },
+ {
+  "name": "Static centered caption text",
+  "category": "text",
+  "why": "Black centered overlay text 'This and my NOW Fam.' persists over the clip; not kinetic, serif, or subtitle bar.",
+  "reference": "https://www.instagram.com/reel/Da3hCnASz8U/"
+ },
+ {
+  "name": "Upbeat pop music bed",
+  "category": "audio",
+  "why": "An upbeat pop track plays underneath; not described as trending, lo-fi, or beat-synced.",
+  "reference": "https://www.instagram.com/reel/Da3hCnASz8U/"
+ },
+ {
+  "name": "Title card opener",
+  "category": "hook",
+  "why": "Opens on a text title card stating the story topic before the speaker appears.",
+  "reference": "https://www.instagram.com/reel/DQMJ8nFgPp8/"
+ },
+ {
+  "name": "Founder origin story monologue",
+  "category": "structure",
+  "why": "Founder narrates the studio's history chronologically straight to camera.",
+  "reference": "https://www.instagram.com/reel/DQMJ8nFgPp8/"
+ },
+ {
+  "name": "First-person handheld POV walkthrough",
+  "category": "format",
+  "why": "Handheld first-person framing flows scene to scene, but it is adult POV, not kid-height, so fmt_pov_cam does not fit.",
+  "reference": "https://www.instagram.com/reel/Dd4So4jReFR/"
+ },
+ {
+  "name": "Community invitation framing",
+  "category": "structure",
+  "why": "Piece is structured as a 'join the community' invite showing the group experience from arrival to closing circle.",
+  "reference": "https://www.instagram.com/reel/Dd4So4jReFR/"
+ },
+ {
+  "name": "Continuous mellow music bed",
+  "category": "audio",
+  "why": "Continuous mellow ambient music under the whole piece; not specified as lo-fi or trending.",
+  "reference": "https://www.instagram.com/reel/Dd4So4jReFR/"
+ },
+ {
+  "name": "First-person walkthrough tour",
+  "category": "format",
+  "why": "Handheld adult POV walking tour from exterior into studio; fmt_pov_cam is specifically kid-height so not a match.",
+  "reference": "https://www.instagram.com/reel/DeKQYGuxHYp/"
+ },
+ {
+  "name": "Payment-method demo sequence",
+  "category": "structure",
+  "why": "Demonstrates three ways to pay (cash, card, phone booking) in sequence without numbered tutorial overlays.",
+  "reference": "https://www.instagram.com/reel/DeKQYGuxHYp/"
+ },
+ {
+  "name": "Storefront signage opener",
+  "category": "hook",
+  "why": "Opens on the bold exterior facade and lettering with on-screen text stating the donation-based pitch.",
+  "reference": "https://www.instagram.com/reel/DeKQYGuxHYp/"
+ },
+ {
+  "name": "Slow calm pan tour",
+  "category": "pacing",
+  "why": "Slow, calm camera pans across each vignette of the space, giving a serene walkthrough feel not covered by whip pan or static hold.",
+  "reference": "https://www.instagram.com/reel/Dc1inFZhsuN/"
+ },
+ {
+  "name": "Empty-space tour montage",
+  "category": "structure",
+  "why": "A labeled 'what's inside:' montage tours an empty venue room by room with no people, making the space itself the subject.",
+  "reference": "https://www.instagram.com/reel/Dc1inFZhsuN/"
+ },
+ {
+  "name": "Static locked-off camera",
+  "category": "format",
+  "why": "Single fixed camera framing the whole sequence with no movement or reframing.",
+  "reference": "https://www.instagram.com/reel/DdUE51pu97j/"
+ },
+ {
+  "name": "Upbeat instrumental guitar bed",
+  "category": "audio",
+  "why": "Energetic instrumental guitar track underneath, not lo-fi or a trending sound.",
+  "reference": "https://www.instagram.com/reel/DdUE51pu97j/"
+ },
+ {
+  "name": "Full class arc compression",
+  "category": "structure",
+  "why": "Video condenses an entire class from opening poses to closing prayer into one short sequence.",
+  "reference": "https://www.instagram.com/reel/DaoTDiPsjvB/"
+ },
+ {
+  "name": "Upbeat instrumental funk bed",
+  "category": "audio",
+  "why": "Energetic funk instrumental soundtrack contrasts with calm yoga content; not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DaoTDiPsjvB/"
+ },
+ {
+  "name": "Steady wide group shots",
+  "category": "format",
+  "why": "Static wide framing captures the whole group moving in sync.",
+  "reference": "https://www.instagram.com/reel/DaoTDiPsjvB/"
+ },
+ {
+  "name": "End-card schedule/CTA text",
+  "category": "text",
+  "why": "Closes with on-screen class times and studio logo as a promotional call to action.",
+  "reference": "https://www.instagram.com/reel/DdcVqOLMD57/"
+ },
+ {
+  "name": "Black-and-white to color bloom",
+  "category": "color",
+  "why": "Opening transitions from monochrome street scene into full color as the instructor enters, marking arrival.",
+  "reference": "https://www.instagram.com/reel/DcuM0bOh5q-/"
+ },
+ {
+  "name": "Handheld walk-through tour",
+  "category": "structure",
+  "why": "Follows the instructor walking from street, up stairs, through hallways into the studio as a guided space tour.",
+  "reference": "https://www.instagram.com/reel/DcuM0bOh5q-/"
+ },
+ {
+  "name": "Upbeat rock music bed",
+  "category": "audio",
+  "why": "Energetic rock track plays throughout, not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DcuM0bOh5q-/"
+ },
+ {
+  "name": "Instructor headshot graphic overlay",
+  "category": "text",
+  "why": "Class promo uses an inset instructor headshot with name title and schedule/location text cards over empty room footage",
+  "reference": "https://www.instagram.com/reel/DdH_GrDPNvK/"
+ },
+ {
+  "name": "Ambient music bed",
+  "category": "audio",
+  "why": "Soft ambient (not lo-fi) music with no speech sets the calm mood",
+  "reference": "https://www.instagram.com/reel/DdH_GrDPNvK/"
+ },
+ {
+  "name": "Empty space showcase",
+  "category": "structure",
+  "why": "Video sells the class by showing the empty studio space with no people",
+  "reference": "https://www.instagram.com/reel/DdH_GrDPNvK/"
+ },
+ {
+  "name": "Class schedule promo text",
+  "category": "text",
+  "why": "On-screen text invites viewers to a recurring class with day and time ('Join Kyra Every Monday at 6:30am'), functioning as an event call-to-action.",
+  "reference": "https://www.instagram.com/reel/DdQqAZQiTMp/"
+ },
+ {
+  "name": "Full sequence demo",
+  "category": "structure",
+  "why": "Video walks through a complete flow of poses in order as a class preview, without numbered steps or tutorial narration.",
+  "reference": "https://www.instagram.com/reel/DdQqAZQiTMp/"
+ },
+ {
+  "name": "Direct-to-camera greeting",
+  "category": "hook",
+  "why": "Opens with instructor speaking a gentle greeting straight to the lens, not a question or other listed hook.",
+  "reference": "https://www.instagram.com/reel/DU3kPNjDusq/"
+ },
+ {
+  "name": "Ambient electronic music bed",
+  "category": "audio",
+  "why": "Ambient electronic music underscores the class; not lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/DU3kPNjDusq/"
+ },
+ {
+  "name": "Calm ending wind-down",
+  "category": "structure",
+  "why": "Ends on Savasana with dimmed lights, a session arc from greeting to rest.",
+  "reference": "https://www.instagram.com/reel/DU3kPNjDusq/"
+ },
+ {
+  "name": "Get Ready With Me (GRWM) prep format",
+  "category": "structure",
+  "why": "Video follows the creator's preparation routine (unlocking, setup, changing clothes) leading up to an event, a distinct GRWM framing.",
+  "reference": "https://www.instagram.com/reel/DcwGG2Oqf3P/"
+ },
+ {
+  "name": "Selfie-style handheld self-filming",
+  "category": "format",
+  "why": "Instructor films himself handheld and ends with a selfie shot with the class behind him.",
+  "reference": "https://www.instagram.com/reel/DcwGG2Oqf3P/"
+ },
+ {
+  "name": "Mellow genre music bed (Afrobeats)",
+  "category": "audio",
+  "why": "Continuous mellow Afrobeats track with gentle vocals underpins the video; not lo-fi or a trending sound specifically.",
+  "reference": "https://www.instagram.com/reel/DcwGG2Oqf3P/"
+ },
+ {
+  "name": "Glow outline / duplicate image effects",
+  "category": "transition",
+  "why": "Playful digital effects like glowing outlines and duplicate ghost images punctuate the demo; not covered by existing transitions.",
+  "reference": "https://www.instagram.com/reel/Dd_3VITKTvY/"
+ },
+ {
+  "name": "Upbeat rock music bed",
+  "category": "audio",
+  "why": "Demo is cut to an upbeat rock track, distinct from lo-fi or trending sound.",
+  "reference": "https://www.instagram.com/reel/Dd_3VITKTvY/"
+ },
+ {
+  "name": "Prop hack demo",
+  "category": "structure",
+  "why": "Compact single-tip how-to showing a prop setup, not numbered steps.",
+  "reference": "https://www.instagram.com/reel/Dd_3VITKTvY/"
+ }
+]

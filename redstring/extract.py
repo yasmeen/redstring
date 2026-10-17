@@ -1,11 +1,11 @@
-"""Map Instinct analyses onto the closed technique vocabulary.
+"""Map Instinct or other analyzer exports onto the closed technique vocabulary.
 
 Rarity only works if the vocabulary is closed, so extraction returns technique ids only. Anything that
 doesn't fit goes to a proposed queue (data/proposed_techniques.json) for Yaz to approve once; extraction
 never mints a Technique on its own. After approving additions to data/techniques.json, re-run the import.
 
-Input: a CSV or JSON export with at least url and analysis; creator, platform, format, analyzed_at and
-views are kept when present. Media is never stored.
+Input: a CSV or JSON export with at least url and analysis; creator, platform, format, category, city,
+posted_at, analyzed_at, views and duration_s are kept when present. Media is never stored.
 """
 from __future__ import annotations
 
@@ -62,7 +62,7 @@ def extract_one(client, analysis: str, vocab: dict, Extraction) -> dict:
     return {"technique_ids": sorted(set(out.technique_ids)), "proposed": [p.model_dump() for p in out.proposed]}
 
 
-def import_references(path: Path, limit: int | None = None) -> dict:
+def import_references(path: Path, limit: int | None = None, source: str = "Instinct") -> dict:
     import anthropic
 
     vocab = references.load_vocab()
@@ -75,13 +75,18 @@ def import_references(path: Path, limit: int | None = None) -> dict:
             continue
         ex = extract_one(client, r["analysis"], vocab, Extraction)
         views = r.get("views") or r.get("plays")
+        duration = r.get("duration_s")
         refs.append({
             "id": f"ref_{i:03d}",
             "url": r["url"],
             "creator": r.get("creator") or r.get("author"),
             "platform": r.get("platform"),
             "format": r.get("format"),
-            "analyzed_by": "Instinct",
+            "category": r.get("category"),
+            "city": r.get("city"),
+            "posted_at": r.get("posted_at"),
+            "duration_s": int(float(duration)) if duration not in (None, "") else None,
+            "analyzed_by": source,
             "analyzed_at": r.get("analyzed_at"),
             "views": int(float(views)) if views not in (None, "") else None,
             "analysis": r["analysis"],
