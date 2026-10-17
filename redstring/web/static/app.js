@@ -328,6 +328,9 @@ const TIE = `<svg viewBox="0 0 44 12" aria-hidden="true"><circle cx="3" cy="6" r
 
 // Needs you holds decisions only. What Double Take caught is news, so it gets its own column.
 function renderAttention(o) {
+  document.querySelectorAll(".intro-icon[data-icon]").forEach((el) => {
+    if (!el.firstElementChild) el.innerHTML = icon(el.dataset.icon);
+  });
   const items = o.needs_you || [];
   const byId = Object.fromEntries(o.businesses.map((b) => [b.id, b]));
   const decisions = items.filter((i) => ["borderline", "pitch", "ready", "approve_posts"].includes(i.type));
@@ -343,7 +346,7 @@ function renderAttention(o) {
   if (unscreened.length) {
     h += `<button type="button" class="need-card" data-pick="${esc(unscreened[0].business_id)}"><span class="need-kind">${icon("radar")}Leads to screen</span><span class="need-text">${unscreened.length} new ${unscreened.length === 1 ? "lead is" : "leads are"} waiting for Scout</span></button>`;
   }
-  $("#needs-you").innerHTML = h || `<p class="empty-row">Nothing needs a decision right now.</p>`;
+  $("#needs-you").innerHTML = h || `<div class="needs-empty"><span class="needs-empty-icon">${icon("circle-check")}</span><p>All clear: nothing needs you right now.</p></div>`;
   $("#caught").innerHTML = blocked.map((i) => `<button type="button" class="caught-card" data-pick="${esc(i.business_id)}">
       <span class="need-kind">${icon("shield-alert")}Blocked and revised</span>
       <span class="caught-a">${esc(i.business || byId[i.business_id]?.name)}</span>
@@ -383,7 +386,12 @@ async function renderDays() {
   const byId = Object.fromEntries((state.overview?.businesses || []).map((b) => [b.id, b]));
   const days = a.days.filter((d) => d.day > 0);
   $("#days").innerHTML = days.map((d) => `<li class="day"><h3 class="day-h">Day ${d.day} <span class="muted">· ${esc(dayDate(d.date))}</span><span class="day-count">${d.entries.length} ${d.entries.length === 1 ? "action" : "actions"}</span></h3>
-    <ul class="day-entries">${d.entries.slice().reverse().map((e) => `<li${e.agent === "Yaz" ? ' class="by-board"' : ""}><span class="who">${who(e.agent)}</span><span>${avatar(byId[e.business_id], "xs")}<b>${esc(displayStudioCopy(e.text))}</b><span class="muted"> ${esc(displayStudioCopy(e.rationale || ""))}</span></span></li>`).join("")}</ul></li>`).join("")
+    <ul class="day-entries">${d.entries.slice().reverse().map((e) => `<li${e.agent === "Yaz" ? ' class="by-board"' : ""}>
+      <details class="day-action">
+        <summary><span class="day-agent" title="${esc(e.agent)}" aria-label="${esc(e.agent)}">${agentIcon(e.agent)}</span>${avatar(byId[e.business_id], "xs")}<b>${esc(displayStudioCopy(e.text))}</b></summary>
+        <div class="day-action-extra"><b>${esc(e.agent)}</b><span>${esc(displayStudioCopy(e.rationale || ""))}</span></div>
+      </details>
+    </li>`).join("")}</ul></li>`).join("")
     || `<li class="day empty muted">Day 0. Press Next day and the agents start working.</li>`;
 }
 
@@ -784,22 +792,76 @@ function blockedDrafts(analysis) {
 }
 const andList = (xs) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 
+function renderIntroDiagrams() {
+  $("#ps-problem-visual").innerHTML = `
+    <div class="problem-node"><span class="problem-icon gym">${icon("person-standing")}</span><b>Gym</b></div>
+    <div class="problem-link"><span>same rare trick</span></div>
+    <div class="problem-node audience"><span class="problem-icon">${icon("user-round")}</span><b>Parents of kids 7 to 12</b></div>
+    <div class="problem-link"><span>same rare trick</span></div>
+    <div class="problem-node"><span class="problem-icon art">${icon("brush")}</span><b>Art studio</b></div>`;
+  const steps = [
+    ["radar", "Scout screens the lead"],
+    ["search", "Researcher gathers context"],
+    ["clapperboard", "Producer drafts spec posts"],
+    ["shield-check", "Standards runs Double Take"],
+    ["gavel", "You approve"],
+  ];
+  $("#ps-flow-visual").innerHTML = `<ol class="proof-flow">${steps.map(([name, label], i) => `
+    <li class="proof-step${i === steps.length - 1 ? " human-gate" : ""}"><span class="proof-step-icon">${icon(name)}</span><span>${label}</span></li>`).join("")}</ol>`;
+}
+
 function renderIntroProof(analysis) {
   const t = analysis.thresholds || {};
+  renderIntroDiagrams();
   const list = blockedDrafts(analysis);
   const top = list[0];
-  $("#ps-proof").innerHTML = top
-    ? `${esc(plural(list.length, "draft was", "drafts were"))} blocked before shipping. ${esc(top.client)}'s “${esc(top.draft_hook || "draft")}” used ${esc(andList(top.techs))}, rare moves that ${esc(andList(top.flags.map((f) => f.with_business)))} already ${top.flags.length === 1 ? "uses" : "use"} with the same people. Risk ${n(top.worst.risk)}, over the ${n(t.flag_risk)} cutoff, so it went back for a new idea. <a href="#ch-double-take">See every blocked draft</a>`
-    : "No drafts have been blocked in this run yet.";
-  const c = {};
-  (analysis.screening || []).forEach((r) => { c[r.verdict] = (c[r.verdict] || 0) + 1; });
-  const parts = [
-    [c.pursue, "cleared to pitch"], [c.pursue_differentiated, "need a distinct angle"],
-    [c.borderline, "went to the board"], [c.decline, "declined"],
-  ].filter(([k]) => k).map(([k, label]) => `${k} ${label}`);
-  $("#ps-proof-more").textContent = (analysis.screening || []).length
-    ? `Scout also screened ${plural(analysis.screening.length, "lead", "leads")}: ${andList(parts)}.`
-    : "";
+  if (!top) {
+    $("#ps-proof").innerHTML = `<div class="proof-empty">${icon("circle-check")}<span>No blocked drafts in this run yet.</span></div>`;
+  } else {
+    const lookalikes = [...new Set(top.flags.map((f) => f.with_business).filter(Boolean))];
+    const risk = Number(top.worst.risk) || 0;
+    const cutoff = Number(top.worst.flag_risk ?? t.flag_risk) || 0;
+    const riskPct = Math.max(0, Math.min(100, risk * 100));
+    const cutoffPct = Math.max(0, Math.min(100, cutoff * 100));
+    $("#ps-proof").innerHTML = `
+      <div class="proof-pair">
+        <div class="proof-side">
+          <div class="proof-business">${avatar(bizByName(top.client), "sm")}<b>${esc(top.client)}</b></div>
+          <span class="proof-label">Draft</span>
+          <q class="proof-hook">${esc(top.draft_hook || "Draft without a hook")}</q>
+        </div>
+        <div class="proof-thread"><span class="proof-thread-line"></span><span class="proof-techniques">${top.techs.map((tech) => `<span>${esc(tech)}</span>`).join("")}</span></div>
+        <div class="proof-side proof-lookalikes">
+          <span class="proof-label">Looks like</span>
+          ${lookalikes.map((name) => `<span class="proof-business">${avatar(bizByName(name), "sm")}<b>${esc(name)}</b></span>`).join("")}
+        </div>
+      </div>
+      <div class="proof-risk">
+        <b class="proof-risk-label">risk ${n(risk)} ≥ ${n(cutoff)} → blocked</b>
+        <span class="proof-risk-track" role="img" aria-label="Risk ${n(risk)}; blocked at ${n(cutoff)}">
+          <span class="proof-risk-fill" style="width:${riskPct}%"></span>
+          <span class="proof-risk-tick" style="left:${cutoffPct}%"></span>
+        </span>
+      </div>`;
+  }
+  const screening = analysis.screening || [];
+  const counts = Object.fromEntries(["pursue", "pursue_differentiated", "borderline", "decline"].map((verdict) => [
+    verdict, screening.filter((row) => row.verdict === verdict).length,
+  ]));
+  const pills = [
+    chip("pursue", `${counts.pursue} cleared to pitch`),
+    chip("pursue_differentiated", `${counts.pursue_differentiated} distinct angle`),
+    chip("borderline", `${counts.borderline} board call`),
+    chip("decline", `${counts.decline} declined`),
+  ].join("");
+  $("#ps-proof-more").innerHTML = `<div class="proof-counts"><span class="proof-screened">Scout also screened ${plural(screening.length, "lead", "leads")}</span><span class="proof-pills">${pills}</span><a href="#ch-double-take">See every blocked draft <span aria-hidden="true">→</span></a></div>`;
+  const conflicts = screening.flatMap((row) => (row.clients || []).map((client) => Number(client.conflict) || 0));
+  const maxConflict = Math.max(...conflicts, 0);
+  $("#screen-ramp-max").textContent = n(maxConflict);
+  document.querySelectorAll(".screen-tick[data-tick]").forEach((tick) => {
+    const value = Number(t[tick.dataset.tick]) || 0;
+    tick.style.left = `${maxConflict ? Math.min(100, value / maxConflict * 100) : 0}%`;
+  });
   document.querySelectorAll("[data-t]").forEach((el) => {
     const v = t[el.dataset.t];
     if (typeof v === "number") el.textContent = n(v);
