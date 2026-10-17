@@ -599,3 +599,12 @@ body.readonly[data-view="analysis"] .log:empty::before { content: none; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* Shot list on a draft's thread */
+.shots { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.shots li { display: grid; grid-template-columns: 64px 1fr; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card); line-height: 1.45; }
+.shot-time { font: 600 0.8125rem/1.6 var(--mono); color: var(--thread-deep); }
+.shot-notes { display: grid; gap: 6px; margin: 0 0 8px; }
+.shot-notes div { display: grid; grid-template-columns: 96px 1fr; gap: 12px; }
+.shot-notes dt { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding-top: 2px; }
+.shot-notes dd { margin: 0; }
