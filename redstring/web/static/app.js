@@ -78,7 +78,7 @@ async function viewChanged() {
   if (view === "analysis") {
     closeOverlay();
     if ($("#card").open) $("#card").close();
-  }
+  } else endTour();
   if (!state.overview) await refresh();
   if (view === "analysis") await loadAnalysisFromLocation();
   else if (state.selected) await openBusiness(state.selected, { quiet: true });
@@ -213,6 +213,7 @@ async function refresh() {
   $("#ws-meta").textContent = `${o.businesses.length} businesses${hoods ? ` in ${hoods}` : ""}`;
   $("#mode").textContent = `agents: ${o.mode}${o.readonly ? " · read-only" : ""}`;
   $("#meta").textContent = o.graphs.join(" · ");
+  renderVideo(o.video_url);
   // The dossier follows the run (the business in the latest log line) until the viewer picks a card.
   let moved = false;
   if (!state.pinned && isSplit() && !isAnalysisView()) {
@@ -465,6 +466,7 @@ function renderAnalysis(analysis, overview, decisions) {
   renderDoubleTake(analysis);
   renderTerritory(analysis, overview);
   renderAccess(analysis);
+  renderIntroProof(analysis);
 
   // raw data
   $("#thresholds").innerHTML = [
@@ -770,6 +772,169 @@ if ("IntersectionObserver" in window) {
   }, { rootMargin: "-80px 0px -45% 0px", threshold: [0, 0.2, 0.5, 1] });
   document.querySelectorAll(".chapter").forEach((c) => io.observe(c));
 }
+
+// ---------------------------------------------------------------- analysis: problem → solution intro, video slot, guided tour
+
+function blockedDrafts(analysis) {
+  const groups = {};
+  (analysis?.double_take || []).forEach((f) => (groups[f.draft] ||= { ...f, flags: [] }).flags.push(f));
+  return Object.values(groups)
+    .map((g) => ({ ...g, worst: g.flags.reduce((a, f) => (f.risk > a.risk ? f : a)), techs: [...new Set(g.flags.flatMap((f) => f.shared || []))] }))
+    .sort((a, z) => z.worst.risk - a.worst.risk);
+}
+const andList = (xs) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
+
+function renderIntroProof(analysis) {
+  const t = analysis.thresholds || {};
+  const list = blockedDrafts(analysis);
+  const top = list[0];
+  $("#ps-proof").innerHTML = top
+    ? `${esc(plural(list.length, "draft was", "drafts were"))} blocked before shipping. ${esc(top.client)}'s “${esc(top.draft_hook || "draft")}” used ${esc(andList(top.techs))}, rare moves that ${esc(andList(top.flags.map((f) => f.with_business)))} already ${top.flags.length === 1 ? "uses" : "use"} with the same people. Risk ${n(top.worst.risk)}, over the ${n(t.flag_risk)} cutoff, so it went back for a new idea. <a href="#ch-double-take">See every blocked draft</a>`
+    : "No drafts have been blocked in this run yet.";
+  const c = {};
+  (analysis.screening || []).forEach((r) => { c[r.verdict] = (c[r.verdict] || 0) + 1; });
+  const parts = [
+    [c.pursue, "cleared to pitch"], [c.pursue_differentiated, "need a distinct angle"],
+    [c.borderline, "went to the board"], [c.decline, "declined"],
+  ].filter(([k]) => k).map(([k, label]) => `${k} ${label}`);
+  $("#ps-proof-more").textContent = (analysis.screening || []).length
+    ? `Scout also screened ${plural(analysis.screening.length, "lead", "leads")}: ${andList(parts)}.`
+    : "";
+  document.querySelectorAll("[data-t]").forEach((el) => {
+    const v = t[el.dataset.t];
+    if (typeof v === "number") el.textContent = n(v);
+  });
+}
+
+function renderVideo(u) {
+  const fig = $("#a-video");
+  if (!u) { fig.hidden = true; return; }
+  if (fig.dataset.src === u) return;
+  fig.dataset.src = u;
+  let html = `<p><a href="${esc(u)}" target="_blank" rel="noopener">Watch the video walkthrough <span aria-hidden="true">↗</span></a></p>`;
+  try {
+    const url = new URL(u);
+    const host = url.hostname.replace(/^(www\.|m\.)/, "");
+    let id = "";
+    if (host === "youtu.be") id = url.pathname.slice(1);
+    else if (host.endsWith("youtube.com")) id = url.searchParams.get("v") || (url.pathname.match(/^\/(?:embed|shorts|live)\/([\w-]+)/) || [])[1] || "";
+    if (/^[\w-]{6,}$/.test(id)) {
+      html = `<iframe src="https://www.youtube-nocookie.com/embed/${esc(id)}?rel=0" title="Video walkthrough of Red String" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe>`;
+    } else if (/\.(mp4|webm)$/i.test(url.pathname)) {
+      html = `<video controls preload="metadata" src="${esc(u)}"></video>`;
+    }
+  } catch { /* not a URL: keep the plain link */ }
+  $("#a-video-frame").innerHTML = html;
+  fig.hidden = false;
+}
+
+const TOUR = [
+  {
+    target: "#ps-grid",
+    title: "Start with the problem",
+    body: () => "An agency that serves many local businesses can end up giving two clients lookalike videos aimed at the same parents. Red String catches that before it happens. These three cards are the short version; the rest of the tour shows how.",
+  },
+  {
+    target: "#graph-cards",
+    title: "Every client gets a private graph",
+    body: () => "Each business's posts, drafts and goals live in its own graph, on the left and right. Only each draft's list of techniques, its fingerprint, is copied to the shared agency graph in the middle, where the cross-client checks run.",
+  },
+  {
+    target: "#ch-screening .heat-wrap",
+    title: "Step 1: a lead arrives and Scout screens it",
+    body: (a) => {
+      const t = a.thresholds || {};
+      const rows = (a.screening || []).map((r) => ({ r, top: [...(r.clients || [])].sort((x, z) => z.conflict - x.conflict)[0] }))
+        .filter((x) => x.top && x.r.verdict !== "decline").sort((x, z) => z.top.conflict - x.top.conflict);
+      const ex = rows[0];
+      return `Each row is a new lead, scored against each client the agency already has. Higher numbers mean they compete for the same people.${ex ? ` ${ex.r.name} scores ${n(ex.top.conflict)} against ${ex.top.client}, past the ${n(t.differentiate)} cutoff, so it can only be pitched with a distinct angle.` : ""}`;
+    },
+  },
+  {
+    target: "#ch-screening .net-panel",
+    title: "Why the lead got that score",
+    body: () => "The map shows the paths behind the score: the lead's audiences, the audiences they overlap, and the clients on the other side. Thicker red lines carry more weight. The bars underneath compare each client with the two cutoffs. Pick any lead in the table to redraw it.",
+  },
+  {
+    target: () => {
+      const top = blockedDrafts(state.analysis)[0];
+      return (top && document.querySelector(`.dt-card[data-draft="${CSS.escape(top.draft)}"]`)) || $("#double-take-table");
+    },
+    title: "Step 2: Double Take blocks a lookalike draft",
+    body: (a) => {
+      const top = blockedDrafts(a)[0];
+      if (!top) return "Before any draft ships, Standards compares its rare techniques with every business that reaches the same people. No drafts have been blocked in this run yet.";
+      return `The Producer wrote “${top.draft_hook || "a draft"}” for ${top.client}. Standards found it shares ${andList(top.techs)} with ${andList(top.flags.map((f) => f.with_business))}, which ${top.flags.length === 1 ? "reaches" : "reach"} the same people. Similarity × audience overlap = risk ${n(top.worst.risk)}, over the ${n(a.thresholds?.flag_risk)} cutoff, so it went back for a new idea before anyone saw it.`;
+    },
+  },
+  {
+    target: () => $("#signatures-table")?.closest(".table-scroll"),
+    title: "Who is known for which move",
+    body: () => "This is the map Standards checks against. Each dot is a rare technique a business uses often enough to be known for it. The red columns are the moves behind this run's blocked drafts.",
+  },
+  {
+    target: () => $("#analysis-agents")?.closest(".table-scroll"),
+    title: "Agents only get their slice",
+    body: () => "Agents never write their own database queries. Each one can call only the named queries its job needs, shown as red dots, and every write records who made it and why. That record is what the raw data at the bottom shows.",
+  },
+  {
+    target: ".view-toggle",
+    title: "Where you come in",
+    body: () => "Agents handle the routine work on their own. Anything that matters, like board calls, pitches, signing and posts, stops in the Studio's Needs you list until a person decides. The Studio is what the agency sees day to day.",
+    finish: "Open the Studio",
+  },
+];
+
+const tour = { i: -1, el: null };
+const tourTarget = (step) => (typeof step.target === "function" ? step.target() : $(step.target));
+
+function showTourStep(i) {
+  tour.el?.classList.remove("tour-focus");
+  tour.i = i;
+  const step = TOUR[i];
+  const el = tourTarget(step);
+  tour.el = el;
+  $("#tour-count").textContent = `Step ${i + 1} of ${TOUR.length}`;
+  $("#tour-title").textContent = step.title;
+  $("#tour-body").textContent = step.body(state.analysis || {});
+  $("#tour-back").disabled = i === 0;
+  $("#tour-next").innerHTML = step.finish ? `${esc(step.finish)} <span aria-hidden="true">→</span>` : `Next <span aria-hidden="true">→</span>`;
+  $("#tour").hidden = false;
+  if (el) {
+    el.classList.add("tour-focus");
+    const navH = $(".chapter-nav")?.offsetHeight || 0;
+    const top = i === TOUR.length - 1 ? 0 : el.getBoundingClientRect().top + window.scrollY - navH - 20;
+    window.scrollTo({ top: Math.max(0, top), behavior: reduceMotion.matches ? "auto" : "smooth" });
+  }
+  $("#tour-title").focus({ preventScroll: true });
+}
+
+function endTour() {
+  if (tour.i < 0) return;
+  tour.el?.classList.remove("tour-focus");
+  tour.i = -1;
+  tour.el = null;
+  $("#tour").hidden = true;
+}
+
+$("#tour-start").addEventListener("click", () => showTourStep(0));
+$("#tour-back").addEventListener("click", () => { if (tour.i > 0) showTourStep(tour.i - 1); });
+$("#tour-next").addEventListener("click", async () => {
+  if (TOUR[tour.i]?.finish) {
+    endTour();
+    history.pushState({}, "", "/");
+    await viewChanged();
+    return;
+  }
+  showTourStep(tour.i + 1);
+});
+$("#tour-close").addEventListener("click", () => { endTour(); $("#tour-start").focus(); });
+document.addEventListener("keydown", (e) => {
+  if (tour.i < 0 || e.target.closest?.("input, textarea, select")) return;
+  if (e.key === "Escape") { endTour(); $("#tour-start").focus(); }
+  else if (e.key === "ArrowRight" && !TOUR[tour.i].finish) showTourStep(tour.i + 1);
+  else if (e.key === "ArrowLeft" && tour.i > 0) showTourStep(tour.i - 1);
+});
 
 $("#steps").addEventListener("click", async (e) => {
   const b = e.target.closest("button[data-step]");

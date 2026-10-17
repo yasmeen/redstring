@@ -264,3 +264,14 @@ def test_claude_agent_loop_uses_only_its_tools(monkeypatch):
     assert names == {t.name for t in registry.for_agent("scout")}
     assert fake.calls[0]["model"] == "claude-opus-5-5"
     assert tools.screening_card("crux")["verdict"] == "pursue"
+
+
+def test_overview_exposes_walkthrough_video(monkeypatch):
+    import redstring.web.app as web
+    tools._world_cache = None
+    seed.seed_all()
+    c = TestClient(web.app)
+    monkeypatch.setattr(web, "VIDEO_URL", "")
+    assert c.get("/api/overview").json()["video_url"] == ""
+    monkeypatch.setattr(web, "VIDEO_URL", "https://youtu.be/abc123XYZ")
+    assert c.get("/api/overview").json()["video_url"] == "https://youtu.be/abc123XYZ"

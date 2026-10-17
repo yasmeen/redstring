@@ -160,8 +160,32 @@
   </nav>
 
   <section class="a-intro" aria-labelledby="analysis-intro-heading">
-    <h2 class="a-title" id="analysis-intro-heading">How Red String uses the graph</h2>
-    <p class="a-lede">Every lead, audience, creative technique and decision is a node in FalkorDB. Agents only touch it through named queries, so each verdict on this page is a graph traversal you can follow.</p>
+    <p class="a-kicker">What Red String is for</p>
+    <h2 class="a-title" id="analysis-intro-heading">Stop making lookalike work for clients who reach the same people</h2>
+    <div class="ps-grid" id="ps-grid">
+      <article class="ps">
+        <h3><span class="ps-n">1</span>The problem</h3>
+        <p>A creative agency makes short videos for many local businesses, and several of them reach the same people, like parents of kids 7 to 12 in one neighborhood. If the gym's reel reuses a rare trick the art studio down the street is known for, those parents see both, and both clients look generic. No one can remember every past post for every client, and a spreadsheet doesn't know who reaches whom.</p>
+      </article>
+      <article class="ps">
+        <h3><span class="ps-n">2</span>What Red String does</h3>
+        <p>It keeps a graph of who reaches whom and which creative moves each business is known for. Agents check every new lead and every draft against that graph before anything goes out, write down why, and stop for a person on anything that matters: board calls, pitches, signing and posting.</p>
+      </article>
+      <article class="ps proof">
+        <h3><span class="ps-n">3</span>What it caught in this run</h3>
+        <p id="ps-proof">Loading this run's results…</p>
+        <p id="ps-proof-more" class="muted"></p>
+      </article>
+    </div>
+    <div class="a-actions">
+      <button type="button" class="btn primary big" id="tour-start">Take the 2-minute tour <span aria-hidden="true">→</span></button>
+      <p class="muted">Or scroll: each chart below starts with how to read it.</p>
+    </div>
+    <figure class="a-video" id="a-video" hidden>
+      <div class="a-video-frame" id="a-video-frame"></div>
+      <figcaption class="muted">Video walkthrough of Red String</figcaption>
+    </figure>
+    <p class="a-built"><b>How it's built:</b> every lead, audience, creative technique and decision is a node in FalkorDB. Agents only touch it through named queries, so each verdict on this page is a graph traversal you can follow.</p>
   </section>
 
   <section class="chapter" id="ch-architecture" aria-labelledby="graph-architecture-heading">
@@ -170,6 +194,11 @@
       <p class="ch-cap">Each prospect or client keeps its own graph. Only a Fingerprint, the technique IDs a draft uses, is projected into the shared <code>agency</code> graph. Cross-client checks run there; copy, posts and goals never leave the client.</p></div>
       <p class="ch-tags"><span class="qtag">P1</span><span class="qtag">Q0</span><span class="qtag">Q1</span><span class="qtag">Q2</span></p>
     </header>
+    <dl class="howto">
+      <div><dt>What it shows</dt><dd>Where the data lives. Each business Red String works with has its own private graph (left and right). The shared agency graph in the middle holds who reaches whom and the creative vocabulary.</dd></div>
+      <div><dt>How to read it</dt><dd>Each red string is one draft's fingerprint, the list of techniques it uses, copied into the shared graph. That fingerprint is the only thing that crosses; the counts in each box are what stays private.</dd></div>
+      <div><dt>Why it matters</dt><dd>A client's posts, scripts and goals never mix with another client's, yet the agency can still check new work against everyone's.</dd></div>
+    </dl>
     <div class="arch" id="graph-cards"></div>
     <p class="arch-legend" id="arch-legend"></p>
   </section>
@@ -180,6 +209,11 @@
       <p class="ch-cap">Scout follows each lead's audiences, and the audiences they overlap, to every signed client. The path weights add up to a conflict score per client, and the highest one sets the verdict. Pick a lead to trace it.</p></div>
       <p class="ch-tags"><span class="qtag">Q1</span><span class="qtag-tool">lead_conflict</span></p>
     </header>
+    <dl class="howto">
+      <div><dt>What it shows</dt><dd>Every lead (row) scored against every signed client (column), before the agency decides whether to pitch it.</dd></div>
+      <div><dt>How to read it</dt><dd>Each number is how strongly the lead competes with that client for the same people; darker red is more. At <b data-t="borderline">0.50</b> or more the board decides, and at <b data-t="differentiate">0.90</b> or more it can only be pitched with a distinct creative angle. Pick a lead: on the map, thicker lines reach an audience more strongly, dotted lines join audiences that overlap, and the bars rank its clients against the two cutoffs.</dd></div>
+      <div><dt>Why it matters</dt><dd>The agency knows before it pitches whether a new business would put it in competition with a client it already serves.</dd></div>
+    </dl>
     <div class="screen-grid">
       <div class="table-scroll heat-wrap"><table class="heat" id="screening-table"></table></div>
       <div class="net-panel">
@@ -196,6 +230,11 @@
       <p class="ch-cap">A draft is blocked when it shares rare techniques with a business that reaches the same people. Risk is similarity times audience overlap; anything at the threshold or above is caught before it ships.</p></div>
       <p class="ch-tags"><span class="qtag">Q2</span><span class="qtag-tool">double_take</span></p>
     </header>
+    <dl class="howto">
+      <div><dt>What it shows</dt><dd>Drafts that Standards stopped before they shipped, and whose existing work each one looked like.</dd></div>
+      <div><dt>How to read it</dt><dd>Left is the blocked draft, the dark chips are the rare techniques it shares, and right is the business already known for them. Below, <b>similarity</b> (how much of the draft's rare technique use matches) times <b>audience overlap</b> (how much the two reach the same people) gives the risk. A bar past the <b data-t="flag_risk">0.35</b> mark is blocked.</dd></div>
+      <div><dt>Why it matters</dt><dd>Two clients never put lookalike work in front of the same people. A blocked draft goes back to the Producer for a new idea.</dd></div>
+    </dl>
     <p class="muted" id="cleared-checks"></p>
     <div class="dt-cards" id="double-take-table"></div>
   </section>
@@ -206,8 +245,12 @@
       <p class="ch-cap">A signature is a rare technique in 30% or more of a business's work. Red marks the territory behind this run's blocked drafts: the same rare techniques, used by businesses that reach the same people.</p></div>
       <p class="ch-tags"><span class="qtag">Q0</span><span class="qtag-tool">derive_signatures</span></p>
     </header>
+    <dl class="howto">
+      <div><dt>What it shows</dt><dd>Which business is known for which rare technique: its signature moves.</dd></div>
+      <div><dt>How to read it</dt><dd>Rows are businesses, columns are rare techniques. A dot means the technique is one of that business's signatures, and a bigger dot means more of its work uses it. Red columns are the techniques behind this run's blocked drafts. Hover a dot for the exact share.</dd></div>
+      <div><dt>Why it matters</dt><dd>This is the map Standards checks drafts against. A signature move is how people recognize a business, so the agency doesn't hand it to a neighbor.</dd></div>
+    </dl>
     <div class="table-scroll"><table class="territory" id="signatures-table"></table></div>
-    <p class="ch-foot muted">Dot size is the share of that business's work using the technique. Hover a dot for the exact share.</p>
   </section>
 
   <section class="chapter" id="ch-agents" aria-labelledby="agents-heading">
@@ -215,13 +258,18 @@
       <div><h2 class="placard" id="agents-heading">Agents never write raw Cypher</h2>
       <p class="ch-cap">Every query is a named MCP tool, and each agent only gets its slice. Every write also records a Decision with who made it and why.</p></div>
     </header>
+    <dl class="howto">
+      <div><dt>What it shows</dt><dd>Which agent is allowed to run which graph query.</dd></div>
+      <div><dt>How to read it</dt><dd>A red dot means the agent can call that query. "Other tools" counts its tools that aren't graph queries. The cards below give each query in plain words, who calls it, and its exact Cypher.</dd></div>
+      <div><dt>Why it matters</dt><dd>Agents can't improvise database reads or writes. Each one has only what its job needs, and every write records who made it and why.</dd></div>
+    </dl>
     <div class="table-scroll"><table class="access" id="analysis-agents"></table></div>
     <div class="query-list" id="queries"></div>
   </section>
 
   <section class="chapter" id="ch-raw" aria-labelledby="raw-logs-heading">
     <details class="raw">
-      <summary><h2 class="placard" id="raw-logs-heading">Raw data</h2><span class="muted">Decisions, run log, thresholds and graph IDs</span></summary>
+      <summary><h2 class="placard" id="raw-logs-heading">Raw data</h2><span class="muted">For checking our work: every decision record, the thresholds, the run log and graph IDs</span></summary>
       <div class="raw-body">
         <div class="under-hood-meta">
           <p class="graphs"><span class="label">Graph IDs</span><span id="meta"></span></p>
@@ -238,6 +286,19 @@
     </details>
   </section>
 </main>
+
+<div class="tour analysis-only" id="tour" role="dialog" aria-modal="false" aria-labelledby="tour-title" hidden>
+  <div class="tour-top">
+    <p class="tour-count" id="tour-count"></p>
+    <button type="button" class="tour-close" id="tour-close" aria-label="Close the tour">×</button>
+  </div>
+  <h2 class="tour-title" id="tour-title" tabindex="-1"></h2>
+  <p class="tour-body" id="tour-body"></p>
+  <div class="tour-nav">
+    <button type="button" class="btn" id="tour-back">← Back</button>
+    <button type="button" class="btn primary" id="tour-next">Next →</button>
+  </div>
+</div>
 
 <p class="sr-only" id="sr-status" aria-live="polite"></p>
 
