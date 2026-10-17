@@ -7,3 +7,4 @@ __pycache__/
 *.rdb
 data/runs/
 .falkordb/
+data/instinct_export*
