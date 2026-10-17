@@ -42,3 +42,28 @@ const ICON_PATHS = {
   "youtube": "<path d=\"M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17\" /> <path d=\"m10 15 5-3-5-3z\" />",
   "zap": "<path d=\"M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z\" />",
 };
+
+const LOGOS = {
+  "pixel-pond": "<path d=\"M12 7H8L4 16h6m10-9h4l4 9h-6\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M13 11h6m-8 4h8\" fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\"/>",
+  "wet-paint": "<path d=\"m8 23 3-7 10-10a3 3 0 0 1 4 4L15 20l-7 3Z\" fill=\"white\"/><path d=\"m11 16 4 4M22 5l2-2m-6 3 1-3m8 8 2-1\" fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\"/>",
+  "cannonball": "<path d=\"M4 12c2.5-3 5-3 8 0s5.5 3 8 0 5.5-3 8-1M4 19c2.5-3 5-3 8 0s5.5 3 8 0 5.5-3 8-1\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><circle cx=\"9\" cy=\"7\" r=\"2.5\" fill=\"white\"/>",
+  "byte-builders": "<rect x=\"8\" y=\"8\" width=\"16\" height=\"16\" rx=\"3\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\"/><path d=\"M12 4v4m8-4v4m-8 16v4m8-4v4M4 12h4m-4 8h4m16-8h4m-4 8h4\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><circle cx=\"16\" cy=\"16\" r=\"2\" fill=\"white\"/>",
+  "tumble-town": "<circle cx=\"12\" cy=\"12\" r=\"6\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\"/><circle cx=\"22\" cy=\"18\" r=\"4\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\"/><path d=\"M4 26h24\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linecap=\"round\"/>",
+  "treble-clef": "<path d=\"M19 5v15.5a3.5 3.5 0 1 1-2-3.16V8l-9 2v13.5a3.5 3.5 0 1 1-2-3.16V8l13-3Z\" fill=\"white\"/>",
+  "northpoint": "<path d=\"m16 4 2.5 8.5L27 15l-8.5 2.5L16 26l-2.5-8.5L5 15l8.5-2.5L16 4Z\" fill=\"white\"/><circle cx=\"16\" cy=\"15\" r=\"2\" fill=\"#3F5C8C\"/>",
+  "page-turn": "<path d=\"M16 8c-3-3-7-3-12-2v17c5-1 9-1 12 2 3-3 7-3 12-2V6c-5-1-9-1-12 2Z\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/><path d=\"M16 8v17\" fill=\"none\" stroke=\"white\" stroke-width=\"2\"/>",
+  "crux": "<path d=\"m4 25 8-13 4 6 4-10 8 17H4Z\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/><circle cx=\"12\" cy=\"12\" r=\"2\" fill=\"white\"/><circle cx=\"20\" cy=\"8\" r=\"2\" fill=\"white\"/>",
+  "second-rise": "<path d=\"M5 24c0-6 4-10 11-10s11 4 11 10H5Z\" fill=\"white\"/><path d=\"M9 13c1-5 4-8 8-8s7 3 8 8M12 19h8\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linecap=\"round\"/>",
+  "corner-cup": "<path d=\"M7 12h15v10a4 4 0 0 1-4 4h-7a4 4 0 0 1-4-4V12Zm15 3h3a3 3 0 0 1 0 6h-3\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/><path d=\"M11 8c0-2 2-2 2-4m4 4c0-2 2-2 2-4\" fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\"/>",
+  "still-water": "<circle cx=\"16\" cy=\"16\" r=\"11\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\"/><path d=\"M6 17c2-2 4-2 6 0s4 2 6 0 4-2 8 0\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><path d=\"M16 2v4\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linecap=\"round\"/>",
+  "good-boy": "<ellipse cx=\"16\" cy=\"19\" rx=\"7\" ry=\"6\" fill=\"white\"/><circle cx=\"8\" cy=\"10\" r=\"3\" fill=\"white\"/><circle cx=\"14\" cy=\"6\" r=\"3\" fill=\"white\"/><circle cx=\"21\" cy=\"7\" r=\"3\" fill=\"white\"/><circle cx=\"26\" cy=\"12\" r=\"3\" fill=\"white\"/>",
+  "deep-end": "<circle cx=\"16\" cy=\"16\" r=\"11\" fill=\"none\" stroke=\"white\" stroke-width=\"3\" stroke-dasharray=\"8 4\"/><path d=\"M5 26c2-2 4-2 6 0s4 2 6 0 4-2 6 0 4 2 6 0\" fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\"/>",
+  "half-moon-yoga": "<path d=\"M23 5a12 12 0 1 0 5 20A13 13 0 0 1 23 5Z\" fill=\"white\"/><path d=\"M10 24c2-4 4-6 6-6s4 2 6 6m-6-6v7m-6-3 6 3 6-3\" fill=\"none\" stroke=\"white\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",
+  "paper-moon-art": "<path d=\"m6 8 10-4 10 4v16l-10 4-10-4V8Z\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/><path d=\"m6 8 10 4 10-4M16 12v16M10 16l3 2m-3 3 3 2\" fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\"/>",
+  "rolling-pin": "<path d=\"M10 11h12v10H10z\" fill=\"white\"/><path d=\"M5 9v14m-2-14h4m-4 14h4m19-14v14m-2-14h4m-4 14h4\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",
+  "count-on-us": "<path d=\"M8 7v19m8-22v22m8-19v19M5 11h22M5 18h22\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><circle cx=\"12\" cy=\"11\" r=\"2.5\" fill=\"white\"/><circle cx=\"20\" cy=\"18\" r=\"2.5\" fill=\"white\"/>",
+  "fetch-and-fluff": "<path d=\"M8 11h3l2-3h6l2 3h3v10h-3l-2 3h-6l-2-3H8z\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/><circle cx=\"12\" cy=\"16\" r=\"1.5\" fill=\"white\"/><circle cx=\"20\" cy=\"16\" r=\"1.5\" fill=\"white\"/>",
+  "bright-lane-swim": "<path d=\"M6 5v22m7-22v22m7-22v22m7-22v22\" fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-dasharray=\"3 4\" stroke-linecap=\"round\"/><path d=\"M3 10c2-2 4-2 6 0s4 2 6 0 4-2 6 0 4 2 6 0 4-2 6 0\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linecap=\"round\"/>",
+};
+
+window.LOGOS = LOGOS;

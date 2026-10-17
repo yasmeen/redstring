@@ -101,12 +101,71 @@ const CATEGORY_ICONS = { "Bookshop with storytime": "book-open", "Kids art": "br
 const CATEGORY_HUE = { "Bookshop with storytime": "#7A4E2D", "Kids art": "#B5443B", Yoga: "#56703F", Cafe: "#6B4A3A", "Climbing gym": "#4F6170", "Kids coding": "#3F5C8C", "Kids gymnastics": "#8C4A7A", "Pet grooming": "#8A5E14", "Swim lessons": "#1F6A73", Tutoring: "#5A4A8C", Bakery: "#A0522D", "Music lessons": "#7A2E4A" };
 const TECHNIQUE_ICONS = { hook: "zap", transition: "move", structure: "layout-template", pacing: "gauge", text: "type", color: "droplet", audio: "audio-lines", format: "film" };
 const categoryIcon = (category) => icon(CATEGORY_ICONS[category] || "");
-const initials = (name) => String(name || "?").replace(/^the\s+/i, "").split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
-const avatar = (b, size = "") => b
-  ? `<span class="avatar${size ? ` ${size}` : ""}" style="--av:${CATEGORY_HUE[b.category] || "#5C4A4D"}" aria-hidden="true">${esc(initials(b.name))}</span>`
-  : "";
+const avatar = (b, size = "") => {
+  if (!b) return "";
+  const logo = LOGOS[b.id];
+  const fallback = ICON_PATHS[CATEGORY_ICONS[b.category]] || "";
+  const mark = logo
+    ? `<svg viewBox="0 0 32 32" aria-hidden="true">${logo}</svg>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${fallback}</svg>`;
+  return `<span class="avatar${size ? ` ${size}` : ""}" style="--av:${CATEGORY_HUE[b.category] || "#5C4A4D"}" aria-hidden="true">${mark}</span>`;
+};
 const bizByName = (name) => state.overview?.businesses.find((b) => b.name === name);
+const bizById = (id) => state.overview?.businesses.find((b) => b.id === id);
+function bizName(b, { link = true } = {}) {
+  if (!b) return "";
+  const id = b.id ? ` data-biz-card="${esc(b.id)}"` : "";
+  const content = `${avatar(b, "sm")}<span>${esc(b.name || b.id)}</span>`;
+  return link && b.id
+    ? `<button type="button" class="biz-link" data-pick="${esc(b.id)}"${id}>${content}</button>`
+    : `<span class="biz-name-inline"${id}>${content}</span>`;
+}
 const techChip = (name, kinds = {}) => `<span class="chip plain tech"${kinds[name] ? ` title="${esc(kinds[name])}"` : ""}>${icon(TECHNIQUE_ICONS[kinds[name]] || "")}${esc(name)}</span>`;
+
+let bizCardTimer = 0;
+function hideBizCard() {
+  clearTimeout(bizCardTimer);
+  $("#biz-card").hidden = true;
+}
+function scheduleBizCard(target) {
+  clearTimeout(bizCardTimer);
+  if (!window.matchMedia("(hover: hover)").matches || isAnalysisView()) return;
+  bizCardTimer = window.setTimeout(() => {
+    const b = bizById(target.dataset.bizCard);
+    if (!b) return;
+    const client = state.overview?.clients?.find((c) => c.id === b.id);
+    const meta = [b.category, hoodOf(b) || client?.neighborhood].filter(Boolean).join(" · ");
+    const detail = b.status === "signed"
+      ? client?.goals?.[0]?.text || ""
+      : displayStudioCopy(b.reason || "").replace(/\s*\(conflict [^)]*\)/gi, "").trim();
+    const status = b.status === "signed" ? chip("client", "Signed") : chip(b.verdict || b.status);
+    const tip = $("#biz-card");
+    tip.innerHTML = `<div class="biz-card-head">${avatar(b, "lg")}<span><b>${esc(b.name)}</b><span>${esc(meta)}</span>${status}</span></div>${detail ? `<p>${esc(detail)}</p>` : ""}`;
+    tip.hidden = false;
+    const rect = target.getBoundingClientRect();
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - tip.offsetWidth - 8));
+    const top = Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - tip.offsetHeight - 8));
+    tip.style.left = `${left}px`;
+    tip.style.top = `${top}px`;
+  }, 250);
+}
+document.addEventListener("mouseover", (e) => {
+  const target = e.target.closest("[data-biz-card]");
+  if (target && !target.contains(e.relatedTarget)) scheduleBizCard(target);
+});
+document.addEventListener("mouseout", (e) => {
+  const target = e.target.closest("[data-biz-card]");
+  if (target && !target.contains(e.relatedTarget)) hideBizCard();
+});
+document.addEventListener("focusin", (e) => {
+  const target = e.target.closest("[data-biz-card]") || e.target.closest("button, summary")?.querySelector("[data-biz-card]");
+  if (target) scheduleBizCard(target);
+});
+document.addEventListener("focusout", (e) => {
+  if (e.target.closest("[data-biz-card]") || e.target.closest("button, summary")?.querySelector("[data-biz-card]")) hideBizCard();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideBizCard(); });
+window.addEventListener("scroll", hideBizCard, true);
 
 function mediaOf(r) {
   const u = r.url || "";
@@ -169,7 +228,15 @@ function dismissIntro() {
 
 let introSeen = false;
 try { introSeen = localStorage.getItem(introKey) === "1"; } catch (_) { /* private mode */ }
-setIntroVisible(!introSeen);
+const introPhone = window.matchMedia("(max-width: 599px)");
+function syncIntroDefault() {
+  let dismissed = introSeen;
+  try { dismissed = localStorage.getItem(introKey) === "1"; } catch (_) { /* private mode */ }
+  setIntroVisible(!dismissed && !introPhone.matches);
+  introButton.textContent = introPhone.matches ? "New here? See how it works" : "New here? How it works";
+}
+syncIntroDefault();
+introPhone.addEventListener("change", syncIntroDefault);
 introButton.addEventListener("click", () => {
   setIntroVisible(true);
   intro.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "center" });
@@ -207,7 +274,6 @@ async function refresh() {
   state.overview = o;
   document.body.classList.toggle("readonly", !!o.readonly);
   $("#agency").textContent = o.agency;
-  $("#ws-mark").textContent = (o.agency || "").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   const hoods = (o.neighborhoods || []).map((h) => h.name).join(", ");
   $("#ws-meta").textContent = `${o.businesses.length} businesses${hoods ? ` in ${hoods}` : ""}`;
   $("#mode").textContent = `agents: ${o.mode}${o.readonly ? " · read-only" : ""}`;
@@ -309,11 +375,11 @@ function bizCard(b) {
   const client = (state.overview?.clients || []).find((c) => c.id === b.id);
   const meta = [b.category, hoodOf(b) || client?.neighborhood].filter(Boolean).map(esc).join(" · ");
   const goal = client?.goals?.[0]?.text;
-  const tags = b.status === "signed" ? `<span class="chip client">Signed</span>` : chip(b.verdict);
+  const tags = b.status !== "signed" && b.verdict !== "pursue" ? chip(b.verdict) : "";
   return `<button type="button" class="biz" data-biz="${esc(b.id)}" data-status="${esc(b.status)}" aria-pressed="${b.id === state.selected}">
-    <span class="biz-head">${avatar(b)}<span class="biz-title"><span class="biz-name">${esc(b.name)}</span>${meta ? `<span class="biz-meta">${categoryIcon(b.category)}${meta}</span>` : ""}</span></span>
+    <span class="biz-head">${bizName(b, { link: false })}<span class="biz-title">${meta ? `<span class="biz-meta">${categoryIcon(b.category)}${meta}</span>` : ""}</span></span>
     ${tags ? `<span class="biz-tags">${tags}</span>` : ""}${goal ? `<span class="biz-goal"><b>Goal:</b> ${esc(goal)}</span>` : ""}
-    ${b.status === "signed" && client?.won_pitch ? `<span class="biz-goal"><b>Won with spec work</b></span>` : ""}<span class="hole" aria-hidden="true"></span></button>`;
+    ${b.status === "signed" && client?.won_pitch ? `<span class="biz-goal"><b>Won with spec work</b></span>` : ""}</button>`;
 }
 
 const TIE = `<svg viewBox="0 0 44 12" aria-hidden="true"><circle cx="3" cy="6" r="3"/><path d="M3 6 C 15 13, 29 -1, 41 6"/><circle cx="41" cy="6" r="3"/></svg>`;
@@ -331,12 +397,12 @@ function needsEntries(o) {
     const why = displayStudioCopy(b.reason || "").replace(/\s*\(conflict [^)]*\)/i, "").replace(/;?\s*board call\.?$/i, "").trim();
     entries.push({
       n: 1, kind: "Board call", icon: "gavel", biz: b,
-      q: `Pursue ${esc(b.name)}?`,
+      q: "Pursue this lead?",
       what: `${why ? `${esc(why.replace(/\.$/, ""))}. ` : ""}Pursue opens its research; Pass takes it off the pipeline for 90 days.`,
       actions: ro ? `<span class="focus-wait">Waiting on the board</span><button type="button" class="btn ghost big" data-pick="${esc(i.business_id)}">See the screening</button>`
         : `<button type="button" class="btn primary big" data-lead-decision="pursue" data-slug="${esc(i.business_id)}">Pursue lead</button><button type="button" class="btn ghost big" data-lead-decision="pass" data-slug="${esc(i.business_id)}">Pass</button>`,
       more: ro ? "" : `<button type="button" class="text-button" data-pick="${esc(i.business_id)}">See the screening first →</button>`,
-      row: `<button type="button" class="focus-row" data-pick="${esc(i.business_id)}">${unit(1, "lead", "leads")}<span class="focus-row-text">Board call: pursue <b>${esc(b.name)}</b>?</span>${cta("Review")}</button>`,
+      row: `<button type="button" class="focus-row" data-pick="${esc(i.business_id)}">${unit(1, "lead", "leads")}<span class="focus-row-text">Board call: pursue ${bizName(b, { link: false })}?</span>${cta("Review")}</button>`,
     });
   });
   items.filter((i) => i.type === "pitch").forEach((i) => {
@@ -344,16 +410,16 @@ function needsEntries(o) {
     const attrs = `data-pitch="${esc(i.pitch_id)}" data-slug="${esc(i.business_id)}"`;
     entries.push({
       n: 1, kind: "Pitch to approve", icon: "send", biz: b,
-      q: `Approve ${esc(b.name)}'s pitch?`,
+      q: "Approve this pitch?",
       what: "Account Manager assembled it from spec posts that cleared Double Take. Nothing is sent until you approve.",
       actions: `<button type="button" class="btn primary big" ${attrs}>Review and decide</button>`,
-      row: `<button type="button" class="focus-row" ${attrs}>${unit(1, "pitch", "pitches")}<span class="focus-row-text">Approve <b>${esc(b.name)}</b>'s pitch</span>${cta("Review")}</button>`,
+      row: `<button type="button" class="focus-row" ${attrs}>${unit(1, "pitch", "pitches")}<span class="focus-row-text">Approve ${bizName(b, { link: false })}'s pitch</span>${cta("Review")}</button>`,
     });
   });
   const posts = items.filter((i) => i.type === "approve_posts");
   if (posts.length) {
     const total = posts.reduce((a, i) => a + i.draft_ids.length, 0);
-    const chips = posts.map((i) => `<button type="button" class="focus-chip" data-draft="${esc(i.draft_ids[0])}" data-slug="${esc(i.business_id)}">${avatar(byId[i.business_id], "xs")}<span>${esc(i.business || byId[i.business_id]?.name)}</span><b>${i.draft_ids.length}</b></button>`).join("");
+    const chips = posts.map((i) => `<button type="button" class="focus-chip" data-draft="${esc(i.draft_ids[0])}" data-slug="${esc(i.business_id)}">${bizName(byId[i.business_id] || { id: i.business_id, name: i.business }, { link: false })}<b>${i.draft_ids.length}</b></button>`).join("");
     entries.push({
       n: total, kind: "Posts to approve", icon: "circle-check",
       q: `Approve ${plural(total, "post", "posts")}?`,
@@ -390,22 +456,20 @@ function needsEntries(o) {
 function renderAttention(o) {
   const byId = Object.fromEntries(o.businesses.map((b) => [b.id, b]));
   const entries = needsEntries(o);
-  $("#next-day").classList.toggle("primary", entries.length === 0);
   const [first, ...rest] = entries;
   $("#needs-you-heading").textContent = entries.length ? `${plural(entries.length, "decision", "decisions")} waiting` : "All clear";
   $("#needs-you").innerHTML = first
     ? `<div class="focus-item">
-        ${first.biz ? avatar(first.biz, "lg") : `<span class="focus-icon">${icon(first.icon)}</span>`}
-        <div class="focus-copy"><p class="focus-item-kind">${icon(first.icon)}${esc(first.kind)}${rest.length ? " · decide first" : ""}</p>
-          <h3 class="focus-q">${first.q}</h3><p class="focus-what">${first.what}</p>${first.more || ""}</div>
+        <p class="focus-item-kind">${icon(first.icon)}${esc(first.kind)}${rest.length ? " · decide first" : ""}</p>
+        ${first.biz ? `<div class="focus-biz">${bizName(first.biz)}<span>${esc([first.biz.category, hoodOf(first.biz)].filter(Boolean).join(" · "))}</span></div>` : ""}
+        <div class="focus-copy"><h3 class="focus-q">${first.q}</h3><p class="focus-what">${first.what}</p>${first.more || ""}</div>
         <div class="focus-actions">${first.actions}</div>
       </div>${rest.length ? `<div class="focus-rows">${rest.map((e) => e.row).join("")}</div>` : ""}`
     : `<div class="needs-empty"><img class="needs-empty-image" src="/static/img/empty-all-clear.webp" width="720" height="720" alt="A tidy corkboard beside a cup of coffee." loading="lazy" decoding="async"><p>All clear: nothing needs you right now.</p></div>`;
   const blocked = (o.needs_you || []).filter((i) => i.type === "blocked").sort((a, z) => (z.risk || 0) - (a.risk || 0));
   $("#caught-count").textContent = blocked.length || "";
   $("#caught").innerHTML = blocked.map((i) => `<button type="button" class="caught-row" data-draft="${esc(i.draft_id)}" data-slug="${esc(i.business_id)}">
-      <span class="caught-pair">${avatar(byId[i.business_id], "sm")}<i class="caught-tie" aria-hidden="true"></i>${avatar(bizByName(i.with_business), "sm")}</span>
-      <span class="caught-who"><b>${esc(i.business || byId[i.business_id]?.name)}</b><span>looked like ${esc(i.with_business || "")}${i.also_like?.length ? ` and ${i.also_like.map(esc).join(", ")}` : ""}</span></span>
+      <span class="caught-who"><b>${bizName(byId[i.business_id] || { id: i.business_id, name: i.business }, { link: false })}</b><span class="caught-lookalikes"><span>looked like</span>${[i.with_business, ...(i.also_like || [])].map((name, index) => `${index ? "<span>and</span>" : ""}${bizName(bizByName(name), { link: false })}`).join("")}</span></span>
       ${typeof i.risk === "number" ? `<span class="risk-pill" title="Double Take risk">${n(i.risk)}</span>` : ""}
       <span class="caught-go" aria-hidden="true">→</span>
     </button>`).join("")
@@ -441,7 +505,6 @@ async function renderDays() {
   box.hidden = !a.can_advance && a.day === 0;
   $("#activity-toggle").hidden = box.hidden;
   $("#next-day").hidden = !a.can_advance;
-  $("#next-day").classList.toggle("primary", !needsEntries(state.overview || {}).length);
   if (box.hidden) {
     const steps = state.overview?.steps || [];
     const done = steps.filter((s) => s.done).length;
@@ -461,7 +524,7 @@ async function renderDays() {
   $("#days").innerHTML = days.map((d) => `<li class="day"><h3 class="day-h">Day ${d.day} <span class="muted">· ${esc(dayDate(d.date))}</span><span class="day-count">${d.entries.length} ${d.entries.length === 1 ? "action" : "actions"}</span></h3>
     <ul class="day-entries">${d.entries.slice().reverse().map((e) => `<li${e.agent === "Yaz" ? ' class="by-board"' : ""}>
       <details class="day-action">
-        <summary><span class="day-agent" title="${esc(e.agent)}" aria-label="${esc(e.agent)}">${agentIcon(e.agent)}</span>${avatar(byId[e.business_id], "xs")}<b>${esc(displayStudioCopy(e.text))}</b></summary>
+        <summary><span class="day-agent" title="${esc(e.agent)}" aria-label="${esc(e.agent)}">${agentIcon(e.agent)}</span>${e.business_id ? bizName(byId[e.business_id], { link: false }) : ""}<b>${esc(displayStudioCopy(e.text))}</b></summary>
         <div class="day-action-extra"><b>${esc(e.agent)}</b><span>${esc(displayStudioCopy(e.rationale || ""))}</span></div>
       </details>
     </li>`).join("")}</ul></li>`).join("")
@@ -492,10 +555,89 @@ document.querySelectorAll(".fold-toggle").forEach((button) => button.addEventLis
 
 async function feed() {
   const ds = await api("/api/decisions");
-  $("#feed").innerHTML = ds.map((d) =>
-    `<li><div><div class="who">${who(d.by)}</div><div class="g analysis-only">${esc(d.graph)}</div></div><div><b>${esc(displayStudioCopy(d.text))}</b><div class="muted">${esc(displayStudioCopy(d.rationale))}</div></div></li>`).join("")
+  const businesses = state.overview?.businesses || [];
+  const sorted = [...ds].sort((a, z) => Date.parse(z.at || 0) - Date.parse(a.at || 0));
+  const groups = new Map();
+  sorted.forEach((d) => {
+    const slug = d.graph?.startsWith("client:") ? d.graph.slice(7) : "";
+    const biz = businesses.find((b) => b.id === slug)
+      || (d.graph === "agency" ? businesses.find((b) => b.id === subjectOf(d.text || "", businesses)) : null);
+    const key = biz?.id || "agency";
+    if (!groups.has(key)) groups.set(key, { biz, entries: [] });
+    groups.get(key).entries.push(d);
+  });
+  const cleanHook = (hook) => String(hook || "").trim().replace(/[.,!?;:…]+$/u, "");
+  const sentenceFor = (d, b) => {
+    const text = String(d.text || "");
+    const name = b?.name || b?.id || "this business";
+    let m;
+    if ((m = text.match(/^Screened ([\w-]+): (.+)$/i))) {
+      const verdict = ({ borderline: "board call", pursue_differentiated: "pursue with a distinct angle", decline: "declined", pursue: "cleared to pursue" })[m[2]] || m[2];
+      return `Scout screened ${name}: ${verdict}.`;
+    }
+    if ((m = text.match(/^Draft v\d+: (.+)$/))) return `Producer wrote '${cleanHook(m[1])}'.`;
+    if ((m = text.match(/^Double Take: blocked, resembles (.+)$/i))) return `Double Take blocked a draft: it looked like ${m[1]}'s work.`;
+    if (/^Double Take: cleared$/i.test(text)) return "Double Take cleared the draft.";
+    if (/^Board approve: Pitch$/i.test(text)) return "Yaz approved the pitch.";
+    if (/^Status: signed$/i.test(text) || new RegExp(`\\b${b?.id || "____"} is now signed\\b`, "i").test(text)) return `Yaz signed ${name}.`;
+    if (/^Status: pitched$/i.test(text) || new RegExp(`\\b${b?.id || "____"} is now pitched\\b`, "i").test(text)) return `Account Manager pitched ${name}.`;
+    if (/^Status: pursued$/i.test(text) || new RegExp(`\\b${b?.id || "____"} is now pursued\\b`, "i").test(text)) return `Scout pursued ${name}.`;
+    if (/^Pitch angle:/i.test(text)) return `Account Manager prepared a pitch for ${name}.`;
+    if (/^Retired goal$/i.test(text)) return "Yaz retired a goal.";
+    if (/^Goal \(hypothesized\):/i.test(text)) return "Researcher recorded a goal hypothesis.";
+    if (/^Recorded (channel|competitor|audience) finding$/i.test(text)) return `Researcher recorded a ${text.match(/^Recorded (\w+)/i)[1]} finding.`;
+    if (/^Audited \d+ posts$/i.test(text)) return `Auditor ${text.toLowerCase()}.`;
+    if (/^Plan for /i.test(text)) return `Strategist prepared ${text.replace(/^Plan for /i, "a plan for ")}.`;
+    if (/^Taste profile v\d+$/i.test(text)) return "Style Director created a taste profile.";
+    return `${d.by || "Agent"}: ${text}`;
+  };
+  const renderGroup = ([key, group]) => {
+    const entries = group.entries;
+    const statements = [];
+    for (let i = 0; i < entries.length; i++) {
+      const d = entries[i], next = entries[i + 1];
+      const clearPair = d.by === "Standards" && /^Double Take: cleared$/i.test(d.text || "")
+        && next?.by === "Producer" && next.graph === d.graph
+        && (d.affects || []).includes("Draft") && (next.affects || []).includes("Draft")
+        && Date.parse(d.at || 0) - Date.parse(next.at || 0) < 5000;
+      if (clearPair) {
+        const hook = next.text.match(/^Draft v\d+: (.+)$/)?.[1];
+        if (hook) {
+          statements.push({ sentence: `Producer wrote '${cleanHook(hook)}', and Double Take cleared it.`, records: [d, next], by: next.by });
+          i++;
+          continue;
+        }
+      }
+      statements.push({ sentence: sentenceFor(d, group.biz), records: [d], by: d.by });
+    }
+    const collapsed = [];
+    statements.forEach((entry) => {
+      const last = collapsed[collapsed.length - 1];
+      if (last?.sentence === entry.sentence) {
+        last.count++;
+        last.records.push(...entry.records);
+      } else collapsed.push({ ...entry, count: 1 });
+    });
+    const title = group.biz ? bizName(group.biz) : `<h3>Across the agency</h3>`;
+    const list = collapsed.map((entry, i) => {
+      const rationale = entry.records.map((d) => d.rationale).filter(Boolean);
+      const why = [...new Set(rationale)].map((r) => `<p>${esc(displayStudioCopy(r))}</p>`).join("");
+      return `<li${i >= 5 ? ' class="feed-extra" hidden' : ""}><div class="who">${who(entry.by || entry.records[0].by)}</div><p>${esc(entry.sentence)}${entry.count > 1 ? ` <span class="feed-count">×${entry.count}</span>` : ""}</p>${why ? `<details><summary>Why</summary>${why}</details>` : ""}</li>`;
+    }).join("");
+    return `<li class="feed-group"><div class="feed-group-head">${title}</div><ol class="feed-entries">${list}</ol>${collapsed.length > 5 ? `<button type="button" class="text-button feed-expand" aria-expanded="false">Show all ${entries.length}</button>` : ""}</li>`;
+  };
+  $("#feed").innerHTML = [...groups.entries()].map(renderGroup).join("")
     || `<li class="empty">No decisions yet. Run the steps above.</li>`;
 }
+
+$("#feed").addEventListener("click", (e) => {
+  const button = e.target.closest(".feed-expand");
+  if (!button) return;
+  const open = button.getAttribute("aria-expanded") !== "true";
+  button.setAttribute("aria-expanded", String(open));
+  button.closest(".feed-group").querySelectorAll(".feed-extra").forEach((item) => { item.hidden = !open; });
+  button.textContent = open ? "Show fewer" : `Show all ${button.closest(".feed-group").querySelectorAll(".feed-entries > li").length}`;
+});
 
 async function loadAnalysis() {
   const [analysis, decisions] = await Promise.all([api("/api/analysis"), api("/api/decisions")]);
@@ -591,7 +733,7 @@ function renderArchitecture(analysis, overview) {
       .map(([label, one, many]) => [count(g, label), one, many]).filter(([c]) => c > 0);
     return `<article class="gbox client" data-slug="${esc(slug)}">
       <div class="gbox-head"><code>${esc(g.name)}</code>${b.status ? chip(b.status) : ""}</div>
-      <p class="gname">${esc(b.name || slug)}</p>
+      <p class="gname">${b.id ? bizName(b, { link: false }) : esc(slug)}</p>
       <p class="gbox-counts">${parts.map(([c, one, many]) => `<span><b>${c}</b> ${c === 1 ? one : many}</span>`).join("") || "<span>empty</span>"}</p>
       <p class="gbox-runs">Private. Q4 traces and Q5 stale-draft checks run here.</p>
     </article>`;
@@ -634,7 +776,7 @@ function renderScreening(analysis, overview) {
     state.netLead = [...leads].sort((a, z) => (z.max_conflict || 0) - (a.max_conflict || 0))[0]?.id || null;
   }
   $("#lead-picker").innerHTML = [...leads].sort((a, z) => (z.max_conflict || 0) - (a.max_conflict || 0))
-    .map((row) => `<button type="button" class="lead-chip" data-lead="${esc(row.id)}" aria-pressed="${row.id === state.netLead}"><span class="lead-chip-name">${esc(row.name)}</span>${chip(row.verdict)}</button>`).join("");
+    .map((row) => `<button type="button" class="lead-chip" data-lead="${esc(row.id)}" aria-pressed="${row.id === state.netLead}"><span class="lead-chip-name">${bizName(bizById(row.id) || { id: row.id, name: row.name }, { link: false })}</span>${chip(row.verdict)}</button>`).join("");
   $("#screening-legend").textContent = `Conflict is the sum of path weights to one client. At ${n(t.borderline)} or more it is a board call; at ${n(t.differentiate)} or more Scout only pitches with a distinct angle. Same category in the same neighborhood is an automatic decline.`;
   $("#screening-table").innerHTML = `<caption class="sr-only">Conflict between each lead and each signed client</caption>
     <thead><tr><th scope="col">Lead</th>${clients.map((c) => `<th scope="col">${esc(c.name)}</th>`).join("")}<th scope="col">Verdict</th></tr></thead>
@@ -770,12 +912,12 @@ function renderDoubleTake(analysis) {
       return `<article class="dt-card" data-draft="${esc(g.draft)}">
       <div class="dt-graph">
         <svg class="dt-svg" aria-hidden="true"></svg>
-        <div class="dt-col"><div class="dt-node draft"><span class="k">Blocked draft</span><b>${esc(g.client)}</b><span class="hook">“${esc(g.draft_hook || g.draft)}”</span></div></div>
+        <div class="dt-col"><div class="dt-node draft"><span class="k">Blocked draft</span><b>${bizName(bizByName(g.client), { link: false })}</b><span class="hook">“${esc(g.draft_hook || g.draft)}”</span></div></div>
         <div class="dt-col dt-techs">${techs.map((x) => `<span class="dt-tech" data-tech="${esc(x)}">${esc(x)}</span>`).join("")}</div>
-        <div class="dt-col">${g.flags.map((f) => `<div class="dt-node other" data-shared="${esc((f.shared || []).join("|"))}"><span class="k">Looks like</span><b>${esc(f.with_business)}</b><span class="hook">${plural((f.evidence || []).length, "piece", "pieces")} of its work already use${(f.evidence || []).length === 1 ? "s" : ""} these</span></div>`).join("")}</div>
+        <div class="dt-col">${g.flags.map((f) => `<div class="dt-node other" data-shared="${esc((f.shared || []).join("|"))}"><span class="k">Looks like</span><b>${bizName(bizByName(f.with_business), { link: false })}</b><span class="hook">${plural((f.evidence || []).length, "piece", "pieces")} of its work already use${(f.evidence || []).length === 1 ? "s" : ""} these</span></div>`).join("")}</div>
       </div>
       <ul class="dt-risk">${g.flags.map((f) => `<li>
-        <span class="dt-eq">vs ${esc(f.with_business)}: similarity ${n(f.similarity)} × audience overlap ${n(f.overlap)} = <b>risk ${n(f.risk)}</b></span>
+        <span class="dt-eq">vs ${bizName(bizByName(f.with_business), { link: false })}: similarity ${n(f.similarity)} × audience overlap ${n(f.overlap)} = <b>risk ${n(f.risk)}</b></span>
         <span class="dt-bar" role="img" aria-label="risk ${n(f.risk)} against a threshold of ${n(f.flag_risk ?? t.flag_risk)}"><span class="fill" style="width:${Math.min(100, f.risk * 100)}%"></span><span class="tick" data-l="${n(f.flag_risk ?? t.flag_risk)}" style="left:${(f.flag_risk ?? t.flag_risk) * 100}%"></span></span>
       </li>`).join("")}</ul>
     </article>`;
@@ -903,9 +1045,9 @@ function renderIntroProof(analysis, overview) {
     const pct = (v) => Math.max(0, Math.min(100, v * 100));
     $("#ps-proof").innerHTML = `
       <div class="vs">
-        <div class="vs-side">${avatar(bizByName(top.client), "lg")}<b>${esc(top.client)}</b><span>new draft</span></div>
+        <div class="vs-side">${bizName(bizByName(top.client), { link: false })}<span>new draft</span></div>
         <span class="vs-eq" aria-hidden="true">≈</span>
-        <div class="vs-side"><span class="vs-avatars">${lookalikes.map((name) => avatar(bizByName(name), "lg")).join("")}</span><b>${esc(andList(lookalikes))}</b><span>already ${lookalikes.length === 1 ? "does" : "do"} this</span></div>
+        <div class="vs-side"><span class="vs-names">${lookalikes.map((name, i) => `${i ? " and " : ""}${bizName(bizByName(name), { link: false })}`).join("")}</span><span>already ${lookalikes.length === 1 ? "does" : "do"} this</span></div>
       </div>
       <q class="vs-hook">${esc(top.draft_hook || "Draft without a hook")}</q>
       <p class="vs-chips" aria-label="Shared techniques">${top.techs.map((tech) => `<span>${esc(tech)}</span>`).join("")}</p>
@@ -1139,7 +1281,7 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   const hood = hoodOf(b);
   let h = `<div class="dossier-meta"><span class="dossier-cat">${categoryIcon(b.category)}${esc(b.category)}${hood ? ` · ${esc(hood)}` : ""}</span>
       <button type="button" class="btn small dossier-close" data-dossier-close>Close</button></div>
-    <div class="dossier-title">${avatar(b, "lg")}<h2 class="name" id="dossier-h" tabindex="-1">${esc(b.name)}</h2></div>
+    <div class="dossier-title"><h2 class="name" id="dossier-h" tabindex="-1">${bizName(b, { link: false })}</h2></div>
     <div class="status-row">${chip(b.status)}${b.voice ? `<span class="muted">Voice: ${esc(b.voice)}</span>` : ""}</div>`;
 
   let overview = "";
@@ -1575,8 +1717,8 @@ async function loadTechniques() {
   const rare = state.overview?.thresholds.rare ?? 0.6;
   const by = {};
   ts.forEach((t) => (by[t.style] ||= []).push(t));
-  $("#tech-pick").innerHTML = Object.entries(by).map(([s, list]) => `<h3>${esc(s)}</h3>${list.map((t) =>
-    `<label><input type="checkbox" value="${esc(t.id)}"><span class="${t.rarity >= rare ? "rare" : ""}">${esc(t.name)}</span></label>`).join("")}`).join("");
+  $("#tech-pick").innerHTML = `<p class="rare-note"><span aria-hidden="true">●</span> Rare technique: few businesses use it.</p>${Object.entries(by).map(([s, list]) => `<h3>${esc(s)}</h3>${list.map((t) =>
+    `<label><input type="checkbox" value="${esc(t.id)}"><span class="${t.rarity >= rare ? "rare" : ""}">${esc(t.name)}${t.rarity >= rare ? '<span class="sr-only">, rare</span>' : ""}</span></label>`).join("")}`).join("")}`;
 }
 
 refresh().then(async () => {
