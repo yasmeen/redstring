@@ -21,7 +21,7 @@ The app presents Corkboard Studio as a working agency's workspace and doesn't la
 | Real | Invented |
 | --- | --- |
 | The agent pipeline, the graph, the seven queries; the real NYC neighborhoods Flatiron, NoMad, Gramercy Park, and Chelsea | All 14 businesses, their 63 past posts, and their goals |
-| Category and audience research with source URLs (`data/research/`) | The reference library: 200 placeholder references (`placeholder: true`, `example.com` URLs) with a realistic long-tail distribution of techniques. The real Instinct export was mostly raw captions and marketing notes rather than video-technique analyses, so it wasn't imported. `redstring import-refs` still works on an export with real analyses. |
+| Category and audience research with source URLs (`data/research/`)<br>The reference library: 251 short-form videos (Instagram Reels, YouTube Shorts) from small independent US businesses in the workspace's 12 categories, gathered with Muse (`data/reference_export.json`). Each has its public URL and a written description of how the video is made, which `redstring import-refs` mapped onto the 80 techniques. The descriptions are AI-written and haven't been checked video by video; view counts weren't collected. | — |
 
 Every business name is invented. Search each one before the demo and swap any that match a real business in these neighborhoods.
 
@@ -62,9 +62,9 @@ The schema follows the spec (Oct 15). Additions: `Decision` nodes also live in `
 
 ## Technique vocabulary and rarity
 
-There are 80 techniques in 8 categories (`data/techniques.json`), each in exactly one of 8 styles. The vocabulary is closed: `redstring import-refs` maps each Instinct analysis onto these ids with Claude structured outputs (an enum of ids), and anything that doesn't fit goes to `data/proposed_techniques.json` for Yaz to approve. Extraction never mints a Technique.
+There are 80 techniques in 8 categories (`data/techniques.json`), each in exactly one of 8 styles. The vocabulary is closed: `redstring import-refs` maps each reference analysis onto these ids with Claude structured outputs (an enum of ids), and anything that doesn't fit goes to `data/proposed_techniques.json` for Yaz to approve. Extraction never mints a Technique.
 
-`rarity(t) = log(N / (1 + n_t)) / log N`, computed at seed time. With N = 200, 2 references give 0.79 and 40 give 0.30. **Rare** means at least 0.6, about 7 or fewer of 200. A **signature** is a technique that is rare and appears in 30% or more of one business's active fingerprints. Every threshold lives in `redstring/config.py`.
+`rarity(t) = log(N / (1 + n_t)) / log N`, computed at seed time. With N = 200, 2 references give 0.79 and 40 give 0.30. **Rare** means at least 0.75, about 2 or fewer of the 251 references. A **signature** is a technique that is rare and appears in 30% or more of one business's active fingerprints. Every threshold lives in `redstring/config.py`.
 
 ## The seven queries
 
@@ -213,14 +213,14 @@ Eight agents and one human board. The revision loop is the core: Producer drafts
 
 The step runner at the top of the web app plays these in order. `redstring demo` runs them all.
 
-1. **Seed.** 14 businesses, 3 signed clients, 8 agents plus the board, 63 post fingerprints. Q0 finds Wet Paint's signature: Stop motion, Paint smear wipe, Handwritten titles. These are the planted set, in 4 of Wet Paint's posts and 4 of Cannonball's, and they are each history's best performers. That is the ghostwriter story.
+1. **Seed.** 14 businesses, 3 signed clients, 8 agents plus the board, 63 post fingerprints. Wet Paint's signature is now "Stop motion, Paint smear wipe, Hand over lens (the planted set) plus Handwritten titles". The planted set is still the one in 4 of Wet Paint's posts and 4 of Cannonball's, and its techniques are each history's best performers. That is the ghostwriter story.
 2. **Scout** declines Deep End Swim Club (same category as Cannonball, both in Gramercy Park). Byte Builders shares Pixel Pond's category but is in Chelsea, so Scout screens it on audience: pursue differentiated (conflict 1.464). It flags Tumble Town (conflict 1.58 with Wet Paint), Treble Clef and Northpoint for differentiated territory, calls Page Turn borderline (0.72), and clears the rest. It pursues Tumble Town and Treble Clef. Each verdict's thread shows its audience paths.
 3. **Researcher and Auditor** fill both private graphs: sourced findings, a hypothesized goal, and 3 audit findings computed from the posts.
-4. **Spec posts.** Tumble Town's post 2 is blocked: it resembles Wet Paint (and Cannonball), with risk 0.55. Treble Clef's post 1 is blocked against **Tumble Town's open pitch**, with risk 0.46. Both are revised from open territory and pass on re-check.
+4. **Spec posts.** Tumble Town's post 2 is blocked: it resembles Wet Paint (and Cannonball), with risk 0.55. Treble Clef's post 1 is blocked against **Tumble Town's open pitch**, with risk 0.45. Both are revised from open territory and pass on re-check.
 5. **Account Manager** assembles the Tumble Town pitch. Every claim opens to its source, and the goal is marked as our hypothesis.
 6. **The board approves.** Nothing is sent.
 7. **Tumble Town signs.** It is the same graph, now a client, with its history intact.
-8. **Cannonball's monthly draft** hits the planted collision (risk ≈ 0.5 against Wet Paint). Q3 offers Calm Explainer open territory, and the revision clears.
+8. **Cannonball's monthly draft** hits the planted collision (risk ≈ 0.45 against Wet Paint). Q3 offers Calm Explainer open territory, and the revision clears.
 9. **Retire Pixel Pond's goal.** Q5 surfaces its 2 queued drafts as stale.
 
 Then close on the graph itself in FalkorDB Browser (`docker compose up` serves it on :3000).
@@ -233,7 +233,7 @@ The web app has two live inputs. *Screen a new lead* adds a synthetic lead with 
 
 ## AI-use disclosure
 
-Claude helped design and write this codebase. In Claude mode the agents are Claude models calling the tools above, and Claude does the Instinct-analysis extraction. The synthetic world is generated by a seeded script, not by an LLM. The research cache was gathered by a Claude agent with web search and needs a human spot-check.
+Claude helped design and write this codebase. In Claude mode the agents are Claude models calling the tools above, and Claude maps the reference analyses onto the technique vocabulary. The synthetic world is generated by a seeded script, not by an LLM. The research cache was gathered by a Claude agent with web search and needs a human spot-check.
 
 ## Layout
 
@@ -249,5 +249,5 @@ redstring/pipeline.py     the demo pipeline and revision loop
 redstring/mcp_server.py   MCP server over the registry
 redstring/web/            FastAPI app + static UI
 redstring/worldgen.py     generates world.json
-redstring/extract.py      Instinct export → closed-vocabulary references
+redstring/extract.py      analyzer export (Muse, Instinct) → closed-vocabulary references
 ```
