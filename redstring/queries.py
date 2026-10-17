@@ -126,10 +126,12 @@ LIMIT 12
 REFERENCES_FOR = """
 MATCH (r:Reference)-[:USES]->(t:Technique)
 WHERE t.id IN $techniques
-WITH r, count(t) AS hits
-RETURN r.id AS id, r.url AS url, r.creator AS creator, hits
-ORDER BY hits DESC, coalesce(r.views, 0) DESC
-LIMIT $limit
+  AND NOT r.id IN $exclude
+  AND NOT r.creator IN $exclude_creators
+WITH r, count(DISTINCT t) AS hits, r.category = $category AS same
+RETURN r.id AS id, r.url AS url, r.creator AS creator, r.category AS category, hits, same
+ORDER BY hits + CASE WHEN same THEN 1 ELSE 0 END DESC, same DESC, hits DESC, r.id
+LIMIT $fetch
 """
 
 STYLES = """
@@ -161,6 +163,7 @@ OPTIONAL MATCH (d)-[:INSPIRED_BY]->(r:Reference)
 RETURN d.hook AS draft, d.status AS status, g.text AS goal, g.status AS goal_status,
        collect(DISTINCT {decision: dec.text, by: a.name, at: dec.at, rationale: dec.rationale}) AS decisions,
        collect(DISTINCT {kind: labels(src)[0], text: coalesce(src.text, src.url, src.summary, src.hook, src.with_business), source_url: src.source_url}) AS sources,
+       d.spec AS spec,
        collect(DISTINCT {url: r.url, creator: r.creator, category: r.category}) AS references
 """
 

@@ -1025,6 +1025,21 @@ async function openRoute(slug, id) {
     <div class="muted metric" style="margin-top:4px;font-size:.8125rem">Evidence: ${f.evidence.map((e) => `${esc(e.fingerprint)} (${esc(e.kind)}, ${esc(e.hits)} shared)`).join(", ")}</div></div>`).join("");
   else if (c.status !== "flagged") h += `<div class="okbox"><b>Cleared Double Take.</b></div>`;
   if (c.previous.length) h += `<div class="warnbox"><b>Revision</b> of ${c.previous.map((p) => `<span class="metric">v${esc(p.version)} </span>“${esc(p.hook)}”`).join(", ")}${c.flags_on_previous.length ? `, which was blocked for resembling ${c.flags_on_previous.map((f) => esc(f.with)).join(", ")} (${c.flags_on_previous.map((f) => f.shared.map(esc).join(", ")).join("; ")})` : ""}.</div>`;
+  if (c.spec) {
+    const lines = c.spec.split("\n").filter(Boolean);
+    const isShot = (l) => /^\d+ · /.test(l);
+    const notes = lines.filter((l) => !isShot(l)).flatMap((l) => l.startsWith("Color:") ? l.split(" · Audio: ").map((x, i) => (i ? `Audio: ${x}` : x)) : [l]);
+    h += `<h3>Shot list</h3><ol class="shots">${lines.filter(isShot).map((l) => {
+      const [, time, rest] = l.match(/^\d+ · ([^·]+) · (.*)$/) || [null, "", l];
+      const m = rest.match(/^(.*?)\s*\[([^\]]+)\]$/);
+      return `<li><span class="shot-time">${esc(time.trim())}</span><span>${esc(m ? m[1] : rest)}${m ? ` ${chip("plain", m[2])}` : ""}</span></li>`;
+    }).join("")}</ol><dl class="shot-notes">${notes.map((l) => {
+      const i = l.indexOf(":");
+      const v = l.slice(i + 1).trim().replace(/\s*\[[^\]]+\]/g, "");
+      const tags = [...l.matchAll(/\[([^\]]+)\]/g)].map((t) => chip("plain", t[1])).join(" ");
+      return `<div><dt>${esc(l.slice(0, i))}</dt><dd>${esc(v)}${tags ? ` ${tags}` : ""}</dd></div>`;
+    }).join("")}</dl>`;
+  }
   h += `<h3>Decisions</h3><div class="thread">${knots(c.decisions)}</div>`;
   h += `<h3>Sources</h3><ul class="list">${c.sources.filter((s) => s.kind !== "Reference").map((s) => `<li>${chip("plain", s.kind)} ${s.source_url ? link(s.source_url, s.text) : esc(s.text)}</li>`).join("") || "<li class='muted'>None.</li>"}</ul>`;
   h += `<h3>Techniques</h3><ul class="tech-list">${c.techniques.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>`;

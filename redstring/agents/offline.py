@@ -26,18 +26,295 @@ HOOKS = {
     ("pixel-pond", 2, 1): "Spring robotics, explained in one freeze frame per week.",
 }
 
+HOOK_SHOT = {
+    ("tumble-town", 1, 1): "Low angle on the spring floor: a gymnast counts down on her fingers, three, two, one, then cartwheels out of frame.",
+    ("tumble-town", 2, 1): "Phone on a tripod facing the mat: a gymnast kicks up into a handstand, shot one still frame at a time.",
+    ("tumble-town", 2, 2): "Split screen: a wobbly week-1 forward roll on the left, the clean week-8 roll on the right.",
+    ("tumble-town", 3, 1): "Wide on the low beam: three kids, ages 5 to 10, line up, and the youngest steps on first.",
+    ("treble-clef", 1, 1): "From the back of the recital room, turn slowly with the phone as the students take a bow.",
+    ("treble-clef", 1, 2): "Lay the phone lens-up inside an open cello case, then a student lifts the cello out over it.",
+    ("treble-clef", 2, 1): "Close on a small violinist's bow hand: three notes, then cut to her raised eyebrows.",
+    ("treble-clef", 3, 1): "Overhead on the piano keys: a student plays the last bar of Twinkle Twinkle.",
+    ("cannonball", 1, 1): "Just under the surface at the shallow end: a swimmer's face blowing a long stream of bubbles.",
+    ("cannonball", 1, 2): "At the pool edge, the instructor holds up five fingers, one for each step.",
+    ("pixel-pond", 1, 1): "Overhead on the coding table: the robot rolls forward, tries to turn left, and turns right instead.",
+    ("pixel-pond", 2, 1): "Overhead on the build table: the half-built robot from week 1, then freeze the frame.",
+}
+
 
 def _names(ids):
     return {t["id"]: t for t in tools.techniques(ids)}
 
 
-def _spec_text(technique_ids: list[str], voice: str) -> str:
-    t = _names(technique_ids)
-    by = {}
-    for tid in technique_ids:
-        by.setdefault(t[tid]["category"], []).append(t[tid]["name"])
-    parts = [f"{cat.capitalize()}: {', '.join(v)}." for cat, v in by.items()]
-    return f"Voice: {voice}. " + " ".join(parts)
+SCENE = {
+    "Bookshop with storytime": {
+        "subject": "a bookseller reading to a small group",
+        "place": "in the storytime corner",
+        "props": ["a picture book", "a felt bookmark", "a finger puppet"],
+        "cta": "Join the next storytime session",
+    },
+    "Kids art": {
+        "subject": "a young painter",
+        "place": "at the paint table",
+        "props": ["a paintbrush", "a watercolor sheet", "a colored pencil"],
+        "cta": "Book a trial art class",
+    },
+    "Yoga": {
+        "subject": "a student holding warrior pose",
+        "place": "on the studio mat row",
+        "props": ["a yoga block", "a yoga strap", "a folded blanket"],
+        "cta": "Book a first class",
+    },
+    "Cafe": {
+        "subject": "a barista making a latte",
+        "place": "at the espresso bar",
+        "props": ["a ceramic mug", "a milk pitcher", "a coffee filter"],
+        "cta": "Stop in for a coffee",
+    },
+    "Climbing gym": {
+        "subject": "a beginner climber",
+        "place": "beside the beginner wall",
+        "props": ["a chalk bag", "a climbing shoe", "a chalk brush"],
+        "cta": "Book an intro session",
+    },
+    "Kids coding": {
+        "subject": "a 7-year-old coder",
+        "place": "at the coding table",
+        "props": ["a small robot", "a coding card", "a USB cable"],
+        "cta": "Book a trial coding class",
+    },
+    "Kids gymnastics": {
+        "subject": "a 7-year-old gymnast",
+        "place": "on the spring floor",
+        "props": ["a chalk bucket", "a foam block", "a stretch band"],
+        "cta": "Book a free trial class",
+    },
+    "Pet grooming": {
+        "subject": "a small dog getting brushed",
+        "place": "at the grooming station",
+        "props": ["a soft brush", "a wide-tooth comb", "a clean towel"],
+        "cta": "Book a grooming visit",
+    },
+    "Swim lessons": {
+        "subject": "a beginner swimmer",
+        "place": "in the shallow end",
+        "props": ["a kickboard", "a pair of goggles", "a pool noodle"],
+        "cta": "Book a first lesson",
+    },
+    "Tutoring": {
+        "subject": "a student solving a math problem",
+        "place": "at the tutoring table",
+        "props": ["a dry-erase marker", "a number card", "a workbook"],
+        "cta": "Book a tutoring session",
+    },
+    "Bakery": {
+        "subject": "a baker shaping dough",
+        "place": "at the prep counter",
+        "props": ["a dough scraper", "a proofing basket", "a loaf pan"],
+        "cta": "Order a fresh loaf",
+    },
+    "Music lessons": {
+        "subject": "a young music student",
+        "place": "in the lesson room",
+        "props": ["a violin", "a cello bow", "a flute"],
+        "cta": "Book a trial music lesson",
+    },
+}
+
+SHOT = {
+    "hook_result_first": "Begin with the finished piece in frame; pull back to reveal {subject} {place} with {prop}.",
+    "str_overhead_process": "Hold the phone overhead, framing {subject} {place} as the first steps with {prop} unfold.",
+    "pace_timelapse": "Set the phone on a shelf; time-lapse {subject} {place} working through {prop} from setup to finish.",
+    "pace_stop_motion": "Brace the phone on a stand; take 20 stills of {subject} {place} shifting {prop} a little between frames.",
+    "tr_paint_smear": "Swipe washable paint across a clear acrylic sheet, then lift it to reveal {subject} {place} with {prop}.",
+    "tr_hand_cover": "Let {subject} cover the lens with a clean hand; uncover on the next action {place} with {prop} in view.",
+    "txt_handwritten": "Write one opening word on a card; pair it with {subject} {place} and {prop}.",
+    "col_primary_pop": "Place {subject} against a bold color; lock exposure while {prop} stays visible {place}.",
+    "aud_asmr_process": "Move close enough to capture the real sound of {subject} handling {prop} {place}; mute added music.",
+    "fmt_overhead_cam": "Mount the phone overhead and frame {subject} {place} arranging {prop} below.",
+    "hook_myth_bust": "Show the common mistake with {prop}, then cut to {subject} {place} doing it the safe way.",
+    "str_tutorial_steps": "Film one clear step at a time as {subject} {place} demonstrates {prop}.",
+    "pace_slow_reveal": "Start tight on {prop}; pull back until {subject} {place} comes into view.",
+    "pace_hold_long": "Hold a steady four-second take of {subject} {place} finishing one action with {prop}.",
+    "tr_dissolve": "Match two still angles of {subject} {place} holding {prop}; blend them with a short dissolve.",
+    "txt_lower_third": "Place a small name tag in the lower-left corner beside {subject} {place} and {prop}.",
+    "txt_checklist": "Reveal three checkboxes one by one as {subject} {place} marks each step with {prop}.",
+    "col_aqua_grade": "Cool the white balance slightly while {subject} and {prop} stay true-to-life {place}.",
+    "aud_voiceover": "Record one calm voiceover line over {subject} using {prop} {place}.",
+    "fmt_carousel": "Film {subject} {place} using {prop} from three held angles; cut between them like cards.",
+    "hook_mistake_first": "Show {subject} {place} making a common mistake with {prop}; hold before the correction.",
+    "hook_pov_text": "Set the phone at eye level; keep {prop} near the lower frame edge as {subject} looks into the lens {place}.",
+    "str_bug_hunt": "Film {subject} checking {prop} {place}; point out the snag, then show one small fix.",
+    "pace_jump_cut_talk": "Record {subject} explaining one useful point {place} with {prop} in hand; trim the pauses.",
+    "pace_freeze_frame": "Pause on the exact moment {subject} uses {prop} {place}; circle the detail in the phone editor.",
+    "tr_glitch": "Hold on {subject} using {prop} {place}; add two brief frame jumps before the next angle.",
+    "txt_label_callouts": "Draw a short arrow to the important detail beside {subject} and {prop} {place}.",
+    "txt_terminal_type": "Set one short instruction in monospace above {subject} and {prop} {place}.",
+    "col_mono_accent": "Make the clip black and white; leave {prop} as the only accent beside {subject} {place}.",
+    "aud_sfx_blips": "Add one quiet electronic blip when {subject} changes {prop} {place}.",
+    "hook_countdown": "Frame {subject} {place} counting down with fingers; keep {prop} ready for the first move.",
+    "str_challenge": "Give {subject} a timed task {place}; show the clock, {prop}, and the finish in quick cuts.",
+    "pace_fast_cuts": "Follow {subject} through three distinct actions {place} with {prop}; trim each to under a second.",
+    "pace_beat_sync": "Cut on four beats as {subject} {place} moves {prop} through the frame.",
+    "tr_whip_pan": "Whip the phone away from {subject} {place}; land on {prop} mid-blur in the next angle.",
+    "tr_zoom_punch": "Start wide on {subject} {place} with {prop}; punch into one small detail on the beat.",
+    "tr_spin": "Arc the phone around {subject} {place} holding {prop}; cut when the object fills the frame.",
+    "txt_kinetic_captions": "Caption each word as {subject} speaks while using {prop} {place}.",
+    "col_teal_orange": "Cool the shadows and warm the highlights; keep {subject} and {prop} natural {place}.",
+    "aud_trending_sound": "Set an in-app sound below the speaking voice as {subject} uses {prop} {place}.",
+    "hook_overheard": "Catch {subject} saying one short line {place} while reaching for {prop}.",
+    "str_day_in_life": "Follow {subject} through one real task {place}; begin with {prop} ready on the work surface.",
+    "str_behind_scenes": "Film the setup before the activity starts: {subject} {place} laying out {prop}.",
+    "pace_slow_mo": "Use the phone's slow-motion setting for one safe movement as {subject} works with {prop} {place}.",
+    "tr_snap_cut": "Cut on a finger snap from {subject} {place} to the result, with {prop} already in frame.",
+    "txt_serif_caption": "Set one small serif caption beside {subject} {place} and {prop}.",
+    "col_warm_film": "Warm the tint gently in the phone editor; keep {subject}'s skin tones and {prop} true {place}.",
+    "aud_lofi_bed": "Lay a quiet lo-fi instrumental under {subject} using {prop} {place}.",
+    "aud_room_tone": "Record two seconds of natural sound {place} before {subject} handles {prop}.",
+    "fmt_photo_dump": "Take three vertical photos of {subject} {place} with {prop}; pan slowly across them in the reel.",
+    "hook_kid_voice": "Let {subject} say the opening line straight to the phone {place}; keep {prop} within reach.",
+    "hook_object_reveal": "Start tight on {prop}; pull back to reveal {subject} {place} already in action.",
+    "str_seamless_loop": "Film {subject} beginning and ending the same movement with {prop} {place}; match the first and last frame.",
+    "pace_rewind": "Film {subject} moving {prop} in one smooth direction {place}; reverse the clip for a quick reset.",
+    "tr_object_pass": "Move {prop} close until it fills the frame; start the next angle as it clears, with {subject} continuing {place}.",
+    "tr_jump_through": "Set the phone low on a stable surface; follow {subject} moving across the frame {place}, with {prop} visible nearby, then cut at the edge of frame.",
+    "txt_kid_drawn": "Overlay a hand-drawn label beside {subject} and {prop} {place}.",
+    "txt_sticker_pop": "Pop a small sticker label beside {subject} and {prop} {place} on each key beat.",
+    "col_pastel": "Lower saturation slightly; keep {subject} and {prop} against a pale background {place}.",
+    "fmt_pov_cam": "Hold the phone near a child's eye line; keep {prop} low in frame as {subject} works {place}.",
+    "hook_question": "Have {subject} ask one direct question to the lens {place}, with {prop} in hand.",
+    "str_before_after": "Film {subject} with {prop} before the session and repeat the framing afterward {place}.",
+    "str_parent_interview": "Ask one parent a short question beside {subject} {place}; keep {prop} softly in the background.",
+    "str_listicle": "Keep the framing steady as {subject} points out three details of {prop} {place}, one per cut.",
+    "txt_big_number": "Set one large number beside {subject} demonstrating {prop} {place}.",
+    "txt_subtitle_bar": "Add a high-contrast subtitle bar under {subject} handling {prop} {place}.",
+    "col_brand_block": "Use a solid brand-color card; frame {subject} and {prop} against it {place}.",
+    "col_natural": "Correct exposure for {subject}'s face; keep daylight and {prop} neutral {place}.",
+    "aud_interview_bed": "Record {subject} speaking clearly {place}, then lay the voice under close shots of {prop}.",
+    "fmt_reel_long": "Record a full 30-second vertical take of {subject} {place} using {prop}; trim the cleanest section.",
+    "hook_cold_open": "Start mid-action as {subject} {place} uses {prop}; begin recording before the movement ends.",
+    "str_one_take": "Keep one unbroken take of {subject} completing the route that ends {place}, with {prop} in frame.",
+    "pace_speed_ramp": "Film {subject} starting slowly and speeding up with {prop} {place}; vary the clip speed in the editor.",
+    "tr_match_cut": "Frame {prop} in the same spot before and after {subject} changes the setup {place}; cut on its shape.",
+    "tr_body_wipe": "Set the phone on a dry surface; catch {subject} crossing close in front of it {place}, then reveal {prop} from the next angle.",
+    "col_neon_night": "Apply a restrained colored tint in the grade; keep detail visible around {subject} and {prop} {place}.",
+    "col_high_key": "Lift the whites without clipping; keep {subject} and {prop} clear {place}.",
+    "aud_silence_drop": "Drop the added music as {subject} sets down {prop} {place}; keep the real sound.",
+    "aud_count_in": "Keep four clear count-in beats before {subject} starts with {prop} {place}.",
+    "fmt_split_screen": "Record {subject} with and without {prop} from the same locked angle {place}; place the takes side by side.",
+}
+
+SUMMARY_INSTRUCTIONS = {
+    "txt_handwritten": "Use a handwritten title card for the opening phrase.",
+    "txt_lower_third": "Place a small name-and-role label in the lower-left corner.",
+    "txt_checklist": "Reveal each checklist item as the action is completed.",
+    "txt_label_callouts": "Add short labels with arrows pointing to key details.",
+    "txt_terminal_type": "Set one short instruction in a clean monospace typeface.",
+    "txt_kinetic_captions": "Captions appear one word at a time as the line is spoken.",
+    "txt_serif_caption": "Set one short caption in a small serif typeface.",
+    "txt_kid_drawn": "Overlay a hand-drawn label beside the action.",
+    "txt_sticker_pop": "Pop a small sticker label in on the beat.",
+    "txt_big_number": "Set one large number beside the action.",
+    "txt_subtitle_bar": "Use a high-contrast subtitle bar with comfortable screen padding.",
+    "col_primary_pop": "Boost the primary colors slightly; protect skin tones.",
+    "col_aqua_grade": "Cool the white balance slightly; keep neutrals clean.",
+    "col_mono_accent": "Make the clip monochrome and preserve one accent color.",
+    "col_teal_orange": "Cool the shadows and warm the highlights.",
+    "col_warm_film": "Warm the midtones gently; keep whites neutral.",
+    "col_pastel": "Lower saturation slightly and lift the brightest tones.",
+    "col_brand_block": "Hold a clean brand-color frame behind the title.",
+    "col_natural": "Correct exposure on faces and keep daylight neutral.",
+    "col_neon_night": "Apply one restrained colored tint while preserving detail.",
+    "col_high_key": "Lift the whites without clipping the highlights.",
+    "aud_asmr_process": "Keep the close handling sounds; mute added music.",
+    "aud_voiceover": "Record one calm voiceover line above the room tone.",
+    "aud_sfx_blips": "Add a quiet electronic blip on each state change.",
+    "aud_trending_sound": "Set the selected in-app track below the speaking voice.",
+    "aud_lofi_bed": "Add a quiet lo-fi instrumental under the dialogue.",
+    "aud_room_tone": "Keep two seconds of natural room tone before the first cue.",
+    "aud_interview_bed": "Keep the speaker clear above a low, even instrumental bed.",
+    "aud_silence_drop": "Drop the added music on the key action; retain the real sound.",
+    "aud_count_in": "Keep four clear count-in beats before the action.",
+}
+
+_PAD_SHOTS = (
+    "Start on the hands as {subject} sets {prop} into position {place}.",
+    "Shift to a side angle while {subject} makes one clean pass with {prop} {place}.",
+    "Track the movement for a beat, then hold on {subject} finishing with {prop} {place}.",
+    "Cut to a quiet detail: {prop} beside {subject} before the next action {place}.",
+)
+
+
+def _shot_list(client: str, technique_ids: list[str], voice: str, hook: str,
+               slot: int | None = None, version: int = 1) -> str:
+    business = tools.business(client)
+    scene = SCENE[business["category"]]
+    techniques = _names(technique_ids)
+    unique_ids = list(dict.fromkeys(technique_ids))
+    unknown = set(unique_ids) - SHOT.keys()
+    if unknown:
+        raise ValueError(f"missing shot instructions for {sorted(unknown)}")
+
+    def render(instruction: str, shot_number: int) -> str:
+        prop = scene["props"][(shot_number - 1) % len(scene["props"])]
+        return instruction.format(subject=scene["subject"], place=scene["place"], prop=prop)
+
+    hook_ids = [tid for tid in unique_ids if techniques[tid]["category"] == "hook"]
+    custom_hook = HOOK_SHOT.get((client, slot, version)) if slot is not None else None
+    if custom_hook:
+        shots = [{"ids": hook_ids, "literal": custom_hook, "templates": []}]
+    else:
+        hook_templates = [SHOT[tid] for tid in hook_ids]
+        if not hook_templates:
+            hook_templates = ["Open on {subject} beginning the action {place}, with {prop} ready in frame."]
+        shots = [{"ids": hook_ids, "literal": None, "templates": hook_templates}]
+
+    for category in ("structure", "pacing", "transition", "format"):
+        for tid in unique_ids:
+            if techniques[tid]["category"] == category:
+                shots.append({"ids": [tid], "literal": None, "templates": [SHOT[tid]]})
+
+    pad_index = 0
+    while len(shots) < 4:
+        shots.append({"ids": [], "literal": None, "templates": [_PAD_SHOTS[pad_index]]})
+        pad_index += 1
+    if len(shots) > 6:
+        for extra in shots[6:]:
+            shots[5]["ids"].extend(extra["ids"])
+            shots[5]["templates"].extend(extra["templates"])
+        shots = shots[:6]
+
+    shot_lines = []
+    start = 0
+    for index, shot in enumerate(shots, 1):
+        end = start + (3 if index == 1 else 4)
+        instruction = shot["literal"] or " ".join(
+            render(template, index) for template in shot["templates"]
+        )
+        labels = [techniques[tid]["name"] for tid in shot["ids"]]
+        line = f"{index} · {start}–{end}s · {instruction}"
+        if labels:
+            line += f" [{'; '.join(labels)}]"
+        shot_lines.append(line)
+        start = end
+
+    on_screen = [f"“{hook}”"]
+    on_screen.extend(f"{SUMMARY_INSTRUCTIONS[tid]} [{techniques[tid]['name']}]"
+                     for tid in unique_ids if techniques[tid]["category"] == "text")
+    colors = [f"{SUMMARY_INSTRUCTIONS[tid]} [{techniques[tid]['name']}]"
+              for tid in unique_ids if techniques[tid]["category"] == "color"]
+    audio = [f"{SUMMARY_INSTRUCTIONS[tid]} [{techniques[tid]['name']}]"
+             for tid in unique_ids if techniques[tid]["category"] == "audio"]
+    color_text = "; ".join(colors) or "Keep exposure consistent and preserve natural skin tones."
+    audio_text = "; ".join(audio) or "Keep the room's natural sound clear."
+
+    return "\n".join([
+        f"Voice: {voice}",
+        *shot_lines,
+        f"On screen: {'; '.join(on_screen)}",
+        f"Color: {color_text} · Audio: {audio_text}",
+        f"End card: {scene['cta']}",
+    ])
 
 
 # ------------------------------------------------------------------ Scout
@@ -146,14 +423,40 @@ def strategist(client: str, period: str) -> dict:
 def producer(client: str, plan_id: str, slot: int, technique_ids: list[str], kind: str,
              revision_of: str | None = None, version: int = 1) -> dict:
     voice = registry._style_of(client)["voice"]
-    hook = HOOKS.get((client, slot, version)) or f"{tools.business(client)['name']}, take {version}"
-    refs = tools.references_for(technique_ids, 2)
+    business = tools.business(client)
+    hook = HOOKS.get((client, slot, version)) or f"{business['name']}, take {version}"
+    excluded = tools.referenced_reference_ids(client)
+    excluded_creators = tools.referenced_reference_creators(client)
+    reference_candidates = tools.references_for(
+        technique_ids, limit=10, category=business["category"], exclude=excluded,
+        exclude_creators=excluded_creators,
+    )
+    excluded_ids = set(excluded)
+    used_creators = set(excluded_creators)
+    available = [
+        r for r in reference_candidates
+        if r["id"] not in excluded_ids and r.get("creator") not in used_creators
+    ]
+    category = business["category"]
+    group = next((categories for categories in config.CATEGORY_GROUP.values() if category in categories), [category])
+    refs = [r for r in available if r["category"] == category][:2]
+    if len(refs) < 2:
+        selected_ids = {r["id"] for r in refs}
+        group_refs = [
+            r for r in available
+            if r["category"] in group and r["category"] != category and r["id"] not in selected_ids
+        ]
+        refs.extend(group_refs[:2 - len(refs)])
     audience = [f["id"] for f in tools.findings(client, "audience")][:2]
-    rationale = (f"Built on {', '.join(t['name'] for t in tools.techniques(technique_ids)[:3])}; "
-                 f"inspired by {', '.join(r['id'] for r in refs) or 'no references'}.")
+    reference_note = (
+        f"inspired by {', '.join(r['id'] for r in refs)}"
+        if refs else "no close reference in the library"
+    )
+    rationale = f"Built on {', '.join(t['name'] for t in tools.techniques(technique_ids)[:3])}; {reference_note}."
     if revision_of:
         rationale = "Revision from open territory after a Double Take block. " + rationale
-    return registry._draft(client, plan_id, "reel", hook, _spec_text(technique_ids, voice), technique_ids,
+    spec = _shot_list(client, technique_ids, voice, hook, slot=slot, version=version)
+    return registry._draft(client, plan_id, "reel", hook, spec, technique_ids,
                            [r["id"] for r in refs], rationale, kind=kind, revision_of=revision_of,
                            based_on_findings=audience)
 
