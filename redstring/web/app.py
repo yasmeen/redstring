@@ -97,18 +97,23 @@ def _studio_context(businesses: list[dict]) -> tuple[list[dict], list[dict]]:
     for slug, data in client_data.items():
         business = data["business"]
         drafts = {draft["id"]: draft for draft in data["drafts"]}
-        seen = set()
+        by_draft: dict[str, list[dict]] = {}
         for flag in data["flags"]:
-            draft_id = flag["draft"]
-            if draft_id in seen:
-                continue
-            seen.add(draft_id)
+            by_draft.setdefault(flag["draft"], []).append(flag)
+        for draft_id, flags in by_draft.items():
             draft = drafts.get(draft_id)
             if not draft or draft.get("status") != "flagged":
                 continue
+            flag = flags[0]
             needs_you.append({
                 "type": "blocked",
                 "business_id": slug,
+                "business": business["name"],
+                "with_business": flag["with_business"],
+                "with_business_id": flag.get("with_business_id"),
+                "also_like": [f["with_business"] for f in flags[1:]],
+                "shared": flag.get("shared", []),
+                "hook": draft.get("hook", ""),
                 "draft_id": draft_id,
                 "message": f"{business['name']}'s draft looked like {flag['with_business']}'s work to the same people. Revised.",
             })
@@ -229,7 +234,17 @@ def analysis():
         for agent in tool.agents:
             agents.setdefault(agent, []).append(tool.name)
 
+    # The audience graph Q1 walks: who targets which audience, and which audiences overlap.
+    audience_graph = {
+        "audiences": db.rows(agency, "MATCH (a:Audience) RETURN a.id AS id, a.name AS name ORDER BY a.id"),
+        "overlaps": db.rows(agency, """MATCH (a:Audience)-[o:OVERLAPS]->(b:Audience)
+                                       RETURN a.id AS a, b.id AS b, o.share AS share"""),
+        "targets": db.rows(agency, """MATCH (b:Business)-[t:TARGETS]->(a:Audience)
+                                      RETURN b.id AS business_id, a.id AS audience_id, t.weight AS weight"""),
+    }
+
     return {
+        "audience_graph": audience_graph,
         "graphs": graphs,
         "screening": screening,
         "double_take": double_take,
