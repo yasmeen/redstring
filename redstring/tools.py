@@ -306,8 +306,37 @@ def write_plan(client: str, period: str, goal_id: str, rationale: str, agent: st
 
 # ------------------------------------------------------------------ Producer (P1)
 
-def references_for(technique_ids: list[str], limit: int = 3) -> list[dict]:
-    return db.rows(db.agency(), queries.REFERENCES_FOR, {"techniques": technique_ids, "limit": limit})
+def referenced_reference_ids(client: str) -> list[str]:
+    rows = db.rows(db.client(client), """MATCH (:Draft)-[:INSPIRED_BY]->(r:Reference)
+                                         RETURN DISTINCT r.id AS id""")
+    return [r["id"] for r in rows if r.get("id")]
+
+
+def references_for(technique_ids: list[str], limit: int = 3, category: str | None = None,
+                   exclude: list[str] | None = None) -> list[dict]:
+    if limit <= 0 or not technique_ids:
+        return []
+
+    params = {"techniques": technique_ids, "category": category, "exclude": list(dict.fromkeys(exclude or [])),
+              "fetch": limit * 6}
+    selected, seen_ids, seen_creators = [], set(), set()
+
+    def add_unique(rows):
+        for reference in rows:
+            reference_id = reference.get("id")
+            creator = reference.get("creator")
+            if not reference_id or reference_id in seen_ids or creator in seen_creators:
+                continue
+            selected.append(reference)
+            seen_ids.add(reference_id)
+            seen_creators.add(creator)
+            if len(selected) == limit:
+                break
+
+    add_unique(db.rows(db.agency(), queries.REFERENCES_FOR, params))
+    if len(selected) < limit and params["exclude"]:
+        add_unique(db.rows(db.agency(), queries.REFERENCES_FOR, params | {"exclude": []}))
+    return selected
 
 
 def write_draft(client: str, plan_id: str, fmt: str, hook: str, spec: str, technique_ids: list[str],

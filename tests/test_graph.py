@@ -1,5 +1,6 @@
 import pytest
 
+from redstring.agents import offline
 from redstring import db, queries, seed, tools
 from redstring.pipeline import Pipeline
 
@@ -79,6 +80,71 @@ def demo():
 
 def _chain(demo, key, slot):
     return demo[key]["posts"][slot - 1]
+
+
+def _demo_drafts(demo):
+    for client, key in (
+        ("tumble-town", "spec:tumble-town"),
+        ("treble-clef", "spec:treble-clef"),
+        ("cannonball", "cannonball"),
+        ("pixel-pond", "pixel-pond"),
+    ):
+        for chain in demo[key]["posts"]:
+            for draft in chain:
+                yield client, draft
+
+
+def test_offline_shot_and_scene_templates_cover_world():
+    world = tools.world()
+    assert set(offline.SHOT) == {t["id"] for t in world["techniques"]}
+    assert set(offline.SCENE) == {b["category"] for b in world["businesses"]}
+    assert len(offline.SCENE) == 12
+    assert all(set(scene) == {"subject", "place", "prop", "cta"} for scene in offline.SCENE.values())
+    for technique_id, instruction in offline.SHOT.items():
+        assert all(f"{{{placeholder}}}" in instruction for placeholder in ("subject", "place", "prop")), technique_id
+        instruction.format(subject="subject", place="place", prop="prop")
+
+
+def test_demo_drafts_have_filmable_shot_lists_with_all_techniques(demo):
+    for client, draft in _demo_drafts(demo):
+        card = tools.decision_trace(client, draft["draft"])
+        spec = card["spec"]
+        shot_lines = [line for line in spec.splitlines() if line.partition(" · ")[0].isdigit()]
+        assert 4 <= len(shot_lines) <= 6, (client, draft["draft"], spec)
+        assert f"“{card['draft']}”" in spec
+        assert spec.splitlines()[0].startswith("Voice: ")
+        assert spec.splitlines()[-1].startswith("End card: ")
+        duration = int(shot_lines[-1].split(" · ")[1].split("–")[1].removesuffix("s"))
+        assert 15 <= duration <= 30, (client, draft["draft"], duration)
+        technique_names = {t["name"] for t in tools.techniques(draft["techniques"])}
+        assert all(name in spec for name in technique_names), (client, draft["draft"], technique_names, spec)
+
+
+def test_demo_reference_picks_do_not_repeat_within_clients_or_drafts(demo):
+    for client in db.client_slugs():
+        rows = db.rows(db.client(client), """MATCH (d:Draft)-[:INSPIRED_BY]->(r:Reference)
+                                             RETURN d.id AS draft, r.id AS reference, r.creator AS creator""")
+        references = [r["reference"] for r in rows]
+        assert len(references) == len(set(references)), (client, references)
+        by_draft = {}
+        for row in rows:
+            by_draft.setdefault(row["draft"], []).append(row["creator"])
+        for draft, creators in by_draft.items():
+            assert len(creators) == len(set(creators)), (client, draft, creators)
+
+
+def test_demo_reference_picks_match_business_category_when_available(demo):
+    for client, draft in _demo_drafts(demo):
+        category = tools.business(client)["category"]
+        candidates = db.rows(db.agency(), """MATCH (r:Reference)-[:USES]->(t:Technique)
+                                             WHERE r.category = $category AND t.id IN $techniques
+                                             RETURN count(DISTINCT r) AS count""",
+                             {"category": category, "techniques": draft["techniques"]})[0]["count"]
+        if candidates:
+            cited = db.rows(db.client(client), """MATCH (:Draft {id: $id})-[:INSPIRED_BY]->(r:Reference)
+                                                  RETURN collect(DISTINCT r.category) AS categories""",
+                            {"id": draft["draft"]})[0]["categories"]
+            assert category in cited, (client, draft["draft"], category, draft["techniques"], cited)
 
 
 def test_tumble_town_spec_collides_with_wet_paint_then_clears(demo):
