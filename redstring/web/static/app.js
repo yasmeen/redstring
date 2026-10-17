@@ -277,7 +277,7 @@ function renderAttention(o) {
   const unscreened = items.filter((i) => i.type === "unscreened");
   const blocked = items.filter((i) => i.type === "blocked");
   let h = decisions.map((i) => i.type === "pitch"
-    ? `<button type="button" class="need-card pitch" data-pitch="${esc(i.pitch_id)}" data-slug="${esc(i.business_id)}"><span class="need-kind">Pitch to approve</span><span class="need-text">${esc(byId[i.business_id]?.name || i.message)}</span></button>`
+    ? `<button type="button" class="need-card pitch" data-pitch="${esc(i.pitch_id)}" data-slug="${esc(i.business_id)}"><span class="need-kind">Pitch to approve</span><span class="need-text">${esc(byId[i.business_id]?.name || i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`
     : i.type === "ready"
     ? `<button type="button" class="need-card" data-pick="${esc(i.business_ids[0])}"><span class="need-kind">Cleared to pitch</span><span class="need-text">${esc(i.message)}</span></button>`
     : `<button type="button" class="need-card borderline" data-pick="${esc(i.business_id)}"><span class="need-kind">Board call</span><span class="need-text">${esc(i.message)}</span></button>`).join("");
@@ -950,8 +950,10 @@ document.addEventListener("click", async (e) => {
   }
   const bd = e.target.closest("[data-board]");
   if (bd) {
-    const note = prompt(`Board note (${bd.dataset.board}):`, bd.dataset.board === "approve" ? "Approved. Nothing is sent from this workspace." : "Veto: ") ?? null;
-    if (note === null) return;
+    const veto = bd.dataset.board === "veto";
+    if (veto && !confirm(`Veto this ${BOARD_COPY[bd.dataset.label].noun}?`)) return;
+    const note = $("#board-note")?.value.trim() || (veto ? "Vetoed by the board." : "Approved by the board.");
+    bd.closest(".decide")?.querySelectorAll("button").forEach((b) => { b.disabled = true; });
     await api(`/api/board/${bd.dataset.slug}/${bd.dataset.label}/${bd.dataset.id}`, { method: "POST", body: JSON.stringify({ verdict: bd.dataset.board, note }) });
     bd.dataset.label === "Pitch" ? openPitch(bd.dataset.slug, bd.dataset.id) : openRoute(bd.dataset.slug, bd.dataset.id);
     refresh();
@@ -968,11 +970,44 @@ function sheetTop(kicker) {
   return `<div class="sheet-top"><p class="sheet-kicker">${kicker}</p><button type="button" class="btn small" data-close>Close</button></div>`;
 }
 
-function boardButtons(label, id, slug, primary) {
-  if (state.overview?.readonly) return "";
-  return `<div class="btn-row"><button type="button" class="btn${primary ? " primary" : ""}" data-board="approve" data-label="${label}" data-id="${esc(id)}" data-slug="${esc(slug)}">Board: approve</button>
-    <button type="button" class="btn" data-board="veto" data-label="${label}" data-id="${esc(id)}" data-slug="${esc(slug)}">Board: veto</button>
-    ${label === "Pitch" ? `<span class="muted">Nothing is sent from this workspace.</span>` : ""}</div>`;
+const BOARD_COPY = {
+  Pitch: {
+    noun: "pitch",
+    what: "Approve and Account Manager marks this pitch ready to send. Veto sends it back to draft. Your note becomes a rule the agents follow.",
+  },
+  Draft: {
+    noun: "post",
+    what: "This post cleared Double Take. Approve and it is ready to post for the client. Veto blocks it, and your note becomes a rule the agents follow.",
+  },
+};
+
+function decisionBar(label, id, slug, c) {
+  const last = c.decisions.filter((x) => /^Board (approve|veto)/.test(x.decision || ""))
+    .sort((a, b) => String(b.at).localeCompare(String(a.at)))[0];
+  const vetoed = last && /veto/.test(last.decision);
+  const pending = label === "Pitch" ? c.status === "draft" && !vetoed : c.status === "queued";
+  const { noun, what } = BOARD_COPY[label];
+  if (!pending) {
+    if (!last) return "";
+    return `<section class="decide done${vetoed ? " vetoed" : ""}" aria-label="Board decision">
+      <p class="decide-kicker">${vetoed ? "Vetoed" : "Approved"} by ${esc(last.by || "the board")}</p>
+      ${last.rationale ? `<p class="decide-what">${esc(last.rationale)}</p>` : ""}</section>`;
+  }
+  if (state.overview?.readonly) {
+    return `<section class="decide waiting" aria-label="Waiting on the board">
+      <p class="decide-kicker">Waiting on the board</p>
+      <p class="decide-what">Nothing goes out until the studio's board approves this ${noun}.</p></section>`;
+  }
+  const data = `data-label="${label}" data-id="${esc(id)}" data-slug="${esc(slug)}"`;
+  return `<section class="decide" aria-labelledby="decide-q">
+    <p class="decide-kicker">Needs your decision</p>
+    <p class="decide-q" id="decide-q">Approve this ${noun}?</p>
+    <p class="decide-what">${what}</p>
+    <label class="decide-note"><span>Note for the agents (optional)</span><textarea id="board-note" rows="2" maxlength="500"></textarea></label>
+    <div class="decide-actions">
+      <button type="button" class="btn primary big" data-board="approve" ${data}>Approve ${noun}</button>
+      <button type="button" class="btn veto" data-board="veto" ${data}>Veto</button>
+    </div></section>`;
 }
 
 function showSheet(h, title) {
@@ -984,7 +1019,7 @@ function showSheet(h, title) {
 async function openRoute(slug, id) {
   const c = await api(`/api/route/${slug}/${id}`);
   let h = sheetTop(`<span class="studio-only">Thread</span><span class="analysis-only">Thread · client:${esc(slug)} · ${esc(id)}</span>`) +
-    `<h2>${esc(c.draft)}</h2><p class="serves">${chip(c.status)} ${c.goal ? `serves ${chip(c.goal_status)} <b>${esc(c.goal)}</b>` : ""}</p>`;
+    `<h2>${esc(c.draft)}</h2><p class="serves">${chip(c.status)} ${c.goal ? `serves ${chip(c.goal_status)} <b>${esc(c.goal)}</b>` : ""}</p>` + decisionBar("Draft", id, slug, c);
   if (c.flags.length) h += c.flags.map((f) => `<div class="flagbox"><b>Double Take blocked this draft.</b> It resembles ${esc(f.with_business)}: shares ${f.shared.map(esc).join(", ")}.
     <div class="mono metric" style="margin-top:4px;font-size:.8125rem">similarity ${n(f.similarity)} × audience overlap ${n(f.overlap)} = risk ${n(f.risk)}</div>
     <div class="muted metric" style="margin-top:4px;font-size:.8125rem">Evidence: ${f.evidence.map((e) => `${esc(e.fingerprint)} (${esc(e.kind)}, ${esc(e.hits)} shared)`).join(", ")}</div></div>`).join("");
@@ -1012,18 +1047,17 @@ async function openRoute(slug, id) {
     const label = r.creator && r.category ? `${r.creator} · ${r.category}` : r.creator || r.category;
     return `<li>${link(r.url, label)}</li>`;
   }).join("") || "<li class='muted'>None.</li>"}</ul>`;
-  h += boardButtons("Draft", id, slug, false);
   showSheet(h, `Thread for ${c.draft}`);
 }
 
 async function openPitch(slug, id) {
   const c = await api(`/api/pitch/${slug}/${id}`);
   const h = sheetTop(`<span class="studio-only">Pitch</span><span class="analysis-only">Pitch · client:${esc(slug)} · ${esc(id)}</span>`) +
-    `<h2>${esc(c.angle)}</h2><p class="serves">${chip(c.status)} argues for ${chip(c.goal_status)} <b>${esc(c.goal)}</b></p>
+    `<h2>${esc(c.angle)}</h2><p class="serves">${chip(c.status)} argues for ${chip(c.goal_status)} <b>${esc(c.goal)}</b></p>${decisionBar("Pitch", id, slug, c)}
     ${c.goal_status === "hypothesized" ? `<div class="warnbox"><b>The goal is a hypothesis.</b> It is the Researcher's inference, shown to the prospect as one.</div>` : ""}
     <h3>Every claim, with its source</h3><ul class="list">${c.claims.map((f) => `<li>${chip("plain", f.kind)} ${f.kind === "audit" ? `${esc(f.text)} <span class="muted">From our audit of their posts.</span>` : f.source_url ? link(f.source_url, f.text) : `${esc(f.text)} ${link(f.source_url)}`}</li>`).join("")}</ul>
     <h3>Spec posts</h3><ul class="list">${c.spec_posts.map((d) => `<li><button type="button" class="row-btn" data-draft="${esc(d.id)}" data-slug="${esc(slug)}">${chip(d.status)} <b>${esc(d.hook)}</b></button></li>`).join("")}</ul>
-    <h3>Decisions</h3><div class="thread">${knots(c.decisions)}</div>` + boardButtons("Pitch", id, slug, true);
+    <h3>Decisions</h3><div class="thread">${knots(c.decisions)}</div>`;
   showSheet(h, `Pitch for ${slug}`);
 }
 
