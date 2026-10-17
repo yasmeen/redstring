@@ -41,6 +41,7 @@ BORDERLINE_CONFLICT = 0.5     # at or above: borderline, the board decides
 
 # Passed prospects' spec fingerprints stop counting in Q2 after this many days
 PASSED_COOLDOWN_DAYS = 90
+MAX_OPEN_PURSUITS = 3
 
 MODEL = os.environ.get("REDSTRING_MODEL", "claude-opus-5-5")
 

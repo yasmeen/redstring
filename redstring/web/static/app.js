@@ -242,6 +242,7 @@ async function refresh() {
     $("#aud-sliders").addEventListener("input", (e) => { if (e.target.type === "range") e.target.nextElementSibling.textContent = e.target.value; });
   }
   feed();
+  renderDays();
 
   $("#follow").hidden = !state.pinned || !!o.readonly;
   if (state.selected && (isSplit() || $("#drawer").classList.contains("open"))) await openBusiness(state.selected, { quiet: true, animate: moved });
@@ -366,6 +367,39 @@ function renderBoard(o) {
       ${items.length ? `<div class="cards">${items.map(bizCard).join("")}</div>` : `<p class="empty-row">${esc(emptyText)}</p>`}</section>`;
   }).join("");
 }
+
+const dayDate = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+
+async function renderDays() {
+  const a = await api("/api/activity");
+  const box = $("#dayloop");
+  box.hidden = !a.can_advance && a.day === 0;
+  if (box.hidden) return;
+  $("#day-label").textContent = `Day ${a.day} · ${dayDate(a.date)}`;
+  const left = a.feed_left.length;
+  $("#day-feed").textContent = left ? `${left} new ${left === 1 ? "lead" : "leads"} still to arrive` : "";
+  $("#next-day").hidden = !a.can_advance;
+  const byId = Object.fromEntries((state.overview?.businesses || []).map((b) => [b.id, b]));
+  const days = a.days.filter((d) => d.day > 0);
+  $("#days").innerHTML = days.map((d) => `<li class="day"><h3 class="day-h">Day ${d.day} <span class="muted">· ${esc(dayDate(d.date))}</span><span class="day-count">${d.entries.length} ${d.entries.length === 1 ? "action" : "actions"}</span></h3>
+    <ul class="day-entries">${d.entries.slice().reverse().map((e) => `<li${e.agent === "Yaz" ? ' class="by-board"' : ""}><span class="who">${who(e.agent)}</span><span>${avatar(byId[e.business_id], "xs")}<b>${esc(displayStudioCopy(e.text))}</b><span class="muted"> ${esc(displayStudioCopy(e.rationale || ""))}</span></span></li>`).join("")}</ul></li>`).join("")
+    || `<li class="day empty muted">Day 0. Press Next day and the agents start working.</li>`;
+}
+
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("#next-day");
+  if (!b) return;
+  b.disabled = true;
+  const label = b.innerHTML;
+  b.textContent = "Agents working…";
+  try {
+    await api("/api/next-day", { method: "POST" });
+    await refresh();
+  } finally {
+    b.disabled = false;
+    b.innerHTML = label;
+  }
+});
 
 async function feed() {
   const ds = await api("/api/decisions");

@@ -106,7 +106,7 @@ def test_offline_shot_and_scene_templates_cover_world():
     assert len(offline.SCENE) == 12
     assert all(set(scene) == {"subject", "place", "props", "cta", "hooks"} for scene in offline.SCENE.values())
     assert all(2 <= len(scene["props"]) <= 3 for scene in offline.SCENE.values())
-    assert all(len(scene["hooks"]) == 5 for scene in offline.SCENE.values())
+    assert all(len(scene["hooks"]) == 8 for scene in offline.SCENE.values())
     assert all(len(hook.split()) <= 12 and "!" not in hook for scene in offline.SCENE.values()
                for hook in scene["hooks"])
     assert all(scene["place"].split(" ", 1)[0] in {"at", "beside", "in", "on"}
@@ -148,6 +148,20 @@ def test_fallback_hooks_are_category_specific_and_unique(monkeypatch):
     assert len(set(outputs)) == 6
     assert all(", take" not in hook for hook in outputs)
     assert set(fallback_hooks) <= set(offline.SCENE[category]["hooks"])
+
+
+def test_fallback_hooks_remain_unique_after_category_hooks_are_used(monkeypatch):
+    client = "cannonball"
+    category = "Swim lessons"
+    used = [{"hook": hook} for hook in offline.SCENE[category]["hooks"]]
+    monkeypatch.setattr(tools, "drafts", lambda _client: list(used))
+
+    hook = offline._fallback_hook(client, 9, 1, category)
+
+    assert hook not in {draft["hook"] for draft in used}
+    assert len(hook.split()) <= 12
+    assert any(base[0].lower() + base[1:] in hook for base in offline.SCENE[category]["hooks"])
+    assert hook.split(": ", 1)[1][0].islower()
 
 
 def test_fallback_hook_is_in_template_opening_shot(demo):

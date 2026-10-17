@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from .. import config, db, queries, registry, tools
+from .. import config, db, loop, queries, registry, tools
 from ..pipeline import STEPS, Pipeline, run_step
 
 STATIC = Path(__file__).parent / "static"
@@ -191,6 +191,8 @@ def overview():
         "agency": w["agency"]["name"],
         "mode": MODE,
         "readonly": READONLY,
+        "day": tools.sim_day(),
+        "date": tools.sim_date(),
         "businesses": businesses,
         "clients": clients,
         "needs_you": needs_you,
@@ -201,6 +203,67 @@ def overview():
         "steps": [{"id": s, "label": l, "done": s in _done} for s, l in STEPS],
         "log": _log[-60:],
         "thresholds": _thresholds(),
+    }
+
+
+@app.post("/api/next-day")
+def next_day():
+    _writable()
+    with _lock:
+        try:
+            return loop.next_day(log=_log.append)
+        except Exception as e:
+            _log.append(f"ERROR in next day: {e}")
+            raise HTTPException(500, str(e))
+
+
+@app.get("/api/activity")
+def activity():
+    w = tools.world()
+    current_day = tools.sim_day()
+    existing = {row["id"] for row in db.rows(db.agency(), "MATCH (b:Business) RETURN b.id AS id")}
+    feed_left = [
+        {key: business[key] for key in ("id", "name", "category", "arrives")}
+        for business in w.get("lead_feed", [])
+        if business["id"] not in existing
+    ]
+
+    names = {row["id"]: row["name"] for row in db.rows(db.agency(), "MATCH (b:Business) RETURN b.id AS id, b.name AS name")}
+    decisions = [*tools.decisions(None, 500)]
+    for slug in db.client_slugs():
+        decisions.extend({**d, "business_ids": d.get("business_ids") or [slug]} for d in tools.decisions(slug, 500))
+
+    unique = {}
+    for decision in decisions:
+        business_ids = decision.get("business_ids") or []
+        business_id = business_ids[0] if business_ids else None
+        key = (decision["day"], decision["by"], decision["text"], decision["rationale"], business_id)
+        unique.setdefault(key, {
+            "day": decision["day"],
+            "agent": decision["by"],
+            "text": re.sub(r"\b[a-z0-9]+(?:-[a-z0-9]+)+\b", lambda m: names.get(m.group(0), m.group(0)), decision["text"]),
+            "rationale": decision["rationale"],
+            "business_id": business_id,
+            "at": decision["at"],
+        })
+
+    by_day: dict[int, list[dict]] = {}
+    for entry in unique.values():
+        by_day.setdefault(entry["day"], []).append(entry)
+    days = [
+        {
+            "day": day,
+            "date": tools.sim_date(day),
+            "entries": sorted(entries, key=lambda entry: entry["at"], reverse=True),
+        }
+        for day, entries in sorted(by_day.items(), reverse=True)
+    ]
+    return {
+        "day": current_day,
+        "date": tools.sim_date(current_day),
+        "feed_left": feed_left,
+        "can_advance": not READONLY,
+        "days": days,
     }
 
 
