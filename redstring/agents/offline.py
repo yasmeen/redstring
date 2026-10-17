@@ -5,6 +5,7 @@ graph; every number in it comes from a query.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from statistics import mean
 
@@ -52,74 +53,170 @@ SCENE = {
         "place": "in the storytime corner",
         "props": ["a picture book", "a felt bookmark", "a finger puppet"],
         "cta": "Join the next storytime session",
+        "hooks": [
+            "Why does this page have a tiny door?",
+            "The puppet picked the book today.",
+            "Three voices, one sleepy dragon.",
+            "Find the hidden moon before the story ends.",
+            "This picture changes when you turn the page.",
+        ],
     },
     "Kids art": {
         "subject": "a young painter",
         "place": "at the paint table",
         "props": ["a paintbrush", "a watercolor sheet", "a colored pencil"],
         "cta": "Book a trial art class",
+        "hooks": [
+            "One blue brushstroke becomes a whole sky.",
+            "Which color appears when these two meet?",
+            "Watch the blank paper fill from corner to corner.",
+            "The paint made a shape nobody planned.",
+            "A tiny line turns into a garden path.",
+        ],
     },
     "Yoga": {
         "subject": "a student holding warrior pose",
         "place": "on the studio mat row",
         "props": ["a yoga block", "a yoga strap", "a folded blanket"],
         "cta": "Book a first class",
+        "hooks": [
+            "Can you balance through one quiet breath?",
+            "Feet planted, then the whole room slows down.",
+            "One small shift makes this pose steadier.",
+            "Hold the pose until the breath settles.",
+            "First the wobble, then the stillness.",
+        ],
     },
     "Cafe": {
         "subject": "a barista making a latte",
         "place": "at the espresso bar",
         "props": ["a ceramic mug", "a milk pitcher", "a coffee filter"],
         "cta": "Stop in for a coffee",
+        "hooks": [
+            "That first pour makes a little leaf.",
+            "Listen for the espresso to finish its song.",
+            "The milk turns the coffee one shade lighter.",
+            "One spoon, one swirl, no rush.",
+            "Steam clears and the cup is ready.",
+        ],
     },
     "Climbing gym": {
         "subject": "a beginner climber",
         "place": "beside the beginner wall",
         "props": ["a chalk bag", "a climbing shoe", "a chalk brush"],
         "cta": "Book an intro session",
+        "hooks": [
+            "Find the hold hiding just above your shoulder.",
+            "One foot moves; the other hand waits.",
+            "Can you reach the blue hold without rushing?",
+            "Three moves, then a careful step down.",
+            "The route starts easier than it looks.",
+        ],
     },
     "Kids coding": {
         "subject": "a 7-year-old coder",
         "place": "at the coding table",
         "props": ["a small robot", "a coding card", "a USB cable"],
         "cta": "Book a trial coding class",
+        "hooks": [
+            "The robot keeps turning the wrong way.",
+            "One small code change makes the wheels turn.",
+            "Can the robot reach the paper flag?",
+            "The bug is one arrow pointing backward.",
+            "Watch the sensor stop the robot at the line.",
+        ],
     },
     "Kids gymnastics": {
         "subject": "a 7-year-old gymnast",
         "place": "on the spring floor",
         "props": ["a chalk bucket", "a foam block", "a stretch band"],
         "cta": "Book a free trial class",
+        "hooks": [
+            "Count on your fingers, then try the roll.",
+            "The beam looks wider from this end.",
+            "One soft landing after three quick steps.",
+            "The cartwheel starts with a careful hand.",
+            "Can you stay balanced for one slow count?",
+        ],
     },
     "Pet grooming": {
         "subject": "a small dog getting brushed",
         "place": "at the grooming station",
         "props": ["a soft brush", "a wide-tooth comb", "a clean towel"],
         "cta": "Book a grooming visit",
+        "hooks": [
+            "The dog finally holds still for the brush.",
+            "One quick comb finds the knot behind the ear.",
+            "The towel comes off and the curls spring up.",
+            "Watch the paws dry one at a time.",
+            "The brush finds the soft spot every time.",
+        ],
     },
     "Swim lessons": {
         "subject": "a beginner swimmer",
         "place": "in the shallow end",
         "props": ["a kickboard", "a pair of goggles", "a pool noodle"],
         "cta": "Book a first lesson",
+        "hooks": [
+            "Blow bubbles first, then lift your face.",
+            "Five fingers mark the steps to a first float.",
+            "The kickboard stays still while the feet move.",
+            "One breath, one reach, then a rest.",
+            "Watch the bubbles reach the wall.",
+        ],
     },
     "Tutoring": {
         "subject": "a student solving a math problem",
         "place": "at the tutoring table",
         "props": ["a dry-erase marker", "a number card", "a workbook"],
         "cta": "Book a tutoring session",
+        "hooks": [
+            "One changed sign fixes the whole problem.",
+            "The last line finally matches the first.",
+            "Check the answer by working backward.",
+            "Two ways to solve the same question.",
+            "A scratch-paper mistake shows where to look.",
+        ],
     },
     "Bakery": {
         "subject": "a baker shaping dough",
         "place": "at the prep counter",
         "props": ["a dough scraper", "a proofing basket", "a loaf pan"],
         "cta": "Order a fresh loaf",
+        "hooks": [
+            "The dough springs back after one gentle press.",
+            "Listen for the crust as the loaf cools.",
+            "One fold turns the sticky dough smooth.",
+            "The steam lifts when the oven door opens.",
+            "That flour mark shows how far it rose.",
+        ],
     },
     "Music lessons": {
         "subject": "a young music student",
         "place": "in the lesson room",
         "props": ["a violin", "a cello bow", "a flute"],
         "cta": "Book a trial music lesson",
+        "hooks": [
+            "Three notes, then the bow stops together.",
+            "The last note hangs in the room.",
+            "One string rings louder than the others.",
+            "Listen for the melody under the warm-up.",
+            "A shaky start finds its rhythm by bar four.",
+        ],
     },
 }
+
+
+def _fallback_hook(client: str, slot: int, version: int, category: str) -> str:
+    hooks = SCENE[category]["hooks"]
+    start = int.from_bytes(hashlib.sha256(f"{client}:{slot}:{version}".encode()).digest()[:8], "big") % len(hooks)
+    used = {draft["hook"] for draft in tools.drafts(client)}
+    for offset in range(len(hooks)):
+        hook = hooks[(start + offset) % len(hooks)]
+        if hook not in used:
+            return hook
+    raise ValueError(f"No unused fallback hooks remain for {client} ({category})")
+
 
 SHOT = {
     "hook_result_first": "Begin with the finished piece in frame; pull back to reveal {subject} {place} with {prop}.",
@@ -257,7 +354,7 @@ def _shot_list(client: str, technique_ids: list[str], voice: str, hook: str,
 
     def render(instruction: str, shot_number: int) -> str:
         prop = scene["props"][(shot_number - 1) % len(scene["props"])]
-        return instruction.format(subject=scene["subject"], place=scene["place"], prop=prop)
+        return instruction.format(subject=scene["subject"], place=scene["place"], prop=prop, hook=hook)
 
     hook_ids = [tid for tid in unique_ids if techniques[tid]["category"] == "hook"]
     custom_hook = HOOK_SHOT.get((client, slot, version)) if slot is not None else None
@@ -266,7 +363,11 @@ def _shot_list(client: str, technique_ids: list[str], voice: str, hook: str,
     else:
         hook_templates = [SHOT[tid] for tid in hook_ids]
         if not hook_templates:
-            hook_templates = ["Open on {subject} beginning the action {place}, with {prop} ready in frame."]
+            hook_templates = [
+                f"Open on {{subject}} beginning the action {{place}}, with {{prop}} ready as “{hook}” appears on screen."
+            ]
+        else:
+            hook_templates.append(f"Keep “{hook}” on screen during the opening action.")
         shots = [{"ids": hook_ids, "literal": None, "templates": hook_templates}]
 
     for category in ("structure", "pacing", "transition", "format"):
@@ -424,7 +525,7 @@ def producer(client: str, plan_id: str, slot: int, technique_ids: list[str], kin
              revision_of: str | None = None, version: int = 1) -> dict:
     voice = registry._style_of(client)["voice"]
     business = tools.business(client)
-    hook = HOOKS.get((client, slot, version)) or f"{business['name']}, take {version}"
+    hook = HOOKS.get((client, slot, version)) or _fallback_hook(client, slot, version, business["category"])
     excluded = tools.referenced_reference_ids(client)
     excluded_creators = tools.referenced_reference_creators(client)
     reference_candidates = tools.references_for(

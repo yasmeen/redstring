@@ -193,8 +193,8 @@ h1, h2, h3, h4, p { margin: 0; }
 .chip.pursue_differentiated::before { display: block; background: linear-gradient(90deg, var(--blue) 50%, transparent 50%); box-shadow: inset 0 0 0 1.5px var(--blue); }
 .chip.borderline, .chip.hypothesized, .chip.draft { background: var(--brass-wash); color: var(--brass); }
 .chip.borderline::before, .chip.hypothesized::before, .chip.draft::before { display: block; box-shadow: inset 0 0 0 2px var(--brass); }
-.chip.pass, .chip.decline, .chip.passed { background: var(--graphite-wash); color: var(--graphite); }
-.chip.pass::before, .chip.decline::before, .chip.passed::before { display: block; content: "×"; width: auto; height: auto; border-radius: 0; font: 700 0.875rem/0.7 var(--sans); }
+.chip.pass, .chip.decline, .chip.passed, .chip.vetoed { background: var(--graphite-wash); color: var(--graphite); }
+.chip.pass::before, .chip.decline::before, .chip.passed::before, .chip.vetoed::before { display: block; content: "×"; width: auto; height: auto; border-radius: 0; font: 700 0.875rem/0.7 var(--sans); }
 .chip.flagged, .chip.veto, .chip.retired, .chip.stale { background: var(--thread-wash); color: var(--thread-deep); }
 .chip.flagged::before, .chip.veto::before, .chip.retired::before, .chip.stale::before { display: block; background: var(--thread); border-radius: 2px; transform: rotate(45deg); width: 7px; height: 7px; }
 .chip.signed { background: var(--ink); color: var(--card); }
@@ -610,7 +610,6 @@ body.readonly[data-view="analysis"] .log:empty::before { content: none; }
 .shot-notes div { display: grid; grid-template-columns: 96px 1fr; gap: 12px; }
 .shot-notes dt { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding-top: 2px; }
 .shot-notes dd { margin: 0; }
-||||||| 3282601
 
 /* Board decision bar: the one place a human approves or vetoes */
 .decide { margin: 16px 0 22px; padding: 16px 18px 18px; border: 2px solid var(--thread); border-left-width: 6px; border-radius: var(--radius); background: var(--thread-wash); }

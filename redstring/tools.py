@@ -500,7 +500,9 @@ def board_decide(client: str, target_label: str, target_id: str, verdict: str, n
     if target_label == "Pitch":
         db.run(g, "MATCH (p:Pitch {id: $id}) SET p.status = $s", {"id": target_id, "s": "approved" if verdict == "approve" else "draft"})
     elif target_label == "Draft":
-        db.run(g, "MATCH (d:Draft {id: $id}) SET d.status = $s", {"id": target_id, "s": "approved" if verdict == "approve" else "flagged"})
+        db.run(g, "MATCH (d:Draft {id: $id}) SET d.status = $s", {"id": target_id, "s": "approved" if verdict == "approve" else "vetoed"})
+        if verdict == "veto":
+            db.run(db.agency(), queries.RETIRE_FINGERPRINT, {"id": target_id, "now": now()})
     did = _decide(g, "board", f"Board {verdict}: {target_label}", note, [(target_label, target_id)])
     return {"decision": did, "verdict": verdict}
 

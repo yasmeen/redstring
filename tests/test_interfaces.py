@@ -139,6 +139,74 @@ def test_overview_groups_cleared_to_pitch_leads(monkeypatch):
     )
 
 
+def test_borderline_lead_can_be_pursued(monkeypatch):
+    import redstring.web.app as web
+    monkeypatch.setattr(web, "READONLY", False)
+    tools._world_cache = None
+    seed.seed_all()
+    from redstring.pipeline import Pipeline
+    Pipeline("offline", log=None).screen()
+
+    response = TestClient(web.app).post(
+        "/api/lead/page-turn/decide",
+        json={"verdict": "pursue", "note": "Start research."},
+    )
+
+    assert response.status_code == 200
+    assert tools.business("page-turn")["status"] == "pursued"
+    assert "client:page-turn" in db.list_graphs()
+
+
+def test_borderline_lead_can_be_passed(monkeypatch):
+    import redstring.web.app as web
+    monkeypatch.setattr(web, "READONLY", False)
+    tools._world_cache = None
+    seed.seed_all()
+    from redstring.pipeline import Pipeline
+    Pipeline("offline", log=None).screen()
+
+    response = TestClient(web.app).post(
+        "/api/lead/page-turn/decide",
+        json={"verdict": "pass", "note": "Not now."},
+    )
+
+    assert response.status_code == 200
+    assert tools.business("page-turn")["status"] == "passed"
+
+
+def test_borderline_lead_decision_is_readonly_guarded(monkeypatch):
+    import redstring.web.app as web
+    tools._world_cache = None
+    seed.seed_all()
+    from redstring.pipeline import Pipeline
+    Pipeline("offline", log=None).screen()
+    monkeypatch.setattr(web, "READONLY", True)
+
+    response = TestClient(web.app).post(
+        "/api/lead/page-turn/decide",
+        json={"verdict": "pursue"},
+    )
+
+    assert response.status_code == 403
+    assert tools.business("page-turn")["status"] == "lead"
+
+
+def test_nonborderline_lead_cannot_be_decided(monkeypatch):
+    import redstring.web.app as web
+    monkeypatch.setattr(web, "READONLY", False)
+    tools._world_cache = None
+    seed.seed_all()
+    from redstring.pipeline import Pipeline
+    Pipeline("offline", log=None).screen()
+
+    response = TestClient(web.app).post(
+        "/api/lead/crux/decide",
+        json={"verdict": "pursue"},
+    )
+
+    assert response.status_code == 400
+
+
 def test_analysis_views_are_readonly(monkeypatch):
     import redstring.web.app as web
     tools._world_cache = None

@@ -12,11 +12,12 @@ const VERDICT_HELP = {
   pursue_differentiated: "Reaches the same people as a client; pitch only with a different creative angle.",
   borderline: "Partial overlap; the board decides.",
 };
+const STATUS_LABELS = { passed: "Passed", vetoed: "Vetoed" };
 const chip = (v, label) => {
   if (!(v || label)) return "";
   const verdict = label === undefined && Object.prototype.hasOwnProperty.call(VERDICT_LABELS, v);
   const title = verdict ? ` title="${esc(VERDICT_HELP[v])}"` : "";
-  return `<span class="chip ${esc(v || "plain")}"${title}>${esc(label || VERDICT_LABELS[v] || String(v).replace(/_/g, " "))}</span>`;
+  return `<span class="chip ${esc(v || "plain")}"${title}>${esc(label || VERDICT_LABELS[v] || STATUS_LABELS[v] || String(v).replace(/_/g, " "))}</span>`;
 };
 const VERDICT_TEXT = new RegExp(`\\b(${Object.keys(VERDICT_LABELS).join("|")})\\b`, "g");
 const displayCopy = (text) => String(text ?? "")
@@ -143,6 +144,7 @@ const STEP_SHORT = {
 const STAGES = [
   ["Lead", (b) => b.status === "lead" && !b.verdict, "Every lead has been screened."],
   ["Screened", (b) => b.status === "lead" && b.verdict, "Nothing screened yet. Step 1 runs Scout."],
+  ["Passed", (b) => b.status === "passed", "No leads have been passed."],
   ["Pursued", (b) => b.status === "pursued", "No pursuits open."],
   ["Pitched", (b) => b.status === "pitched", "No pitches yet. The board approves every pitch, and nothing is ever sent."],
   ["Signed", (b) => b.status === "signed", "No clients yet."],
@@ -273,14 +275,16 @@ const TIE = `<svg viewBox="0 0 44 12" aria-hidden="true"><circle cx="3" cy="6" r
 function renderAttention(o) {
   const items = o.needs_you || [];
   const byId = Object.fromEntries(o.businesses.map((b) => [b.id, b]));
-  const decisions = items.filter((i) => ["borderline", "pitch", "ready"].includes(i.type));
+  const decisions = items.filter((i) => ["borderline", "pitch", "ready", "approve_posts"].includes(i.type));
   const unscreened = items.filter((i) => i.type === "unscreened");
   const blocked = items.filter((i) => i.type === "blocked");
   let h = decisions.map((i) => i.type === "pitch"
     ? `<button type="button" class="need-card pitch" data-pitch="${esc(i.pitch_id)}" data-slug="${esc(i.business_id)}"><span class="need-kind">Pitch to approve</span><span class="need-text">${esc(byId[i.business_id]?.name || i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`
+    : i.type === "approve_posts"
+    ? `<button type="button" class="need-card pitch" data-draft="${esc(i.draft_ids[0])}" data-slug="${esc(i.business_id)}"><span class="need-kind">Posts to approve</span><span class="need-text">${esc(i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`
     : i.type === "ready"
     ? `<button type="button" class="need-card" data-pick="${esc(i.business_ids[0])}"><span class="need-kind">Cleared to pitch</span><span class="need-text">${esc(i.message)}</span></button>`
-    : `<button type="button" class="need-card borderline" data-pick="${esc(i.business_id)}"><span class="need-kind">Board call</span><span class="need-text">${esc(i.message)}</span></button>`).join("");
+    : `<button type="button" class="need-card pitch borderline" data-pick="${esc(i.business_id)}"><span class="need-kind">Board call</span><span class="need-text">${esc(i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`).join("");
   if (unscreened.length) {
     h += `<button type="button" class="need-card" data-pick="${esc(unscreened[0].business_id)}"><span class="need-kind">Leads to screen</span><span class="need-text">${unscreened.length} new ${unscreened.length === 1 ? "lead is" : "leads are"} waiting for Scout</span></button>`;
   }
@@ -728,6 +732,21 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
     <div class="status-row">${chip(b.status)}${b.voice ? `<span class="muted">Voice: ${esc(b.voice)}</span>` : ""}</div>`;
 
   let overview = "";
+  if (b.status === "lead" && d.screening?.verdict === "borderline") {
+    overview += ro
+      ? `<section class="decide waiting" aria-label="Waiting on the board">
+          <p class="decide-kicker">Waiting on the board</p>
+          <p class="decide-what">The board will decide whether to pursue ${esc(b.name)}.</p></section>`
+      : `<section class="decide" aria-labelledby="lead-decide-q">
+          <p class="decide-kicker">Needs your decision</p>
+          <p class="decide-q" id="lead-decide-q">Pursue ${esc(b.name)}?</p>
+          <p class="decide-what">Pursue and Scout opens a private graph for this business so research can start. Pass and it leaves the pipeline for 90 days. Your note is kept with the decision.</p>
+          <label class="decide-note"><span>Note for the agents (optional)</span><textarea id="lead-decision-note" rows="2" maxlength="500"></textarea></label>
+          <div class="decide-actions">
+            <button type="button" class="btn primary big" data-lead-decision="pursue" data-slug="${esc(slug)}">Pursue lead</button>
+            <button type="button" class="btn big" data-lead-decision="pass" data-slug="${esc(slug)}">Pass</button>
+          </div></section>`;
+  }
   if (d.screening && d.screening.verdict) {
     const s = d.screening;
     overview += `<h3>Scout's screening</h3><div class="thread"><div class="knot"><div class="who">${esc(s.by || "Scout")} ${chip(s.verdict)}</div><p>${esc(displayStudioCopy(s.reason))}</p></div>
@@ -744,16 +763,20 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   if (d.has_graph && d.flags && d.flags.length) {
     const drafts = Object.fromEntries((d.drafts || []).map((x) => [x.id, x]));
     const byDraft = {};
-    d.flags.forEach((f) => (byDraft[f.draft] ||= []).push(f));
+    d.flags.forEach((f) => {
+      if (drafts[f.draft]?.status === "flagged") (byDraft[f.draft] ||= []).push(f);
+    });
     const ids = Object.keys(byDraft);
-    overview += `<h3>Double Take <span class="muted">${ids.length} ${ids.length === 1 ? "draft" : "drafts"} blocked</span></h3><div class="thread">${ids.map((id) => {
-      const dr = drafts[id];
-      return `<div class="knot hit"><div class="who">Blocked ${dr ? `<span class="metric">v${esc(dr.version)} </span>draft` : "draft"}</div><div class="body">
-        ${dr ? `<p><button type="button" class="row-btn" data-draft="${esc(id)}" data-slug="${esc(slug)}"><b>“${esc(dr.hook)}”</b></button></p>` : ""}
-        ${byDraft[id].map((f) => `<p>Too close to <b>${esc(f.with_business)}</b>: shares ${(f.shared || []).map(esc).join(", ")}.</p>
-        <p class="muted mono metric">similarity ${n(f.similarity)} × audience overlap ${n(f.overlap)} = risk ${n(f.risk)}</p>`).join("")}
-        <p class="analysis-bridge-row"><a class="analysis-bridge" href="/analysis?draft=${encodeURIComponent(id)}#ch-double-take" data-analysis-link>How was this decided?</a></p></div></div>`;
-    }).join("")}</div>`;
+    if (ids.length) {
+      overview += `<h3>Double Take <span class="muted">${ids.length} ${ids.length === 1 ? "draft" : "drafts"} blocked</span></h3><div class="thread">${ids.map((id) => {
+        const dr = drafts[id];
+        return `<div class="knot hit"><div class="who">Blocked <span class="metric">v${esc(dr.version)} </span>draft</div><div class="body">
+          <p><button type="button" class="row-btn" data-draft="${esc(id)}" data-slug="${esc(slug)}"><b>“${esc(dr.hook)}”</b></button></p>
+          ${byDraft[id].map((f) => `<p>Too close to <b>${esc(f.with_business)}</b>: shares ${(f.shared || []).map(esc).join(", ")}.</p>
+          <p class="muted mono metric">similarity ${n(f.similarity)} × audience overlap ${n(f.overlap)} = risk ${n(f.risk)}</p>`).join("")}
+          <p class="analysis-bridge-row"><a class="analysis-bridge" href="/analysis?draft=${encodeURIComponent(id)}#ch-double-take" data-analysis-link>How was this decided?</a></p></div></div>`;
+      }).join("")}</div>`;
+    }
   }
 
   let draftsTab = "";
@@ -937,6 +960,26 @@ document.addEventListener("click", async (e) => {
   const cl = e.target.closest("[data-close]");
   if (cl) { cl.closest("dialog").close(); return; }
   if (e.target.closest("[data-dossier-close]")) { closeOverlay(); return; }
+  const leadDecision = e.target.closest("[data-lead-decision]");
+  if (leadDecision) {
+    const verdict = leadDecision.dataset.leadDecision;
+    if (verdict === "pass" && !confirm("Pass this lead? It leaves the pipeline for 90 days.")) return;
+    const section = leadDecision.closest(".decide");
+    const buttons = [...section.querySelectorAll("button")];
+    const note = section.querySelector("#lead-decision-note")?.value.trim() || "";
+    buttons.forEach((button) => { button.disabled = true; });
+    try {
+      await api(`/api/lead/${leadDecision.dataset.slug}/decide`, {
+        method: "POST",
+        body: JSON.stringify({ verdict, note }),
+      });
+      await refresh();
+    } catch (err) {
+      buttons.forEach((button) => { button.disabled = false; });
+      alert(err.message);
+    }
+    return;
+  }
   const pick = e.target.closest("[data-pick]");
   if (pick) { select(pick.dataset.pick); return; }
   const dr = e.target.closest("[data-draft][data-slug]");
@@ -986,7 +1029,11 @@ function decisionBar(label, id, slug, c) {
     .sort((a, b) => String(b.at).localeCompare(String(a.at)))[0];
   const vetoed = last && /veto/.test(last.decision);
   const pending = label === "Pitch" ? c.status === "draft" && !vetoed : c.status === "queued";
-  const { noun, what } = BOARD_COPY[label];
+  const { noun } = BOARD_COPY[label];
+  const business = state.overview?.businesses.find((b) => b.id === slug);
+  const what = label === "Draft" && business?.status !== "signed"
+    ? "This spec post cleared Double Take. Approve and Account Manager can show it in the pitch. Veto blocks it, and your note becomes a rule the agents follow."
+    : BOARD_COPY[label].what;
   if (!pending) {
     if (!last) return "";
     return `<section class="decide done${vetoed ? " vetoed" : ""}" aria-label="Board decision">
@@ -1020,10 +1067,10 @@ async function openRoute(slug, id) {
   const c = await api(`/api/route/${slug}/${id}`);
   let h = sheetTop(`<span class="studio-only">Thread</span><span class="analysis-only">Thread · client:${esc(slug)} · ${esc(id)}</span>`) +
     `<h2>${esc(c.draft)}</h2><p class="serves">${chip(c.status)} ${c.goal ? `serves ${chip(c.goal_status)} <b>${esc(c.goal)}</b>` : ""}</p>` + decisionBar("Draft", id, slug, c);
-  if (c.flags.length) h += c.flags.map((f) => `<div class="flagbox"><b>Double Take blocked this draft.</b> It resembles ${esc(f.with_business)}: shares ${f.shared.map(esc).join(", ")}.
+  if (c.status === "flagged" && c.flags.length) h += c.flags.map((f) => `<div class="flagbox"><b>Double Take blocked this draft.</b> It resembles ${esc(f.with_business)}: shares ${f.shared.map(esc).join(", ")}.
     <div class="mono metric" style="margin-top:4px;font-size:.8125rem">similarity ${n(f.similarity)} × audience overlap ${n(f.overlap)} = risk ${n(f.risk)}</div>
     <div class="muted metric" style="margin-top:4px;font-size:.8125rem">Evidence: ${f.evidence.map((e) => `${esc(e.fingerprint)} (${esc(e.kind)}, ${esc(e.hits)} shared)`).join(", ")}</div></div>`).join("");
-  else if (c.status !== "flagged") h += `<div class="okbox"><b>Cleared Double Take.</b></div>`;
+  else if (c.status !== "flagged" && c.status !== "vetoed") h += `<div class="okbox"><b>Cleared Double Take.</b></div>`;
   if (c.previous.length) h += `<div class="warnbox"><b>Revision</b> of ${c.previous.map((p) => `<span class="metric">v${esc(p.version)} </span>“${esc(p.hook)}”`).join(", ")}${c.flags_on_previous.length ? `, which was blocked for resembling ${c.flags_on_previous.map((f) => esc(f.with)).join(", ")} (${c.flags_on_previous.map((f) => f.shared.map(esc).join(", ")).join("; ")})` : ""}.</div>`;
   if (c.spec) {
     const lines = c.spec.split("\n").filter(Boolean);
