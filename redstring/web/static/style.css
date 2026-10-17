@@ -610,7 +610,6 @@ body.readonly[data-view="analysis"] .log:empty::before { content: none; }
 .shot-notes div { display: grid; grid-template-columns: 96px 1fr; gap: 12px; }
 .shot-notes dt { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding-top: 2px; }
 .shot-notes dd { margin: 0; }
-||||||| 3282601
 
 /* Board decision bar: the one place a human approves or vetoes */
 .decide { margin: 16px 0 22px; padding: 16px 18px 18px; border: 2px solid var(--thread); border-left-width: 6px; border-radius: var(--radius); background: var(--thread-wash); }

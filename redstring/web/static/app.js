@@ -284,7 +284,7 @@ function renderAttention(o) {
     ? `<button type="button" class="need-card pitch" data-draft="${esc(i.draft_ids[0])}" data-slug="${esc(i.business_id)}"><span class="need-kind">Posts to approve</span><span class="need-text">${esc(i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`
     : i.type === "ready"
     ? `<button type="button" class="need-card" data-pick="${esc(i.business_ids[0])}"><span class="need-kind">Cleared to pitch</span><span class="need-text">${esc(i.message)}</span></button>`
-    : `<button type="button" class="need-card borderline" data-pick="${esc(i.business_id)}"><span class="need-kind">Board call</span><span class="need-text">${esc(i.message)}</span></button>`).join("");
+    : `<button type="button" class="need-card pitch borderline" data-pick="${esc(i.business_id)}"><span class="need-kind">Board call</span><span class="need-text">${esc(i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`).join("");
   if (unscreened.length) {
     h += `<button type="button" class="need-card" data-pick="${esc(unscreened[0].business_id)}"><span class="need-kind">Leads to screen</span><span class="need-text">${unscreened.length} new ${unscreened.length === 1 ? "lead is" : "leads are"} waiting for Scout</span></button>`;
   }
