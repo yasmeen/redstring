@@ -108,7 +108,10 @@ class Pipeline:
             flags = tools.collision_flags(client, draft)
             chain.append({"draft": draft, "version": version, "status": status, "techniques": technique_ids, "flags": flags})
             if status != "flagged":
-                _say(self.log, f"  Standards: {client} post {slot} v{version} cleared")
+                if status == "queued":
+                    _say(self.log, f"  Standards: {client} post {slot} v{version} cleared")
+                else:
+                    _say(self.log, f"  Standards: {client} post {slot} v{version} is {status}")
                 return chain
             f = flags[0]
             _say(self.log, f"  Standards: {client} post {slot} v{version} BLOCKED, resembles {f['with_business']} "

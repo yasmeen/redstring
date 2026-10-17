@@ -77,7 +77,7 @@ RETURN tx.weight * ty.weight * o.share AS conflict
 # CHANGE: only active fingerprints count; passed prospects count until their cooldown ends.
 Q2_DOUBLE_TAKE = """
 MATCH (d:Fingerprint {id: $draft})-[:OF]->(me:Business)-[:TARGETS]->(:Audience)<-[:TARGETS]-(other:Business)
-WHERE other <> me AND (other.status IN ['signed', 'pursued', 'pitched']
+WHERE d.active AND other <> me AND (other.status IN ['signed', 'pursued', 'pitched']
       OR (other.status = 'passed' AND other.passed_at >= $cooldown_cutoff))
 WITH DISTINCT d, other
 MATCH (d)-[:USES]->(t:Technique)<-[:USES]-(of:Fingerprint)-[:OF]->(other)

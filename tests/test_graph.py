@@ -104,8 +104,11 @@ def test_offline_shot_and_scene_templates_cover_world():
     assert set(offline.SHOT) == {t["id"] for t in world["techniques"]}
     assert set(offline.SCENE) == {b["category"] for b in world["businesses"]}
     assert len(offline.SCENE) == 12
-    assert all(set(scene) == {"subject", "place", "props", "cta"} for scene in offline.SCENE.values())
+    assert all(set(scene) == {"subject", "place", "props", "cta", "hooks"} for scene in offline.SCENE.values())
     assert all(2 <= len(scene["props"]) <= 3 for scene in offline.SCENE.values())
+    assert all(len(scene["hooks"]) == 5 for scene in offline.SCENE.values())
+    assert all(len(hook.split()) <= 12 and "!" not in hook for scene in offline.SCENE.values()
+               for hook in scene["hooks"])
     assert all(scene["place"].split(" ", 1)[0] in {"at", "beside", "in", "on"}
                for scene in offline.SCENE.values())
     group_categories = [category for categories in config.CATEGORY_GROUP.values() for category in categories]
@@ -119,6 +122,42 @@ def test_offline_shot_and_scene_templates_cover_world():
     for technique in world["techniques"]:
         if technique["category"] in {"text", "color", "audio"}:
             assert technique["id"] in offline.SUMMARY_INSTRUCTIONS
+
+
+def test_fallback_hooks_are_category_specific_and_unique(monkeypatch):
+    client = "cannonball"
+    category = "Swim lessons"
+    used = [{"hook": offline.HOOKS[(client, 1, 1)]}]
+    monkeypatch.setattr(tools, "drafts", lambda _client: list(used))
+    first_fallback = offline._fallback_hook(client, 2, 1, category)
+    assert first_fallback == offline._fallback_hook(client, 2, 1, category)
+
+    outputs = []
+    for slot in range(1, 7):
+        key = (client, slot, 1)
+        if key in offline.HOOKS:
+            hook = offline.HOOKS[key]
+        elif slot == 2:
+            hook = first_fallback
+        else:
+            hook = offline._fallback_hook(client, slot, 1, category)
+        outputs.append(hook)
+        used.append({"hook": hook})
+
+    fallback_hooks = outputs[1:]
+    assert len(set(outputs)) == 6
+    assert all(", take" not in hook for hook in outputs)
+    assert set(fallback_hooks) <= set(offline.SCENE[category]["hooks"])
+
+
+def test_fallback_hook_is_in_template_opening_shot(demo):
+    client = "cannonball"
+    hook = offline.SCENE["Swim lessons"]["hooks"][0]
+    technique_id = next(t["id"] for t in tools.world()["techniques"] if t["category"] == "hook")
+
+    spec = offline._shot_list(client, [technique_id], "calm and clear", hook, slot=99)
+
+    assert f"“{hook}”" in spec.splitlines()[1]
 
 
 def test_demo_drafts_have_filmable_shot_lists_with_all_techniques(demo):
@@ -225,6 +264,23 @@ def test_decision_trace_references_include_url_creator_and_category(demo):
     assert all(isinstance(r, dict) and r.get("url") and r.get("creator") and r.get("category") for r in references)
 
 
+def test_needs_you_includes_queued_drafts_for_approval(demo):
+    from redstring.web.app import _studio_context
+
+    _, needs_you = _studio_context(tools.pipeline_board())
+    item = next(
+        item for item in needs_you
+        if item["type"] == "approve_posts" and item["business_id"] == "cannonball"
+    )
+    queued_ids = [draft["id"] for draft in tools.drafts("cannonball") if draft["status"] == "queued"]
+
+    assert item["draft_ids"] == queued_ids
+    assert item["message"] == (
+        f"{len(queued_ids)} Cannonball Swim School post{'s' if len(queued_ids) != 1 else ''} "
+        "cleared Double Take and need your approval"
+    )
+
+
 def test_blocked_fingerprints_stop_counting(demo):
     blocked = demo["cannonball"]["posts"][0][0]["draft"]
     assert db.rows(db.agency(), "MATCH (f:Fingerprint {id: $id}) RETURN f.active AS a", {"id": blocked})[0]["a"] is False
@@ -243,6 +299,30 @@ def test_every_artifact_has_a_why(demo):
         unowned = db.rows(db.client(slug), """
             MATCH (d:Decision) WHERE NOT (d)-[:DECIDED_BY]->(:Agent) RETURN d.id AS id""")
         assert unowned == []
+
+
+def test_vetoed_draft_is_not_a_needs_you_double_take_block(demo):
+    from redstring.web.app import _studio_context
+
+    blocked = demo["cannonball"]["posts"][0][0]["draft"]
+    tools.board_decide("cannonball", "Draft", blocked, "veto", "Not for this business.")
+
+    status = next(draft["status"] for draft in tools.drafts("cannonball") if draft["id"] == blocked)
+    _, needs_you = _studio_context(tools.pipeline_board())
+
+    assert status == "vetoed"
+    assert blocked not in [item["draft_id"] for item in needs_you if item["type"] == "blocked"]
+
+
+def test_vetoed_draft_fingerprint_is_not_live_work(demo):
+    queued = demo["cannonball"]["posts"][0][1]["draft"]
+    before = db.rows(db.agency(), "MATCH (f:Fingerprint {id: $id}) RETURN f.active AS active", {"id": queued})[0]
+    assert before["active"] is True
+
+    tools.board_decide("cannonball", "Draft", queued, "veto", "Retire this spec.")
+
+    after = db.rows(db.agency(), "MATCH (f:Fingerprint {id: $id}) RETURN f.active AS active", {"id": queued})[0]
+    assert after["active"] is False
 
 
 def test_pitch_claims_are_sourced(demo):

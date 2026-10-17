@@ -125,6 +125,19 @@ def _studio_context(businesses: list[dict]) -> tuple[list[dict], list[dict]]:
 
     for slug, data in client_data.items():
         business = data["business"]
+        queued_ids = [draft["id"] for draft in data["drafts"] if draft.get("status") == "queued"]
+        if queued_ids:
+            count = len(queued_ids)
+            needs_you.append({
+                "type": "approve_posts",
+                "business_id": slug,
+                "business": business["name"],
+                "draft_ids": queued_ids,
+                "message": f"{count} {business['name']} {'post' if count == 1 else 'posts'} cleared Double Take and need your approval",
+            })
+
+    for slug, data in client_data.items():
+        business = data["business"]
         drafts = {draft["id"]: draft for draft in data["drafts"]}
         by_draft: dict[str, list[dict]] = {}
         for flag in data["flags"]:
@@ -358,12 +371,30 @@ class BoardIn(BaseModel):
     note: str = Field(default="", max_length=500)
 
 
+class LeadDecisionIn(BaseModel):
+    verdict: str = Field(pattern="^(pursue|pass)$")
+    note: str = Field(default="", max_length=500)
+
+
 @app.post("/api/board/{slug}/{label}/{target_id}")
 def board(slug: str, label: str, target_id: str, body: BoardIn):
     _writable()
     if label not in ("Pitch", "Draft"):
         raise HTTPException(400, label)
     return tools.board_decide(_client_or_404(slug), label, target_id, body.verdict, body.note or f"Board {body.verdict}.")
+
+
+@app.post("/api/lead/{slug}/decide")
+def decide_lead(slug: str, body: LeadDecisionIn):
+    _writable()
+    business = next((b for b in tools.pipeline_board() if b["id"] == slug), None)
+    if not business:
+        raise HTTPException(404, slug)
+    if business.get("status") != "lead" or business.get("verdict") != "borderline":
+        raise HTTPException(400, "only borderline leads can be decided by the board")
+    if body.verdict == "pursue":
+        return tools.pursue(slug, agent="board", rationale=body.note or "Board: pursue.")
+    return tools.set_status(slug, "passed", "board", body.note or "Board: pass.")
 
 
 @app.post("/api/retire/{slug}/{goal_id}")
