@@ -116,6 +116,11 @@ h1, h2, h3, h4, p { margin: 0; }
 .need-card.pitch .need-kind { color: var(--blue); }
 .need-card.pitch { border: 2px solid var(--thread); border-left-width: 6px; }
 .need-cta { margin-top: 4px; font-size: 0.875rem; font-weight: 700; color: var(--thread-deep); }
+.click-pulse { outline: 3px solid transparent; outline-offset: 3px; animation: click-target-pulse 1.2s ease-out; }
+@keyframes click-target-pulse {
+  0%, 100% { outline-color: transparent; }
+  25%, 55% { outline-color: var(--thread); }
+}
 .need-text { font-size: 0.9375rem; line-height: 1.35; }
 .caught-card { border: 1px solid rgba(190, 42, 58, 0.28); background: var(--thread-wash); }
 .caught-card .need-kind { color: var(--thread-deep); }
@@ -729,6 +734,7 @@ body.readonly[data-view="analysis"] .log:empty::before { content: none; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
+  .click-pulse { outline-color: var(--thread); }
 }
 
 /* Shot list on a draft's thread */
