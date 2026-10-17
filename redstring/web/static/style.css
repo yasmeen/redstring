@@ -87,13 +87,9 @@ h1, h2, h3, h4, p { margin: 0; }
 /* ------------------------------------------------------------------ first-visit intro: one strip, dismissible */
 
 .intro { width: calc(100% - var(--gutter) - var(--gutter)); max-width: calc(1760px - var(--gutter) - var(--gutter)); margin: 12px auto 0; padding: 12px 16px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px 24px; background: var(--card); border-radius: 10px; box-shadow: 0 1px 0 var(--line), var(--shadow-card); }
-.intro-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 0.875rem; line-height: 1.35; color: var(--muted); }
-.intro-steps li { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: center; gap: 10px; min-width: 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--ash); }
-.intro-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; }
-.intro-icon .ic { width: 22px; height: 22px; }
-.intro-icon.screen { background: var(--teal-wash); color: var(--teal); }
-.intro-icon.specs { background: var(--blue-wash); color: var(--blue); }
-.intro-icon.protect { background: var(--thread-wash); color: var(--thread-deep); }
+.intro-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; font-size: 0.875rem; line-height: 1.35; color: var(--muted); }
+.intro-steps li { display: grid; grid-template-columns: 88px minmax(0, 1fr); align-items: center; gap: 10px; min-width: 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--ash); }
+.intro-thumb { display: block; width: 88px; height: 88px; border-radius: var(--radius-sm); object-fit: cover; }
 .intro-step-copy { display: grid; gap: 3px; min-width: 0; }
 .intro-step-copy strong { color: var(--ink); font-size: 0.875rem; }
 .intro-step-copy > span { font-size: 0.75rem; line-height: 1.3; }
@@ -394,16 +390,13 @@ body.readonly #follow { display: none !important; }
 .ps.proof .ps-n { background: var(--thread); }
 .ps.proof a { font-weight: 600; white-space: nowrap; }
 .ps-visual { display: grid; align-content: center; min-width: 0; min-height: 145px; }
+.ps-problem-frame, .ps-solution-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: var(--radius); }
+.ps-problem-frame { align-self: center; }
+.ps-solution-frame { align-self: start; }
+.ps-problem-image, .ps-solution-image { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.ps-solution-visual { align-content: start; gap: 10px; }
+.ps-solution-visual #ps-flow-visual { min-width: 0; }
 .ps-caption { color: var(--muted); font-size: 0.8125rem; line-height: 1.4; }
-.problem-diagram { display: grid; grid-template-columns: 64px minmax(38px, 1fr) minmax(84px, 1.2fr) minmax(38px, 1fr) 64px; align-items: center; gap: 4px; }
-.problem-node { display: grid; justify-items: center; gap: 10px; min-width: 0; text-align: center; }
-.problem-icon { display: grid; place-items: center; width: 64px; height: 64px; border: 1px solid var(--line); border-radius: 14px; background: var(--blue-wash); color: var(--blue); }
-.problem-icon .ic { width: 28px; height: 28px; }
-.problem-icon.art { background: var(--thread-wash); color: var(--thread-deep); }
-.problem-node.audience .problem-icon { border-color: rgba(190, 42, 58, 0.45); background: var(--thread-wash); color: var(--thread-deep); }
-.problem-node b { font-size: 0.9375rem; line-height: 1.25; }
-.problem-link { position: relative; display: grid; place-items: center; min-width: 0; height: 2px; background: var(--thread); }
-.problem-link span { position: absolute; z-index: 1; max-width: 100%; padding: 4px 5px; border: 1px solid var(--thread); border-radius: 999px; background: var(--card); color: var(--thread-deep); font-size: 0.8125rem; font-weight: 700; line-height: 1.1; text-align: center; }
 .proof-flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .proof-step { position: relative; display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 40px; font-size: 1rem; line-height: 1.25; }
 .proof-step:not(:last-child)::after { content: ""; position: absolute; top: 38px; left: 17px; width: 2px; height: 6px; background: var(--line-strong); }
@@ -701,9 +694,8 @@ body.readonly[data-view="analysis"] .log:empty::before { content: none; }
   .a-title { font-size: 2.125rem; }
   .ps-grid { grid-template-columns: 1fr; }
   .ps { padding: 16px; }
-  .problem-diagram { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 2px 0; }
-  .problem-node { grid-template-columns: 64px minmax(0, 1fr); align-items: center; justify-items: start; gap: 12px; text-align: left; }
-  .problem-link { width: min(100%, 150px); justify-self: center; }
+  .intro-steps li { grid-template-columns: 72px minmax(0, 1fr); }
+  .intro-thumb { width: 72px; height: 72px; }
   .proof-pair { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .proof-thread { min-height: 30px; }
   .proof-techniques { display: flex; flex-wrap: wrap; justify-content: center; }
@@ -854,7 +846,6 @@ div.ref-poster { cursor: default; }
 .day-entries .avatar { margin-right: 6px; vertical-align: -4px; }
 .day-entries li.by-board { padding: 4px 8px; margin: 0 -8px; border-radius: var(--radius-sm); background: var(--thread-wash, rgba(181, 32, 46, 0.07)); }
 .needs-empty { display: grid; justify-items: center; gap: 9px; min-height: 112px; padding: 16px; border: 1px dashed var(--line); border-radius: var(--radius); background: var(--card); color: var(--muted); text-align: center; }
-.needs-empty-icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: var(--teal-wash); color: var(--teal); }
-.needs-empty-icon .ic { width: 24px; height: 24px; }
+.needs-empty-image { display: block; width: 160px; height: 160px; border-radius: var(--radius); object-fit: cover; }
 .needs-empty p { font-size: 0.875rem; }
 @media (max-width: 640px) { .day-entries li { gap: 0; } }

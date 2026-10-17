@@ -328,9 +328,6 @@ const TIE = `<svg viewBox="0 0 44 12" aria-hidden="true"><circle cx="3" cy="6" r
 
 // Needs you holds decisions only. What Double Take caught is news, so it gets its own column.
 function renderAttention(o) {
-  document.querySelectorAll(".intro-icon[data-icon]").forEach((el) => {
-    if (!el.firstElementChild) el.innerHTML = icon(el.dataset.icon);
-  });
   const items = o.needs_you || [];
   const byId = Object.fromEntries(o.businesses.map((b) => [b.id, b]));
   const decisions = items.filter((i) => ["borderline", "pitch", "ready", "approve_posts"].includes(i.type));
@@ -346,7 +343,7 @@ function renderAttention(o) {
   if (unscreened.length) {
     h += `<button type="button" class="need-card" data-reveal-lane="lead"><span class="need-kind">${icon("radar")}Leads to screen</span><span class="need-text">${unscreened.length} new ${unscreened.length === 1 ? "lead is" : "leads are"} waiting for Scout</span><span class="need-cta">See them in the pipeline <span aria-hidden="true">→</span></span></button>`;
   }
-  $("#needs-you").innerHTML = h || `<div class="needs-empty"><span class="needs-empty-icon">${icon("circle-check")}</span><p>All clear: nothing needs you right now.</p></div>`;
+  $("#needs-you").innerHTML = h || `<div class="needs-empty"><img class="needs-empty-image" src="/static/img/empty-all-clear.webp" width="720" height="720" alt="A tidy corkboard beside a cup of coffee." loading="lazy" decoding="async"><p>All clear: nothing needs you right now.</p></div>`;
   $("#caught").innerHTML = blocked.map((i) => `<button type="button" class="caught-card" data-draft="${esc(i.draft_id)}" data-slug="${esc(i.business_id)}">
       <span class="need-kind">${icon("shield-alert")}Blocked and revised</span>
       <span class="caught-a">${esc(i.business || byId[i.business_id]?.name)}</span>
@@ -793,13 +790,7 @@ function blockedDrafts(analysis) {
 }
 const andList = (xs) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 
-function renderIntroDiagrams() {
-  $("#ps-problem-visual").innerHTML = `
-    <div class="problem-node"><span class="problem-icon gym">${icon("person-standing")}</span><b>Gym</b></div>
-    <div class="problem-link"><span>same rare trick</span></div>
-    <div class="problem-node audience"><span class="problem-icon">${icon("user-round")}</span><b>Parents of kids 7 to 12</b></div>
-    <div class="problem-link"><span>same rare trick</span></div>
-    <div class="problem-node"><span class="problem-icon art">${icon("brush")}</span><b>Art studio</b></div>`;
+function renderIntroFlow() {
   const steps = [
     ["radar", "Scout screens the lead"],
     ["search", "Researcher gathers context"],
@@ -813,7 +804,7 @@ function renderIntroDiagrams() {
 
 function renderIntroProof(analysis) {
   const t = analysis.thresholds || {};
-  renderIntroDiagrams();
+  renderIntroFlow();
   const list = blockedDrafts(analysis);
   const top = list[0];
   if (!top) {
