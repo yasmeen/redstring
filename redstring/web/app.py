@@ -228,9 +228,10 @@ def activity():
         if business["id"] not in existing
     ]
 
+    names = {row["id"]: row["name"] for row in db.rows(db.agency(), "MATCH (b:Business) RETURN b.id AS id, b.name AS name")}
     decisions = [*tools.decisions(None, 500)]
     for slug in db.client_slugs():
-        decisions.extend(tools.decisions(slug, 500))
+        decisions.extend({**d, "business_ids": d.get("business_ids") or [slug]} for d in tools.decisions(slug, 500))
 
     unique = {}
     for decision in decisions:
@@ -240,7 +241,7 @@ def activity():
         unique.setdefault(key, {
             "day": decision["day"],
             "agent": decision["by"],
-            "text": decision["text"],
+            "text": re.sub(r"\b[a-z0-9]+(?:-[a-z0-9]+)+\b", lambda m: names.get(m.group(0), m.group(0)), decision["text"]),
             "rationale": decision["rationale"],
             "business_id": business_id,
             "at": decision["at"],

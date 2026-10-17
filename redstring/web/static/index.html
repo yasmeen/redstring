@@ -49,6 +49,18 @@
   </div>
 </section>
 
+<section class="dayloop studio-only" id="dayloop" aria-labelledby="dayloop-h" hidden>
+  <div class="dayloop-head">
+    <div>
+      <h2 class="placard" id="dayloop-h">Studio activity</h2>
+      <p class="dayloop-when"><b id="day-label"></b> <span class="muted" id="day-feed"></span></p>
+    </div>
+    <button type="button" class="btn primary" id="next-day" hidden>Next day <span aria-hidden="true">→</span></button>
+  </div>
+  <p class="muted dayloop-note">Agents do the routine work each day on their own and stop at anything that needs you.</p>
+  <ol class="days" id="days" aria-live="polite"></ol>
+</section>
+
 <section class="intro studio-only" id="intro" aria-labelledby="intro-title" hidden>
   <h2 class="placard small" id="intro-title" tabindex="-1">How it works</h2>
   <ol class="intro-steps">
