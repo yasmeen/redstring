@@ -106,6 +106,8 @@ h1, h2, h3, h4, p { margin: 0; }
 .need-kind { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .need-card.borderline .need-kind { color: var(--brass); }
 .need-card.pitch .need-kind { color: var(--blue); }
+.need-card.pitch { border: 2px solid var(--thread); border-left-width: 6px; }
+.need-cta { margin-top: 4px; font-size: 0.875rem; font-weight: 700; color: var(--thread-deep); }
 .need-text { font-size: 0.9375rem; line-height: 1.35; }
 .caught-card { border: 1px solid rgba(190, 42, 58, 0.28); background: var(--thread-wash); }
 .caught-card .need-kind { color: var(--thread-deep); }
@@ -599,3 +601,25 @@ body.readonly[data-view="analysis"] .log:empty::before { content: none; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* Board decision bar: the one place a human approves or vetoes */
+.decide { margin: 16px 0 22px; padding: 16px 18px 18px; border: 2px solid var(--thread); border-left-width: 6px; border-radius: var(--radius); background: var(--thread-wash); }
+.decide-kicker { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--thread-deep); }
+.decide-kicker::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.decide-q { margin: 0 0 6px; font-size: 1.25rem; font-weight: 700; line-height: 1.25; }
+.decide-what { margin: 0 0 12px; line-height: 1.45; }
+.decide.done .decide-what, .decide.waiting .decide-what { margin-bottom: 0; }
+.decide-note { display: grid; gap: 4px; margin-bottom: 14px; font-size: 0.8125rem; color: var(--muted); }
+.decide-note textarea { font: inherit; font-size: 0.9375rem; color: var(--ink); padding: 8px 10px; border: 1.5px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--card); resize: vertical; }
+.decide-note textarea:focus-visible, .decide .btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.decide-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn.big { min-height: 48px; padding: 10px 24px; font-size: 1rem; font-weight: 700; }
+.btn.veto { min-height: 48px; padding: 10px 20px; font-weight: 600; border-color: var(--thread-deep); color: var(--thread-deep); background: var(--card); }
+.btn.veto:hover { background: var(--thread-deep); color: var(--card); }
+.decide.waiting { border-color: var(--brass); background: var(--brass-wash); }
+.decide.waiting .decide-kicker { color: var(--brass); }
+.decide.done { border: 1px solid var(--line); border-left: 6px solid var(--teal); background: var(--teal-wash); }
+.decide.done .decide-kicker { color: var(--teal); }
+.decide.done.vetoed { border-left-color: var(--graphite); background: var(--graphite-wash); }
+.decide.done.vetoed .decide-kicker { color: var(--graphite); }
+.decide-kicker:last-child { margin-bottom: 0; }
