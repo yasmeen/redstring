@@ -183,8 +183,8 @@ h1, h2, h3, h4, p { margin: 0; }
 .biz .hole { position: absolute; right: 10px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; border: 2px solid var(--line); background: var(--ash); }
 .biz[aria-pressed="true"] { border: 2px solid var(--thread); padding: 8px 29px 9px 11px; box-shadow: var(--shadow-lift); }
 .biz[aria-pressed="true"] .hole { border-color: var(--thread); background: var(--thread); }
-.chip.signed { background: var(--teal-wash); color: var(--teal); }
-.chip.signed::before { display: block; background: var(--teal); }
+.chip.client { background: var(--teal-wash); color: var(--teal); }
+.chip.client::before { display: block; background: var(--teal); }
 .biz-goal { font-size: 0.75rem; line-height: 1.35; color: var(--muted); margin-top: 2px; }
 
 /* ------------------------------------------------------------------ chips: color plus a glyph, so no state rides on hue alone */
@@ -411,7 +411,7 @@ body.readonly #follow { display: none !important; }
 .legend-line { position: relative; flex: none; width: 30px; height: 3px; background: var(--thread); }
 .legend-line.strong { height: 4px; }
 .legend-line.overlap { height: 0; border-top: 2px dotted var(--thread); background: transparent; }
-.legend-pick { flex-basis: 100%; color: var(--thread-deep); font-weight: 650; }
+.legend-pick { flex-basis: 100%; color: var(--ink); font-weight: 650; }
 .formula-legend { gap: 8px; }
 .formula-chip { padding: 5px 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--ash); color: var(--ink); font-size: 0.8125rem; font-weight: 650; }
 .formula-chip.risk { border-color: var(--thread); background: var(--thread-wash); color: var(--thread-deep); }

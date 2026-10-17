@@ -309,7 +309,7 @@ function bizCard(b) {
   const client = (state.overview?.clients || []).find((c) => c.id === b.id);
   const meta = [b.category, hoodOf(b) || client?.neighborhood].filter(Boolean).map(esc).join(" · ");
   const goal = client?.goals?.[0]?.text;
-  const tags = b.status === "signed" ? `<span class="chip signed">Signed</span>` : chip(b.verdict);
+  const tags = b.status === "signed" ? `<span class="chip client">Signed</span>` : chip(b.verdict);
   return `<button type="button" class="biz" data-biz="${esc(b.id)}" data-status="${esc(b.status)}" aria-pressed="${b.id === state.selected}">
     <span class="biz-head">${avatar(b)}<span class="biz-title"><span class="biz-name">${esc(b.name)}</span>${meta ? `<span class="biz-meta">${categoryIcon(b.category)}${meta}</span>` : ""}</span></span>
     ${tags ? `<span class="biz-tags">${tags}</span>` : ""}${goal ? `<span class="biz-goal"><b>Goal:</b> ${esc(goal)}</span>` : ""}
@@ -809,14 +809,17 @@ function renderTerritory(analysis, overview) {
   const techs = {};
   sigs.forEach((s) => { const x = (techs[s.technique] ||= { name: s.technique, rarity: s.rarity, by: new Set() }); x.by.add(s.business_id); });
   const cols = Object.values(techs).sort((a, z) => hotCols.has(z.name) - hotCols.has(a.name) || z.by.size - a.by.size || z.rarity - a.rarity);
-  const visibleCols = state.territoryAll ? cols : cols.filter((c) => hotCols.has(c.name) || c.rarity >= Number(analysis.thresholds?.rare ?? 0.75));
+  const hotCount = cols.filter((c) => hotCols.has(c.name)).length;
+  const defaultCount = Math.min(cols.length, Math.max(12, hotCount));
+  const visibleCols = state.territoryAll ? cols : cols.slice(0, Math.max(12, hotCount));
   const rows = [...new Map(sigs.map((s) => [s.business_id, s.business])).entries()]
     .sort((a, z) => (status[z[0]] === "signed") - (status[a[0]] === "signed") || a[1].localeCompare(z[1]));
   const share = Object.fromEntries(sigs.map((s) => [`${s.business_id}|${s.technique}`, s.share]));
   const visibleRows = rows.filter(([id]) => visibleCols.some((c) => Number(share[`${id}|${c.name}`]) > 0));
   const label = { signed: "Client", pursued: "Pursued", pitched: "Pitched", lead: "Lead", passed: "Passed" };
   $("#territory-all").setAttribute("aria-pressed", String(!!state.territoryAll));
-  $("#territory-all").textContent = state.territoryAll ? "Show only rare techniques" : `Show all ${cols.length} techniques`;
+  $("#territory-all").hidden = cols.length <= defaultCount;
+  $("#territory-all").textContent = state.territoryAll ? `Show the top ${defaultCount}` : `Show all ${cols.length} techniques`;
   $("#signatures-table").innerHTML = `<caption class="sr-only">Signature techniques by business</caption>
     <thead><tr><td></td>${visibleCols.map((c) => `<th scope="col" class="col${hotCols.has(c.name) ? " contested" : ""}" title="rarity ${n(c.rarity)}, claimed by ${c.by.size}"><span>${esc(c.name)}</span></th>`).join("")}</tr></thead>
     <tbody>${visibleRows.map(([id, name]) => `<tr class="${status[id] === "signed" ? "signed" : ""}"><th scope="row">${esc(name)}<small>${label[status[id]] || ""}</small></th>${visibleCols.map((c) => {
