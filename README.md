@@ -21,7 +21,7 @@ The app presents Corkboard Studio as a working agency's workspace and doesn't la
 | Real | Invented |
 | --- | --- |
 | The agent pipeline, the graph, the seven queries; the real NYC neighborhoods Flatiron, NoMad, Gramercy Park, and Chelsea | All 14 businesses, their 63 past posts, and their goals |
-| Category and audience research with source URLs (`data/research/`) | The reference library, **for now**: `data/references.json` does not exist yet, so the build uses 200 placeholder references (`placeholder: true`, `example.com` URLs) with a realistic long-tail distribution. Run `redstring import-refs` on the Instinct export to replace them. |
+| Category and audience research with source URLs (`data/research/`) | The reference library: 200 placeholder references (`placeholder: true`, `example.com` URLs) with a realistic long-tail distribution of techniques. The real Instinct export was mostly raw captions and marketing notes rather than video-technique analyses, so it wasn't imported. `redstring import-refs` still works on an export with real analyses. |
 
 Every business name is invented. Search each one before the demo and swap any that match a real business in these neighborhoods.
 
