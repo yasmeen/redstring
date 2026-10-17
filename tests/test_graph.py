@@ -112,6 +112,13 @@ def test_revision_lineage_and_route_card(demo):
     assert card["references"], "draft is INSPIRED_BY library references"
 
 
+def test_decision_trace_references_include_url_creator_and_category(demo):
+    rev = demo["cannonball"]["posts"][0][1]["draft"]
+    references = tools.decision_trace("cannonball", rev)["references"]
+    assert references
+    assert all(isinstance(r, dict) and r.get("url") and r.get("creator") and r.get("category") for r in references)
+
+
 def test_blocked_fingerprints_stop_counting(demo):
     blocked = demo["cannonball"]["posts"][0][0]["draft"]
     assert db.rows(db.agency(), "MATCH (f:Fingerprint {id: $id}) RETURN f.active AS a", {"id": blocked})[0]["a"] is False

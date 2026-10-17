@@ -58,12 +58,12 @@ def seed_agency(world: dict) -> None:
                  CREATE (:Technique {id: r.id, name: r.name, category: r.category,
                                      rarity: r.rarity, ref_count: r.ref_count})-[:PART_OF]->(s)""",
            {"rows": world["techniques"]})
-    refs = [{k: r.get(k) for k in ("id", "url", "creator", "platform", "format", "analyzed_by",
+    refs = [{k: r.get(k) for k in ("id", "url", "creator", "category", "platform", "format", "analyzed_by",
                                     "analyzed_at", "views", "analysis", "techniques", "placeholder")}
             for r in world["references"]]
     db.run(g, """UNWIND $rows AS r
                  CREATE (ref:Reference {id: r.id, url: r.url, creator: r.creator, platform: r.platform,
-                         format: r.format, analyzed_by: r.analyzed_by, analyzed_at: r.analyzed_at,
+                         category: r.category, format: r.format, analyzed_by: r.analyzed_by, analyzed_at: r.analyzed_at,
                          views: r.views, analysis: r.analysis, placeholder: coalesce(r.placeholder, false)})
                  WITH ref, r UNWIND r.techniques AS tid
                  MATCH (t:Technique {id: tid}) CREATE (ref)-[:USES]->(t)""", {"rows": refs})
