@@ -17,6 +17,16 @@ FALKORDB_PASSWORD = os.environ.get("FALKORDB_PASSWORD") or None
 AGENCY_GRAPH = "agency"
 CLIENT_PREFIX = "client:"
 
+CATEGORY_GROUP = {
+    "kids_family": [
+        "Kids coding", "Kids art", "Music lessons", "Kids gymnastics",
+        "Swim lessons", "Tutoring", "Bookshop with storytime",
+    ],
+    "food": ["Cafe", "Bakery"],
+    "fitness": ["Yoga", "Climbing gym"],
+    "pets": ["Pet grooming"],
+}
+
 # Rarity: rarity(t) = log(N / (1 + n_t)) / log N
 RARE = 0.75           # about 2 or fewer of 200-250 references
 PLANT_RARITY = 0.75   # the planted collision uses techniques at least this rare

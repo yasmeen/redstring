@@ -125,7 +125,9 @@ LIMIT 12
 # References that show a technique, best evidence first. Producer uses these for INSPIRED_BY.
 REFERENCES_FOR = """
 MATCH (r:Reference)-[:USES]->(t:Technique)
-WHERE t.id IN $techniques AND NOT r.id IN $exclude
+WHERE t.id IN $techniques
+  AND NOT r.id IN $exclude
+  AND NOT r.creator IN $exclude_creators
 WITH r, count(DISTINCT t) AS hits, r.category = $category AS same
 RETURN r.id AS id, r.url AS url, r.creator AS creator, r.category AS category, hits, same
 ORDER BY hits + CASE WHEN same THEN 1 ELSE 0 END DESC, same DESC, hits DESC, r.id

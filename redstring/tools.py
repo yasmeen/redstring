@@ -312,12 +312,20 @@ def referenced_reference_ids(client: str) -> list[str]:
     return [r["id"] for r in rows if r.get("id")]
 
 
+def referenced_reference_creators(client: str) -> list[str]:
+    rows = db.rows(db.client(client), """MATCH (:Draft)-[:INSPIRED_BY]->(r:Reference)
+                                         RETURN DISTINCT r.creator AS creator""")
+    return [r["creator"] for r in rows if r.get("creator")]
+
+
 def references_for(technique_ids: list[str], limit: int = 3, category: str | None = None,
-                   exclude: list[str] | None = None) -> list[dict]:
+                   exclude: list[str] | None = None,
+                   exclude_creators: list[str] | None = None) -> list[dict]:
     if limit <= 0 or not technique_ids:
         return []
 
     params = {"techniques": technique_ids, "category": category, "exclude": list(dict.fromkeys(exclude or [])),
+              "exclude_creators": list(dict.fromkeys(exclude_creators or [])),
               "fetch": limit * 6}
     selected, seen_ids, seen_creators = [], set(), set()
 
@@ -334,7 +342,7 @@ def references_for(technique_ids: list[str], limit: int = 3, category: str | Non
                 break
 
     add_unique(db.rows(db.agency(), queries.REFERENCES_FOR, params))
-    if len(selected) < limit and params["exclude"]:
+    if len(selected) < limit and (params["exclude"] or params["exclude_creators"]):
         add_unique(db.rows(db.agency(), queries.REFERENCES_FOR, params | {"exclude": []}))
     return selected
 
