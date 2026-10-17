@@ -24,6 +24,11 @@ const displayCopy = (text) => String(text ?? "")
   .replace(/\s*\(conflict [\d.]+\)/g, "")
   .replace(/[;,]?\s*similarity [\d.]+\s*[×x]\s*(?:audience )?overlap [\d.]+\s*=\s*risk [\d.]+(?:,?\s*(?:over|under) [\d.]+)?/gi, "")
   .replace(/The hackathon build sends nothing\./gi, "Nothing is sent from this workspace.");
+const displayStudioCopy = (text) => displayCopy(text)
+  .replace(/\binspired by (ref_[\w-]+(?:\s*,\s*ref_[\w-]+)*)/gi, (_, refs) => {
+    const count = refs.split(/\s*,\s*/).length;
+    return `inspired by ${count} ${count === 1 ? "reference" : "references"}`;
+  });
 const n = (x, d = 2) => (typeof x === "number" ? x.toFixed(d) : "");
 const link = (u) => u ? `<a class="src" href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a>` : `<span class="muted">no source URL</span>`;
 const hoodOf = (b) => b.neighborhood_name || b.neighborhood || "";
@@ -41,7 +46,7 @@ async function api(path, opts = {}) {
 }
 
 // selected: the business in the dossier. pinned: the viewer picked it (otherwise the dossier follows the action).
-let state = { overview: null, techniques: [], selected: null, pinned: false, animating: false, analysis: null };
+let state = { overview: null, techniques: [], selected: null, pinned: false, animating: false, analysis: null, dossierTab: "overview" };
 
 const viewLinks = [...document.querySelectorAll("[data-view-link]")];
 const isAnalysisView = () => document.body.dataset.view === "analysis";
@@ -62,7 +67,7 @@ async function viewChanged() {
     if ($("#card").open) $("#card").close();
   }
   if (!state.overview) await refresh();
-  if (view === "analysis") await loadAnalysis();
+  if (view === "analysis") await loadAnalysisFromLocation();
   else if (state.selected) await openBusiness(state.selected, { quiet: true });
 }
 
@@ -74,13 +79,23 @@ viewLinks.forEach((link) => link.addEventListener("click", async (e) => {
   await viewChanged();
 }));
 window.addEventListener("popstate", viewChanged);
+document.addEventListener("click", async (e) => {
+  const link = e.target.closest("a[data-analysis-link]");
+  if (!link) return;
+  e.preventDefault();
+  history.pushState({}, "", link.href);
+  await viewChanged();
+});
 
 function setIntroVisible(visible) {
   intro.hidden = !visible;
   introButton.hidden = visible;
   introButton.setAttribute("aria-expanded", String(visible));
 }
-const firstBlocked = () => (state.overview?.needs_you || []).find((i) => i.type === "blocked");
+const firstBlocked = () => {
+  const blocked = (state.overview?.needs_you || []).filter((i) => i.type === "blocked");
+  return blocked.find((i) => i.business_id === "tumble-town") || blocked[0];
+};
 
 function dismissIntro() {
   setIntroVisible(false);
@@ -236,7 +251,8 @@ function bizCard(b) {
   const tags = chip(b.verdict);
   return `<button type="button" class="biz" data-biz="${esc(b.id)}" data-status="${esc(b.status)}" aria-pressed="${b.id === state.selected}">
     <span class="biz-name">${esc(b.name)}</span>${meta ? `<span class="biz-meta">${meta}</span>` : ""}
-    ${tags ? `<span class="biz-tags">${tags}</span>` : ""}${goal ? `<span class="biz-goal"><b>Goal:</b> ${esc(goal)}</span>` : ""}<span class="hole" aria-hidden="true"></span></button>`;
+    ${tags ? `<span class="biz-tags">${tags}</span>` : ""}${goal ? `<span class="biz-goal"><b>Goal:</b> ${esc(goal)}</span>` : ""}
+    ${b.status === "signed" && client?.won_pitch ? `<span class="biz-goal"><b>Won with spec work</b></span>` : ""}<span class="hole" aria-hidden="true"></span></button>`;
 }
 
 const TIE = `<svg viewBox="0 0 44 12" aria-hidden="true"><circle cx="3" cy="6" r="3"/><path d="M3 6 C 15 13, 29 -1, 41 6"/><circle cx="41" cy="6" r="3"/></svg>`;
@@ -245,11 +261,13 @@ const TIE = `<svg viewBox="0 0 44 12" aria-hidden="true"><circle cx="3" cy="6" r
 function renderAttention(o) {
   const items = o.needs_you || [];
   const byId = Object.fromEntries(o.businesses.map((b) => [b.id, b]));
-  const decisions = items.filter((i) => i.type === "borderline" || i.type === "pitch");
+  const decisions = items.filter((i) => ["borderline", "pitch", "ready"].includes(i.type));
   const unscreened = items.filter((i) => i.type === "unscreened");
   const blocked = items.filter((i) => i.type === "blocked");
   let h = decisions.map((i) => i.type === "pitch"
     ? `<button type="button" class="need-card pitch" data-pitch="${esc(i.pitch_id)}" data-slug="${esc(i.business_id)}"><span class="need-kind">Pitch to approve</span><span class="need-text">${esc(byId[i.business_id]?.name || i.message)}</span></button>`
+    : i.type === "ready"
+    ? `<button type="button" class="need-card" data-pick="${esc(i.business_ids[0])}"><span class="need-kind">Cleared to pitch</span><span class="need-text">${esc(i.message)}</span></button>`
     : `<button type="button" class="need-card borderline" data-pick="${esc(i.business_id)}"><span class="need-kind">Board call</span><span class="need-text">${esc(i.message)}</span></button>`).join("");
   if (unscreened.length) {
     h += `<button type="button" class="need-card" data-pick="${esc(unscreened[0].business_id)}"><span class="need-kind">Leads to screen</span><span class="need-text">${unscreened.length} new ${unscreened.length === 1 ? "lead is" : "leads are"} waiting for Scout</span></button>`;
@@ -267,15 +285,23 @@ function renderAttention(o) {
 function renderBoard(o) {
   $("#board").innerHTML = STAGES.map(([title, test, empty]) => {
     const items = o.businesses.filter(test);
+    if (title === "Screened") {
+      const order = { pursue: 0, pursue_differentiated: 1, borderline: 2, decline: 3 };
+      items.sort((a, z) => (order[a.verdict] ?? 4) - (order[z.verdict] ?? 4) || a.name.localeCompare(z.name));
+    }
+    const won = (o.clients || []).filter((client) => client.won_pitch).map((client) => client.name);
+    const emptyText = title === "Pitched" && won.length
+      ? `No open pitches. Won and signed: ${won.join(", ")}.`
+      : empty;
     return `<section class="stage" aria-label="${title}, ${items.length}"><h3>${title} <span class="count">${items.length}</span></h3>
-      ${items.length ? `<div class="cards">${items.map(bizCard).join("")}</div>` : `<p class="empty-row">${esc(empty)}</p>`}</section>`;
+      ${items.length ? `<div class="cards">${items.map(bizCard).join("")}</div>` : `<p class="empty-row">${esc(emptyText)}</p>`}</section>`;
   }).join("");
 }
 
 async function feed() {
   const ds = await api("/api/decisions");
   $("#feed").innerHTML = ds.map((d) =>
-    `<li><div><div class="who">${esc(d.by)}</div><div class="g analysis-only">${esc(d.graph)}</div></div><div><b>${esc(displayCopy(d.text))}</b><div class="muted">${esc(displayCopy(d.rationale))}</div></div></li>`).join("")
+    `<li><div><div class="who">${esc(d.by)}</div><div class="g analysis-only">${esc(d.graph)}</div></div><div><b>${esc(displayStudioCopy(d.text))}</b><div class="muted">${esc(displayStudioCopy(d.rationale))}</div></div></li>`).join("")
     || `<li class="empty">No decisions yet. Run the steps above.</li>`;
 }
 
@@ -284,6 +310,25 @@ async function loadAnalysis() {
   state.analysis = analysis;
   renderAnalysis(analysis, state.overview, decisions);
   lastNetW = $("#audience-net")?.clientWidth || 0;
+}
+
+async function loadAnalysisFromLocation() {
+  const params = new URLSearchParams(location.search);
+  const lead = params.get("lead");
+  const draft = params.get("draft");
+  if (lead) state.netLead = lead;
+  await loadAnalysis();
+  if (draft) {
+    document.querySelectorAll(".dt-card.is-focused").forEach((card) => card.classList.remove("is-focused"));
+    const card = document.querySelector(`.dt-card[data-draft="${CSS.escape(draft)}"]`);
+    if (!card) return;
+    card.classList.add("is-focused");
+    card.tabIndex = -1;
+    card.focus({ preventScroll: true });
+    card.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "center" });
+  } else if (lead) {
+    $("#ch-screening").scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "start" });
+  }
 }
 
 // ---------------------------------------------------------------- analysis: a visual tour of the graph
@@ -327,7 +372,15 @@ function renderAnalysis(analysis, overview, decisions) {
       || `<tr><td colspan="4" class="muted">No decisions yet.</td></tr>`}</tbody>`;
   const log = overview?.log || [];
   renderLog(log);
-  $("#run-log-note").hidden = log.length > 0 || !overview?.readonly;
+  const logEl = $("#log");
+  const logNote = $("#run-log-note");
+  logEl.hidden = log.length === 0;
+  logNote.hidden = log.length > 0;
+  if (!log.length) {
+    logNote.textContent = overview?.readonly
+      ? "This workspace started with the run already finished, so there is no live run log. The decisions table above is the full history."
+      : "No steps run yet.";
+  }
   requestAnimationFrame(redrawAnalysis);
 }
 
@@ -395,7 +448,7 @@ function renderScreening(analysis, overview) {
         return `<td><span class="cell b${bin(v)}">${n(v)}</span></td>`;
       }).join("");
       const sel = row.id === state.netLead;
-      return `<tr class="${sel ? "sel" : ""}"><th scope="row"><button type="button" class="lead-btn" data-lead="${esc(row.id)}" aria-pressed="${sel}">${esc(row.name)}<small>${esc(row.category)} · ${esc(row.neighborhood)}</small></button></th>${cells}<td class="v">${chip(row.verdict)}</td></tr>`;
+      return `<tr class="${sel ? "sel" : ""}"><th scope="row"><button type="button" class="lead-btn" data-lead="${esc(row.id)}" aria-pressed="${sel}">${esc(row.name)}<small>${esc(row.category)} · ${esc(row.neighborhood)}</small><span class="mobile-verdict">${chip(row.verdict)}</span></button></th>${cells}<td class="v">${chip(row.verdict)}</td></tr>`;
     }).join("") || `<tr><td colspan="${clients.length + 2}" class="muted">No leads to screen.</td></tr>`}</tbody>`;
   renderNet();
 }
@@ -511,7 +564,7 @@ function renderDoubleTake(analysis) {
   $("#cleared-checks").textContent = `${plural(analysis.cleared_checks, "check", "checks")} cleared and ${plural(list.length, "draft was", "drafts were")} blocked in this run.`;
   $("#double-take-table").innerHTML = list.map((g) => {
     const techs = [...new Set(g.flags.flatMap((f) => f.shared || []))];
-    return `<article class="dt-card">
+      return `<article class="dt-card" data-draft="${esc(g.draft)}">
       <div class="dt-graph">
         <svg class="dt-svg" aria-hidden="true"></svg>
         <div class="dt-col"><div class="dt-node draft"><span class="k">Blocked draft</span><b>${esc(g.client)}</b><span class="hook">“${esc(g.draft_hook || g.draft)}”</span></div></div>
@@ -646,6 +699,8 @@ function select(slug) {
 }
 
 async function openBusiness(slug, { quiet = false, animate = false } = {}) {
+  const panel = $("#drawer");
+  if (panel.dataset.slug !== slug) state.dossierTab = "overview";
   let d;
   try { d = await api(`/api/business/${slug}`); }
   catch (err) {
@@ -660,9 +715,10 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
     <h2 class="name" id="dossier-h" tabindex="-1">${esc(b.name)}</h2>
     <div class="status-row">${chip(b.status)}${b.voice ? `<span class="muted">Voice: ${esc(b.voice)}</span>` : ""}</div>`;
 
+  let overview = "";
   if (d.screening && d.screening.verdict) {
     const s = d.screening;
-    h += `<h3>Scout's screening</h3><div class="thread"><div class="knot"><div class="who">${esc(s.by || "Scout")} ${chip(s.verdict)}</div><p>${esc(displayCopy(s.reason))}</p></div>
+    overview += `<h3>Scout's screening</h3><div class="thread"><div class="knot"><div class="who">${esc(s.by || "Scout")} ${chip(s.verdict)}</div><p>${esc(displayStudioCopy(s.reason))}</p></div>
       ${(s.paths || []).map((c) => {
         const ps = [...(c.paths || [])].sort((a, z) => z.conflict - a.conflict);
         const pill = (p) => `<li>${esc(p.via)} <span class="metric">· ${n(p.conflict)}</span></li>`;
@@ -670,6 +726,7 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
           ${ps.length ? `<p class="muted">via ${ps.slice(0, 2).map((p) => esc(p.via)).join(", ")}</p><p class="muted mono metric">Path contributions: ${ps.slice(0, 2).map((p) => `${esc(p.via)} ${n(p.conflict, 3)}`).join(" · ")}</p>` : ""}
           ${ps.length > 2 ? `<details class="metric"><summary>All ${ps.length} audience paths</summary><ul class="paths">${ps.map(pill).join("")}</ul></details>` : ""}</div>`;
       }).join("")}</div>`;
+    overview += `<p class="analysis-bridge-row"><a class="analysis-bridge" href="/analysis?lead=${encodeURIComponent(slug)}#ch-screening" data-analysis-link>How was this decided?</a></p>`;
   }
 
   if (d.has_graph && d.flags && d.flags.length) {
@@ -677,45 +734,65 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
     const byDraft = {};
     d.flags.forEach((f) => (byDraft[f.draft] ||= []).push(f));
     const ids = Object.keys(byDraft);
-    h += `<h3>Double Take <span class="muted">${ids.length} ${ids.length === 1 ? "draft" : "drafts"} blocked</span></h3><div class="thread">${ids.map((id) => {
+    overview += `<h3>Double Take <span class="muted">${ids.length} ${ids.length === 1 ? "draft" : "drafts"} blocked</span></h3><div class="thread">${ids.map((id) => {
       const dr = drafts[id];
       return `<div class="knot hit"><div class="who">Blocked ${dr ? `<span class="metric">v${esc(dr.version)} </span>draft` : "draft"}</div><div class="body">
         ${dr ? `<p><button type="button" class="row-btn" data-draft="${esc(id)}" data-slug="${esc(slug)}"><b>“${esc(dr.hook)}”</b></button></p>` : ""}
         ${byDraft[id].map((f) => `<p>Too close to <b>${esc(f.with_business)}</b>: shares ${(f.shared || []).map(esc).join(", ")}.</p>
-        <p class="muted mono metric">similarity ${n(f.similarity)} × audience overlap ${n(f.overlap)} = risk ${n(f.risk)}</p>`).join("")}</div></div>`;
+        <p class="muted mono metric">similarity ${n(f.similarity)} × audience overlap ${n(f.overlap)} = risk ${n(f.risk)}</p>`).join("")}
+        <p class="analysis-bridge-row"><a class="analysis-bridge" href="/analysis?draft=${encodeURIComponent(id)}#ch-double-take" data-analysis-link>How was this decided?</a></p></div></div>`;
     }).join("")}</div>`;
   }
 
-  if (d.has_graph && d.decisions && d.decisions.length) {
-    h += `<h3>Latest decisions <span class="muted analysis-only">client:${esc(slug)}</span></h3><div class="thread">${d.decisions.slice(0, 4).map((x) =>
-      `<div class="knot minor"><div class="who">${esc(x.by)}</div><p><b>${esc(displayCopy(x.text))}</b></p>${x.rationale ? `<p class="muted">${esc(displayCopy(x.rationale))}</p>` : ""}</div>`).join("")}</div>`;
-  }
-
-  h += `<h3>Who it targets</h3><ul class="targets">${d.audiences.map((a) =>
-    `<li><span>${esc(a.audience)}</span><span class="bar" aria-hidden="true"><span style="width:${Math.round(Math.min(1, a.weight || 0) * 100)}%"></span></span><span class="num metric">${n(a.weight, 1)}</span></li>`).join("") || "<li class='muted'>No audiences.</li>"}</ul>`;
-  h += `<h3>Signatures <span class="muted">rare moves it owns</span></h3>${d.signatures.length ? `<ul class="sig-list">${d.signatures.map((s) => `<li>${esc(s.technique)}<span class="metric"> ${Math.round(s.share * 100)}%</span></li>`).join("")}</ul>` : "<p class='muted'>None yet.</p>"}`;
-
+  let draftsTab = "";
+  let research = `<h3>Who it targets</h3><ul class="targets">${d.audiences.map((a) =>
+    `<li><span>${esc(a.audience)}</span><span class="bar" aria-hidden="true"><span style="width:${Math.round(Math.min(1, a.weight || 0) * 100)}%"></span></span><span class="num metric">${n(a.weight, 1)}</span></li>`).join("") || "<li class='muted'>No audiences.</li>"}</ul>
+    <h3>Signature moves <span class="muted">rare elsewhere, common in its work</span></h3>${d.signatures.length ? `<ul class="sig-list">${d.signatures.map((s) => `<li>${esc(s.technique)}<span class="metric"> ${Math.round(s.share * 100)}%</span></li>`).join("")}</ul>` : "<p class='muted'>None yet.</p>"}`;
   if (d.has_graph) {
-    if (d.stale.length) h += `<div class="warnbox"><b><span class="metric">${d.stale.length} </span>stale drafts</b> serve a retired goal: ${d.stale.map((s) => esc(s.hook)).join("; ")}</div>`;
-    h += `<h3>Goals</h3><ul class="list">${d.goals.map((g) => `<li><div class="goal-line">${chip(g.status)} <b>${esc(g.text)}</b></div>
+    if (d.stale.length) overview += `<div class="warnbox"><b><span class="metric">${d.stale.length} </span>stale drafts</b> serve a retired goal: ${d.stale.map((s) => esc(s.hook)).join("; ")}</div>`;
+    overview += `<h3>Goals</h3><ul class="list">${d.goals.map((g) => `<li><div class="goal-line">${chip(g.status)} <b>${esc(g.text)}</b></div>
       <div class="goal-meta metric">${esc(g.metric)} → ${esc(g.target)} by ${esc(g.due)}</div>
       ${g.status === "active" && !ro ? `<div class="btn-row"><button type="button" class="btn small" data-retire="${esc(g.id)}" data-slug="${esc(slug)}">Retire goal</button></div>` : ""}</li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
-    if (d.pitches.length) h += `<h3>Pitches</h3><ul class="list">${d.pitches.map((p) =>
+    if (d.pitches.length) overview += `<h3>Pitches</h3><ul class="list">${d.pitches.map((p) =>
       `<li><button type="button" class="row-btn" data-pitch="${esc(p.id)}" data-slug="${esc(slug)}">${chip(p.status)} <b>${esc(p.angle)}</b></button></li>`).join("")}</ul>`;
-    h += `<h3>Drafts</h3><ul class="list">${d.drafts.map((x) =>
+    draftsTab += `<h3>Drafts</h3><ul class="list">${d.drafts.map((x) =>
       `<li><button type="button" class="row-btn" data-draft="${esc(x.id)}" data-slug="${esc(slug)}">${chip(x.status)}${chip("plain", x.kind)} <b><span class="metric">v${esc(x.version)} · </span>${esc(x.hook)}</b></button></li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
-    if (d.taste_profile && d.taste_profile.id) h += `<h3>Taste profile <span class="muted metric">v${esc(d.taste_profile.version)}</span></h3><p>${esc(d.taste_profile.summary)}</p>
+    if (d.taste_profile && d.taste_profile.id) draftsTab += `<h3>Taste profile <span class="muted metric">v${esc(d.taste_profile.version)}</span></h3><p>${esc(d.taste_profile.summary)}</p>
       <p class="muted" style="margin-top:6px">Prefers: ${d.taste_profile.prefers.map((p) => esc(p.name)).join(", ")}${d.taste_profile.avoids.length ? `<br>Avoids: ${d.taste_profile.avoids.map((p) => esc(p.name)).join(", ")}` : ""}</p>`;
-    h += `<h3>Findings <span class="muted">each with its source</span></h3><ul class="list">${d.findings.map((f) => `<li>${chip("plain", f.kind)} ${esc(f.text)}<br>${f.kind === "audit" ? "<span class='muted'>From the audit of past posts.</span>" : link(f.source_url)}</li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
-    h += `<h3>Past posts</h3><ul class="list">${d.posts.map((p) => `<li>${esc(p.hook)} <span class="muted metric">${(p.views ?? 0).toLocaleString()} views · ${(p.saves ?? 0).toLocaleString()} saves</span></li>`).join("") || "<li class='muted'>Not loaded.</li>"}</ul>`;
+    research += `<h3>Findings <span class="muted">each with its source</span></h3><ul class="list">${d.findings.map((f) => `<li>${chip("plain", f.kind)} ${esc(f.text)}<br>${f.kind === "audit" ? "<span class='muted'>From the audit of past posts.</span>" : link(f.source_url)}</li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
+    research += `<h3>Past posts</h3><ul class="list">${d.posts.map((p) => `<li>${esc(p.hook)} <span class="muted metric">${(p.views ?? 0).toLocaleString()} views · ${(p.saves ?? 0).toLocaleString()} saves</span></li>`).join("") || "<li class='muted'>Not loaded.</li>"}</ul>`;
   } else {
-    h += `<div class="warnbox"><b>No private graph yet.</b> Scout creates one when it pursues this lead.</div>`;
+    overview += `<div class="warnbox"><b>No private graph yet.</b> Scout creates one when it pursues this lead.</div>`;
   }
 
-  // The first thread in the dossier is where the string from the board ties in.
-  h = h.replace('class="thread"', 'class="thread lead"');
+  const tabs = [{ id: "overview", label: "Overview", content: overview }];
+  if (d.has_graph) tabs.push({ id: "drafts", label: "Drafts", content: draftsTab });
+  tabs.push({ id: "research", label: "Research", content: research });
+  if (d.has_graph && d.decisions && d.decisions.length) {
+    tabs.push({
+      id: "activity",
+      label: "Activity",
+      content: `<h3>Latest decisions <span class="muted analysis-only">client:${esc(slug)}</span></h3><div class="thread">${d.decisions.slice(0, 10).map((x) =>
+        `<div class="knot minor"><div class="who">${esc(x.by)}</div><p><b>${esc(displayStudioCopy(x.text))}</b></p>${x.rationale ? `<p class="muted">${esc(displayStudioCopy(x.rationale))}</p>` : ""}</div>`).join("")}</div>`,
+    });
+  }
+  if (!tabs.some((tab) => tab.id === state.dossierTab)) state.dossierTab = "overview";
+  tabs[0].content = tabs[0].content.replace('class="thread"', 'class="thread lead"');
+  h += `<div class="dossier-tabs" role="tablist" aria-label="${esc(b.name)} dossier">`;
+  h += tabs.map((tab) => {
+    const selected = tab.id === state.dossierTab;
+    const tabId = `dossier-${slug}-${tab.id}-tab`;
+    const panelId = `dossier-${slug}-${tab.id}-panel`;
+    return `<button type="button" role="tab" id="${esc(tabId)}" aria-controls="${esc(panelId)}" aria-selected="${selected}" tabindex="${selected ? "0" : "-1"}" data-dossier-tab="${esc(tab.id)}">${esc(tab.label)}</button>`;
+  }).join("");
+  h += `</div>`;
+  h += tabs.map((tab) => {
+    const selected = tab.id === state.dossierTab;
+    const tabId = `dossier-${slug}-${tab.id}-tab`;
+    const panelId = `dossier-${slug}-${tab.id}-panel`;
+    return `<section class="dossier-panel" role="tabpanel" id="${esc(panelId)}" aria-labelledby="${esc(tabId)}" tabindex="0"${selected ? "" : " hidden"}>${tab.content}</section>`;
+  }).join("");
 
-  const panel = $("#drawer");
   const keepScroll = !animate && panel.dataset.slug === slug ? panel.scrollTop : 0;
   $("#drawer-body").innerHTML = h;
   panel.dataset.slug = slug;
@@ -725,7 +802,41 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   drawString(animate);
 }
 
+function activateDossierTab(id, focus = false) {
+  const tabs = [...$("#drawer-body").querySelectorAll('[role="tab"]')];
+  const selected = tabs.find((tab) => tab.dataset.dossierTab === id);
+  if (!selected) return;
+  state.dossierTab = id;
+  tabs.forEach((tab) => {
+    const active = tab === selected;
+    tab.setAttribute("aria-selected", String(active));
+    tab.tabIndex = active ? 0 : -1;
+    document.getElementById(tab.getAttribute("aria-controls")).hidden = !active;
+  });
+  if (focus) selected.focus();
+  drawString(false);
+}
+
+$("#drawer-body").addEventListener("click", (e) => {
+  const tab = e.target.closest('[role="tab"][data-dossier-tab]');
+  if (tab) activateDossierTab(tab.dataset.dossierTab);
+});
+$("#drawer-body").addEventListener("keydown", (e) => {
+  const current = e.target.closest('[role="tab"][data-dossier-tab]');
+  if (!current) return;
+  const tabs = [...$("#drawer-body").querySelectorAll('[role="tab"]')];
+  let index = tabs.indexOf(current);
+  if (e.key === "ArrowRight") index = (index + 1) % tabs.length;
+  else if (e.key === "ArrowLeft") index = (index - 1 + tabs.length) % tabs.length;
+  else if (e.key === "Home") index = 0;
+  else if (e.key === "End") index = tabs.length - 1;
+  else return;
+  e.preventDefault();
+  activateDossierTab(tabs[index].dataset.dossierTab, true);
+});
+
 function emptyDossier() {
+  state.dossierTab = "overview";
   delete $("#drawer").dataset.slug;
   $("#drawer-body").innerHTML = `<div class="dossier-empty"><h2 class="placard" id="dossier-h">Pick a business</h2>
     <p class="muted">Each card opens its dossier: Scout's screening, Double Take's flags, goals, pitches, drafts, and every source behind them.</p></div>`;
@@ -765,8 +876,12 @@ function drawString(animate) {
   if (c.bottom < 0 || c.top > window.innerHeight) { path.setAttribute("d", ""); return; }
   const p = panel.getBoundingClientRect();
   const lead = panel.querySelector(".thread.lead");
+  const tabs = panel.querySelector(".dossier-tabs");
   const head = panel.querySelector("#dossier-h");
-  let ty = lead ? lead.getBoundingClientRect().top + 12.5 : head ? head.getBoundingClientRect().top + head.offsetHeight / 2 : p.top + 40;
+  const anchor = state.dossierTab !== "overview" ? tabs : lead || tabs;
+  let ty = anchor === lead ? anchor.getBoundingClientRect().top + 12.5
+    : anchor ? anchor.getBoundingClientRect().top + anchor.offsetHeight / 2
+      : head ? head.getBoundingClientRect().top + head.offsetHeight / 2 : p.top + 40;
   ty = Math.min(Math.max(ty, p.top + 18), p.bottom - 18);
   const x1 = c.right - desk.left - 15, y1 = c.top + c.height / 2 - desk.top;
   const x2 = p.left - desk.left + 1, y2 = ty - desk.top;
@@ -812,7 +927,7 @@ document.addEventListener("click", async (e) => {
   if (e.target.closest("[data-dossier-close]")) { closeOverlay(); return; }
   const pick = e.target.closest("[data-pick]");
   if (pick) { select(pick.dataset.pick); return; }
-  const dr = e.target.closest("[data-draft]");
+  const dr = e.target.closest("[data-draft][data-slug]");
   if (dr) openRoute(dr.dataset.slug, dr.dataset.draft);
   const pi = e.target.closest("[data-pitch]");
   if (pi) openPitch(pi.dataset.slug, pi.dataset.pitch);
@@ -894,7 +1009,7 @@ $("#lead-form").addEventListener("submit", async (e) => {
   try {
     const r = await api("/api/try/lead", { method: "POST", body: JSON.stringify({ name: f.get("name"), category: f.get("category"), targets, neighborhood: f.get("neighborhood") }) });
     const box = r.verdict === "pursue" ? "okbox" : ["pass", "decline"].includes(r.verdict) ? "declinebox" : "warnbox";
-    const savedNote = r.saved === false ? `<p class="muted">Not saved: the public demo screens leads without adding them to the graph.</p>` : "";
+    const savedNote = r.saved === false ? `<p class="muted">Not saved: screening a lead here does not add it to the graph.</p>` : "";
     $("#lead-result").innerHTML = `<div class="${box}">${chip(r.verdict)} ${esc(displayCopy(r.reason))}</div>${savedNote}
       ${r.clients.length ? `<div class="thread">${r.clients.map((c) => {
         const ps = [...c.paths].sort((a, z) => z.conflict - a.conflict);
@@ -933,5 +1048,5 @@ async function loadTechniques() {
 
 refresh().then(async () => {
   await loadTechniques();
-  if (isAnalysisView()) await loadAnalysis();
+  if (isAnalysisView()) await loadAnalysisFromLocation();
 });

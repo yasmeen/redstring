@@ -109,6 +109,36 @@ def test_step_api_enforces_order():
     assert c.post("/api/step/screen").status_code == 200
 
 
+def test_overview_groups_cleared_to_pitch_leads(monkeypatch):
+    import redstring.web.app as web
+    monkeypatch.setattr(web, "READONLY", False)
+    tools._world_cache = None
+    web._done.clear()
+    web._log.clear()
+    c = TestClient(web.app)
+
+    assert c.post("/api/step/reset").status_code == 200
+    assert c.post("/api/step/screen").status_code == 200
+    overview = c.get("/api/overview").json()
+
+    ready = [item for item in overview["needs_you"] if item["type"] == "ready"]
+    assert len(ready) == 1
+    priority = {"pursue": 0, "pursue_differentiated": 1}
+    expected = sorted(
+        (
+            business for business in overview["businesses"]
+            if business["status"] == "lead" and business["verdict"] in priority
+        ),
+        key=lambda business: (priority[business["verdict"]], business["name"]),
+    )
+    assert ready[0]["business_ids"] == [business["id"] for business in expected]
+    assert ready[0]["business_id"] == expected[0]["id"]
+    assert ready[0]["message"] == (
+        f"{len(expected)} screened "
+        f"{'lead is' if len(expected) == 1 else 'leads are'} cleared to pitch"
+    )
+
+
 def test_analysis_views_are_readonly(monkeypatch):
     import redstring.web.app as web
     tools._world_cache = None
