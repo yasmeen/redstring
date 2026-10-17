@@ -1,17 +1,24 @@
 # Red String
 
-An agent-run creative agency that wins clients by doing the work first. It screens local businesses, researches and audits each one, and pitches with spec content made for that business, with every claim traced to its source in FalkorDB. What sets it apart from scrape-and-pitch pipelines: when two pitches, or a pitch and an existing client, reach the same people, they never look alike.
+Pipeline software for small creative agencies that win clients by doing the work first. Its agents screen local businesses, research and audit each one, and pitch with spec content made for that business, with every claim traced to its source in FalkorDB. What sets it apart from scrape-and-pitch pipelines: when two pitches, or a pitch and an existing client, reach the same people, they never look alike.
 
 - **Red String** is the software.
 - **Double Take** is its collision check (Q2).
 - **Threads** are the route cards: the string from an answer back to its sources.
-- **Corkboard Studio** is a placeholder name for the agency running Red String in the demo. It is not the product.
+- **Corkboard Studio** is the sample agency workspace in the demo. It is not the product, and it is not a real agency.
 
 **Live demo:** [Red String](https://redstring-production-84af.up.railway.app) is read-only; the step runner is hidden there and runs locally.
 
+## Two views
+
+- **Studio** (`/`) is Corkboard Studio's own dashboard, written for the people running the agency: what needs a decision, what Double Take caught, the pipeline, and a dossier per business. It has no scores, formulas or graph IDs.
+- **Analysis** (`/analysis`) shows what the studio doesn't see: the graph architecture with live node counts, the screening heat map and audience network, every Double Take check with its math, signature territory, which agent can call which named query (with the Cypher), and the raw decision log. Every "How was this decided?" link in a Studio dossier opens the matching spot here.
+
 ## What is real and what is synthetic
 
-| Real | Synthetic, and labeled as such |
+The app presents Corkboard Studio as a working agency's workspace and doesn't label the data in the UI. This section is the disclosure.
+
+| Real | Invented |
 | --- | --- |
 | The agent pipeline, the graph, the seven queries; the real NYC neighborhoods Flatiron, NoMad, Gramercy Park, and Chelsea | All 14 businesses, their 63 past posts, and their goals |
 | Category and audience research with source URLs (`data/research/`) | The reference library, **for now**: `data/references.json` does not exist yet, so the build uses 200 placeholder references (`placeholder: true`, `example.com` URLs) with a realistic long-tail distribution. Run `redstring import-refs` on the Instinct export to replace them. |
@@ -39,7 +46,7 @@ redstring mcp        # the named tools as an MCP server (stdio; --http 8765 for 
 pytest               # boots its own throwaway FalkorDB
 ```
 
-**Agents.** `REDSTRING_MODE=offline` (the default) runs deterministic agents that write the same nodes through the same tools, with templated text. `REDSTRING_MODE=claude` (or `redstring demo --mode claude`) runs each agent as a Claude tool-use loop (`claude-opus-5-5`, adaptive thinking, server-side refusal fallback) whose only graph access is its slice of the tool registry. The Researcher also gets web search, and its findings are cached to `data/research/<slug>.json` so reruns replay them. Set `ANTHROPIC_API_KEY` first. Claude mode has only been exercised against a scripted fake client so far; run it once with a real key before relying on it.
+**Agents.** `REDSTRING_MODE=offline` (the default) runs deterministic agents that write the same nodes through the same tools, with templated text. `REDSTRING_MODE=claude` (or `redstring demo --mode claude`) runs each agent as a Claude tool-use loop (`claude-opus-5-5`, adaptive thinking, server-side refusal fallback) whose only graph access is its slice of the tool registry. The Researcher also gets web search, and its findings are cached to `data/research/<slug>.json` so reruns replay them. Set `ANTHROPIC_API_KEY` first. Claude mode has run end to end with a real key against local FalkorDB (about 13 minutes). The same collisions fire and clear on revision.
 
 **Deploy.** Set `REDSTRING_READONLY=1` on a public link: visitors can still use both try-it inputs, but cannot reset the demo or act as the board. `docker compose up` runs both services. For a hosted demo, point `FALKORDB_HOST`, `FALKORDB_PORT`, `FALKORDB_USERNAME` and `FALKORDB_PASSWORD` at FalkorDB Cloud and deploy the `Dockerfile`. Read-only deployments boot with the finished offline run.
 
@@ -222,7 +229,7 @@ The two collisions are **planted**, and this README says so. `world.json` carrie
 
 ## Try it as an outsider
 
-The web app has two live inputs. *Screen a new lead* adds a synthetic lead with your audience weights and runs Q1; on a read-only deployment it screens the lead without saving it. *Double Take a draft* projects a temporary fingerprint for any technique mix, runs Q2, and deletes it.
+The web app has two live inputs. *Screen a new lead* adds a synthetic lead with your audience weights and runs Q1; on a read-only deployment it screens the lead without saving it. *Check a draft idea* (Double Take) projects a temporary fingerprint for any technique mix, runs Q2, and deletes it.
 
 ## AI-use disclosure
 
