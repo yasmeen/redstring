@@ -22,6 +22,8 @@ MODE = os.environ.get("REDSTRING_MODE", "offline")
 # On a public link, REDSTRING_READONLY=1 keeps visitors from resetting the demo or acting as the board.
 # The two "try it" inputs still work: they add only synthetic leads and temporary fingerprints.
 READONLY = os.environ.get("REDSTRING_READONLY") == "1"
+# Optional walkthrough video shown at the top of /analysis (a YouTube link or an .mp4 URL).
+VIDEO_URL = os.environ.get("REDSTRING_VIDEO_URL", "").strip()
 
 app = FastAPI(title="Red String")
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
@@ -191,6 +193,7 @@ def overview():
         "agency": w["agency"]["name"],
         "mode": MODE,
         "readonly": READONLY,
+        "video_url": VIDEO_URL,
         "day": tools.sim_day(),
         "date": tools.sim_date(),
         "businesses": businesses,
