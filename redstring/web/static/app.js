@@ -128,7 +128,7 @@ async function refresh() {
   $("#agency").textContent = o.agency;
   $("#ws-mark").textContent = (o.agency || "").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   const hoods = (o.neighborhoods || []).map((h) => h.name).join(", ");
-  $("#ws-meta").textContent = `${o.businesses.length} synthetic businesses${hoods ? ` in ${hoods}` : ""}`;
+  $("#ws-meta").textContent = `${o.businesses.length} businesses${hoods ? ` in ${hoods}` : ""}`;
   $("#mode").textContent = `agents: ${o.mode}${o.readonly ? " · read-only" : ""}`;
   $("#meta").textContent = o.graphs.join(" · ");
   // The dossier follows the run (the business in the latest log line) until the viewer picks a card.
