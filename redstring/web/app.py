@@ -69,6 +69,14 @@ def _studio_context(businesses: list[dict]) -> tuple[list[dict], list[dict]]:
             "category": data["business"]["category"],
             "neighborhood": data["business"].get("neighborhood", ""),
             "goals": [goal for goal in data["goals"] if goal.get("status") == "active"],
+            "won_pitch": next(
+                (
+                    {"id": pitch["id"], "angle": pitch["angle"]}
+                    for pitch in data["pitches"]
+                    if pitch.get("status") in ("approved", "signed")
+                ),
+                None,
+            ),
         }
         for slug, data in client_data.items()
         if data["business"].get("status") == "signed"
@@ -82,6 +90,27 @@ def _studio_context(businesses: list[dict]) -> tuple[list[dict], list[dict]]:
                 "business_id": business["id"],
                 "message": f"Decide whether to pursue {business['name']}",
             })
+
+    verdict_order = {"pursue": 0, "pursue_differentiated": 1}
+    ready_ids = [
+        business["id"]
+        for business in sorted(
+            (
+                business for business in businesses
+                if business.get("status") == "lead"
+                and business.get("verdict") in verdict_order
+            ),
+            key=lambda business: (verdict_order[business["verdict"]], business["name"]),
+        )
+    ]
+    if ready_ids:
+        count = len(ready_ids)
+        needs_you.append({
+            "type": "ready",
+            "business_ids": ready_ids,
+            "business_id": ready_ids[0],
+            "message": f"{count} screened {'lead is' if count == 1 else 'leads are'} cleared to pitch",
+        })
 
     for slug, data in client_data.items():
         business = data["business"]

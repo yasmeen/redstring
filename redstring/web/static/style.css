@@ -100,6 +100,9 @@ h1, h2, h3, h4, p { margin: 0; }
 .need-card, .caught-card { display: grid; align-content: start; gap: 5px; padding: 11px 13px; border-radius: var(--radius); text-align: left; font: inherit; color: var(--ink); cursor: pointer; }
 .need-card { border: 1px solid var(--line); background: var(--card); box-shadow: var(--shadow-card); }
 .need-card:hover, .caught-card:hover { box-shadow: var(--shadow-lift); }
+.analysis-bridge-row { margin: 8px 0 0; }
+.analysis-bridge { color: var(--thread-deep); font-size: 0.8125rem; font-weight: 600; text-underline-offset: 3px; }
+.analysis-bridge:hover { color: var(--ink); }
 .need-kind { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .need-card.borderline .need-kind { color: var(--brass); }
 .need-card.pitch .need-kind { color: var(--blue); }
@@ -205,6 +208,11 @@ h1, h2, h3, h4, p { margin: 0; }
 .dossier-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 0.8125rem; color: var(--muted); }
 .dossier h2.name { margin: 6px 0 8px; font: 700 1.625rem/1.15 var(--sans); letter-spacing: -0.01em; }
 .dossier .status-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 18px; }
+.dossier-tabs { display: flex; gap: 4px; max-width: 100%; overflow-x: auto; margin: 0 0 16px; padding: 4px; border-radius: 10px; background: var(--ash-deep); }
+.dossier-tabs [role="tab"] { flex: 0 0 auto; padding: 7px 12px; border: 0; border-radius: 7px; background: transparent; color: var(--ink); font: 600 0.8125rem/1.2 var(--sans); white-space: nowrap; cursor: pointer; }
+.dossier-tabs [role="tab"][aria-selected="true"] { background: var(--card); color: var(--thread-deep); box-shadow: var(--shadow-card); }
+.dossier-tabs [role="tab"]:focus-visible { outline: 3px solid var(--thread); outline-offset: 2px; }
+.dossier-panel > :first-child { margin-top: 0; }
 .dossier h3, .sheet h3 { font: 800 1.0625rem/1 var(--display); text-transform: uppercase; letter-spacing: 0.06em; margin: 22px 0 10px; color: var(--ink); }
 .dossier h3 .muted, .sheet h3 .muted { font: 500 0.8125rem var(--sans); letter-spacing: 0; text-transform: none; margin-left: 6px; }
 
@@ -411,6 +419,7 @@ body.readonly #follow { display: none !important; }
 .heat tbody tr:last-child { border-bottom: 0; }
 .lead-btn { all: unset; box-sizing: border-box; display: block; width: 100%; padding: 9px 10px 9px 12px; cursor: pointer; border-radius: 4px; }
 .lead-btn small { display: block; margin-top: 1px; font-size: 0.75rem; font-weight: 400; color: var(--muted); }
+.mobile-verdict { display: none; margin-top: 5px; }
 .lead-btn:focus-visible { outline: 3px solid var(--thread); outline-offset: -3px; }
 .heat tbody tr:hover { background: rgba(228, 219, 216, 0.5); }
 .heat tbody tr.sel { background: var(--thread-wash); }
@@ -457,6 +466,7 @@ body.readonly #follow { display: none !important; }
 /* double take */
 .dt-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 36rem), 1fr)); gap: 18px; }
 .dt-card { display: grid; gap: 16px; min-width: 0; padding: 18px 20px 20px; border-radius: 12px; background: var(--card); box-shadow: 0 1px 0 var(--line), var(--shadow-card); }
+.dt-card.is-focused { outline: 3px solid var(--thread); outline-offset: 3px; box-shadow: var(--shadow-lift); }
 .dt-graph { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px 56px; }
 .dt-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
 .dt-svg path { fill: none; stroke: var(--thread); stroke-width: 2.25; }
@@ -523,6 +533,7 @@ body.readonly #follow { display: none !important; }
 .analysis-table .mono { white-space: nowrap; }
 .raw-decisions { min-width: 920px; }
 .log-wrap #run-log-note { margin-bottom: 8px; }
+#log[hidden] { display: none; }
 body.readonly[data-view="analysis"] .log:empty::before { content: none; }
 
 
@@ -572,6 +583,8 @@ body.readonly[data-view="analysis"] .log:empty::before { content: none; }
   .dt-risk li { grid-template-columns: 1fr; }
   .vm-bars li { grid-template-columns: minmax(0, 7rem) minmax(0, 1fr) 2.6rem; }
   .vm-scale { margin-left: calc(7rem + 12px); margin-right: calc(2.6rem + 12px); }
+  .mobile-verdict { display: block; }
+  .heat thead th:last-child, .heat td.v { display: none; }
   .runner-inner { grid-template-columns: 1fr; }
   .runner-status, .readonly-note { grid-column: 1; }
   .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 10px; }
