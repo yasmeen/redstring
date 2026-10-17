@@ -18,7 +18,7 @@ AGENCY_GRAPH = "agency"
 CLIENT_PREFIX = "client:"
 
 # Rarity: rarity(t) = log(N / (1 + n_t)) / log N
-RARE = 0.6            # about 7 or fewer of 200 references
+RARE = 0.75           # about 2 or fewer of 200-250 references
 PLANT_RARITY = 0.75   # the planted collision uses techniques at least this rare
 SIGNATURE_SHARE = 0.3 # rare and in 30% or more of a business's fingerprints
 

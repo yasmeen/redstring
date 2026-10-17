@@ -14,15 +14,17 @@ Don't edit `data/world.json` by hand. Change `redstring/worldgen.py`, then run `
 - [ ] **Hosting.** FalkorDB Cloud, or a small self-hosted server.
 - [ ] **Agency and repo name.** Both are placeholders.
 - [ ] **Keys.** An Anthropic API key, plus FalkorDB Cloud credentials if you choose Cloud. Give them to agents through their secrets settings, never in chat or a commit.
-- [ ] **Vocabulary.** After the import (task 4), approve or reject what lands in `data/proposed_techniques.json`. Add approved techniques to `data/techniques.json` yourself.
+- [ ] **Vocabulary.** After the import (task 4), approve or reject what lands in `data/proposed_techniques.json`. Add approved techniques to `data/techniques.json` yourself. 506 proposals waiting.
 
-## 2. Instinct: the reference export
+## 2. Muse: the reference export
 
-- [ ] Export about 200 analyzed posts as CSV or JSON.
+Done with a Muse export instead of Instinct (`data/reference_export.json`, 251 refs). RARE retuned to 0.75 in config.py; Q1 verdicts unchanged; all 3 collisions still fire and clear.
+
+- [x] Export 251 analyzed short-form videos as JSON.
   - Required columns: `url`, `analysis`.
   - Kept if present: `creator`, `platform`, `format`, `analyzed_at`, `views`.
   - URLs and text only. No media.
-- [ ] Put the file somewhere the coding agent can read it, for example `data/instinct_export.csv`. Don't commit it if the analyses are private.
+- [x] Put the file at `data/reference_export.json`. The public-URL export was approved for commit.
 
 ## 3. Coding agent: Docker and local stack
 
@@ -31,15 +33,17 @@ Don't edit `data/world.json` by hand. Change `redstring/worldgen.py`, then run `
   - http://localhost:8000 loads, and the step runner plays steps 0 to 8 without errors.
   - FalkorDB Browser at http://localhost:3000 shows `agency` plus five `client:*` graphs after step 8.
 
-## 4. Coding agent: real references (needs the Instinct export and the API key)
+## 4. Coding agent: real references (Muse export)
 
-- [ ] Run `redstring import-refs data/instinct_export.csv`. It writes `data/references.json` and `data/proposed_techniques.json`.
-- [ ] Run `redstring world && redstring seed && redstring check`.
+Done with a Muse export instead of Instinct (`data/reference_export.json`, 251 refs). RARE retuned to 0.75 in config.py; Q1 verdicts unchanged; all 3 collisions still fire and clear.
+
+- [x] Run `redstring import-refs data/reference_export.json --source Muse`. It writes `data/references.json` and `data/proposed_techniques.json`.
+- [x] Run `redstring world && redstring seed && redstring check`.
 - [ ] If `redstring world` fails its assertion ("need 3 techniques with rarity >= 0.75 in Wet Paint's style"), the real library has no rare cluster that fits Wet Paint. Fix it by changing Wet Paint's `style` in `worldgen.py` to a style that does have three. Don't touch the rarity formula.
-- [ ] Retune thresholds only in `redstring/config.py`, until all of the following hold:
+- [x] Retune thresholds only in `redstring/config.py`, until all of the following hold:
   - `tests/test_graph.py` passes. It pins the Q1 verdict table and the three expected collisions.
   - `redstring demo` shows exactly 3 BLOCKED lines, and each one clears on revision.
-- [ ] Update the risk numbers quoted in `README.md` ("The demo, as it runs on the seed") to match the new run.
+- [x] Update the risk numbers quoted in `README.md` ("The demo, as it runs on the seed") to match the new run.
 
 ## 5. Coding agent: Claude mode with a real key
 

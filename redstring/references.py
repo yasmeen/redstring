@@ -1,11 +1,9 @@
 """The reference library.
 
-Real references come from Instinct (URL plus analysis, never media) and go through
-`scripts/import_references.py`, which maps each analysis onto the closed vocabulary.
+The real library is `data/references.json`, imported from an analyzer export with
+`redstring import-refs`.
 
-Until that export is in hand, `placeholder_library()` builds a stand-in library of 200
-references with a realistic long-tail technique distribution. Every placeholder is marked
-`placeholder: true` and points at example.com, so nothing fake can pass for a real post.
+`placeholder_library()` is only a fallback used when that file is absent.
 """
 from __future__ import annotations
 
