@@ -532,6 +532,13 @@ def decision_trace(client: str, draft_id: str) -> dict:
     card["previous"] = _clean(lin["previous"], "id")
     card["flags_on_previous"] = _clean(lin["flags"], "with")
     card["techniques"] = lin["techniques"]
+    ids = [r["id"] for r in card["references"] if r.get("id")]
+    media = {m["id"]: m for m in db.rows(db.agency(), """MATCH (r:Reference) WHERE r.id IN $ids
+        RETURN r.id AS id, r.platform AS platform, r.format AS format, r.analysis AS analysis""", {"ids": ids})} if ids else {}
+    for r in card["references"]:
+        r.update({k: v for k, v in media.get(r.get("id"), {}).items() if v is not None})
+    kinds = db.rows(db.agency(), "MATCH (t:Technique) RETURN t.name AS name, t.category AS category")
+    card["technique_kinds"] = {k["name"]: k["category"] for k in kinds if k["category"]}
     card["flags"] = collision_flags(client, draft_id)
     card["draft_id"] = draft_id
     card["client"] = client

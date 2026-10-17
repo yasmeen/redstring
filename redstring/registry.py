@@ -82,7 +82,7 @@ TOOLS: list[Tool] = [
     Tool("project_fingerprint", _project, "P1. Project a draft's technique ids into the shared agency graph as a Fingerprint. No copy or assets leave the client graph. write_draft already does this; use it directly only to backfill.",
          {"draft_id": S, "client": CLIENT, "kind": {"type": "string", "enum": ["post", "draft", "spec"]}, "technique_ids": SL},
          ["draft_id", "client", "kind", "technique_ids"], ["producer"], "P1"),
-    Tool("derive_signatures", tools.derive_signatures, "Q0. Recompute every business's signature techniques: rare (rarity >= 0.6) and in 30% or more of its active fingerprints.",
+    Tool("derive_signatures", tools.derive_signatures, "Q0. Recompute every business's signature techniques: rare (rarity >= 0.75) and in 30% or more of its active fingerprints.",
          {}, [], ["standards"], "Q0"),
     Tool("lead_conflict", tools.lead_conflict, "Q1. Audience conflict between a lead and each signed client, including multi-hop paths through overlapping audiences, plus the same-category same-neighborhood rule. Returns a suggested verdict.",
          {"lead": CLIENT}, ["lead"], ["scout"], "Q1"),
