@@ -961,7 +961,7 @@ document.addEventListener("click", async (e) => {
 // ---------------------------------------------------------------- route cards (threads) and pitch cards
 
 function knots(decisions) {
-  return decisions.map((x) => `<div class="knot"><div class="who">${esc(x.by)}</div><p><b>${esc(x.decision)}</b></p>${x.rationale ? `<p class="muted">${esc(x.rationale)}</p>` : ""}</div>`).join("");
+  return decisions.map((x) => `<div class="knot"><div class="who">${esc(x.by)}</div><p><b>${esc(displayStudioCopy(x.decision))}</b></p>${x.rationale ? `<p class="muted">${esc(displayStudioCopy(x.rationale))}</p>` : ""}</div>`).join("");
 }
 
 function sheetTop(kicker) {
@@ -991,7 +991,7 @@ async function openRoute(slug, id) {
   else if (c.status !== "flagged") h += `<div class="okbox"><b>Cleared Double Take.</b></div>`;
   if (c.previous.length) h += `<div class="warnbox"><b>Revision</b> of ${c.previous.map((p) => `<span class="metric">v${esc(p.version)} </span>“${esc(p.hook)}”`).join(", ")}${c.flags_on_previous.length ? `, which was blocked for resembling ${c.flags_on_previous.map((f) => esc(f.with)).join(", ")} (${c.flags_on_previous.map((f) => f.shared.map(esc).join(", ")).join("; ")})` : ""}.</div>`;
   h += `<h3>Decisions</h3><div class="thread">${knots(c.decisions)}</div>`;
-  h += `<h3>Sources</h3><ul class="list">${c.sources.map((s) => `<li>${chip("plain", s.kind)} ${s.source_url ? link(s.source_url, s.text) : esc(s.text)}</li>`).join("") || "<li class='muted'>None.</li>"}</ul>`;
+  h += `<h3>Sources</h3><ul class="list">${c.sources.filter((s) => s.kind !== "Reference").map((s) => `<li>${chip("plain", s.kind)} ${s.source_url ? link(s.source_url, s.text) : esc(s.text)}</li>`).join("") || "<li class='muted'>None.</li>"}</ul>`;
   h += `<h3>Techniques</h3><ul class="tech-list">${c.techniques.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>`;
   h += `<h3>References</h3><ul class="list">${c.references.map((r) => {
     const label = r.creator && r.category ? `${r.creator} · ${r.category}` : r.creator || r.category;
