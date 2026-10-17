@@ -156,6 +156,7 @@ def _studio_context(businesses: list[dict]) -> tuple[list[dict], list[dict]]:
                 "with_business": flag["with_business"],
                 "with_business_id": flag.get("with_business_id"),
                 "also_like": [f["with_business"] for f in flags[1:]],
+                "risk": max(float(f.get("risk") or 0) for f in flags),
                 "shared": flag.get("shared", []),
                 "hook": draft.get("hook", ""),
                 "draft_id": draft_id,

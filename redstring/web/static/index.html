@@ -40,7 +40,16 @@
   </div>
 </header>
 
-<section class="runner studio-only" id="runner" aria-labelledby="runner-h">
+<section class="daybar studio-only" aria-label="Today in the studio">
+  <p class="daybar-when"><b id="day-label">Agent run</b><span class="muted" id="day-summary"></span><span class="muted" id="day-feed"></span><span class="muted daybar-readonly">Read-only: nothing you try here is saved.</span></p>
+  <div class="daybar-actions">
+    <button type="button" class="text-button fold-toggle" id="activity-toggle" aria-controls="dayloop" aria-expanded="false" hidden>See today's activity</button>
+    <button type="button" class="text-button fold-toggle" id="runner-toggle" aria-controls="runner" aria-expanded="false">Demo controls</button>
+    <button type="button" class="btn primary" id="next-day" hidden>Next day <span aria-hidden="true">→</span></button>
+  </div>
+</section>
+
+<section class="runner studio-only folded" id="runner" aria-labelledby="runner-h">
   <div class="runner-inner">
     <h2 class="placard" id="runner-h">Agent run</h2>
     <ol class="steps" id="steps"></ol>
@@ -49,14 +58,8 @@
   </div>
 </section>
 
-<section class="dayloop studio-only" id="dayloop" aria-labelledby="dayloop-h" hidden>
-  <div class="dayloop-head">
-    <div>
-      <h2 class="placard" id="dayloop-h">Studio activity</h2>
-      <p class="dayloop-when"><b id="day-label"></b> <span class="muted" id="day-feed"></span></p>
-    </div>
-    <button type="button" class="btn primary" id="next-day" hidden>Next day <span aria-hidden="true">→</span></button>
-  </div>
+<section class="dayloop studio-only folded" id="dayloop" aria-labelledby="dayloop-h" hidden>
+  <h2 class="placard" id="dayloop-h">Studio activity</h2>
   <p class="muted dayloop-note">Agents do the routine work each day on their own and stop at anything that needs you.</p>
   <ol class="days" id="days" aria-live="polite"></ol>
 </section>
@@ -76,18 +79,18 @@
 </section>
 
 <section class="attention studio-only" aria-label="Attention">
-  <div class="attention-col">
-    <div class="section-head">
-      <h2 class="placard" id="needs-you-heading">Needs you</h2>
+  <div class="focus" id="needs-panel">
+    <div class="focus-head">
+      <div><p class="focus-kicker">Needs you</p><h2 class="focus-title" id="needs-you-heading">Needs you</h2></div>
       <button type="button" class="text-button" id="intro-open" aria-controls="intro" aria-expanded="false" hidden>How it works</button>
     </div>
     <div class="needs-you" id="needs-you" aria-live="polite" aria-labelledby="needs-you-heading"></div>
   </div>
-  <div class="attention-col">
-    <div class="section-head">
-      <h2 class="placard" id="caught-heading">Caught by Double Take</h2>
-    </div>
+  <div class="caught-panel">
+    <h2 class="placard caught-title" id="caught-heading">Caught by Double Take <span class="caught-count" id="caught-count"></span></h2>
+    <p class="muted caught-sub">Drafts blocked for looking like another business's work to the same people, then revised.</p>
     <div class="caught" id="caught" aria-labelledby="caught-heading"></div>
+    <a class="caught-more" href="/analysis#ch-double-take">How Double Take decides <span aria-hidden="true">→</span></a>
   </div>
 </section>
 
@@ -161,31 +164,29 @@
   </nav>
 
   <section class="a-intro" aria-labelledby="analysis-intro-heading">
-    <p class="a-kicker">What Red String is for</p>
-    <h2 class="a-title" id="analysis-intro-heading">Stop making lookalike work for clients who reach the same people</h2>
-    <div class="ps-grid" id="ps-grid">
-      <article class="ps">
-        <h3><span class="ps-n">1</span>The problem</h3>
-        <div class="ps-problem-frame" id="ps-problem-visual"><img class="ps-problem-image" src="/static/img/hero-problem.webp" width="1599" height="900" alt="A gym and an art studio film phone videos with the same handprint trick; a parent and child watch near-identical videos as red threads tangle above them." decoding="async"></div>
-        <p class="ps-caption">Same trick, same parents: both clients look generic.</p>
+    <p class="a-kicker">What Red String is</p>
+    <h2 class="a-title" id="analysis-intro-heading">An agency's AI team that never makes <em>lookalike videos</em> for clients who share an audience</h2>
+    <p class="a-lede">Agents screen leads, research, and draft social videos for local businesses. Before anything posts, Red String checks it against every other client that reaches the same people, and you approve what goes out.</p>
+    <div class="story" id="ps-grid">
+      <article class="story-card">
+        <div class="story-media"><img src="/static/img/hero-problem.webp" width="1599" height="900" alt="A gym and an art studio film phone videos with the same handprint trick; a parent and child watch near-identical videos as red threads tangle above them." decoding="async"></div>
+        <div class="story-text"><p class="story-step">The problem</p><h3>Two clients, the same parents, the same trick</h3><p>When the gym copies the art studio's signature move, parents see both videos and neither business stands out.</p></div>
       </article>
-      <article class="ps">
-        <h3><span class="ps-n">2</span>What Red String does</h3>
-        <div class="ps-visual ps-solution-visual">
-          <div class="ps-solution-frame"><img class="ps-solution-image" src="/static/img/hero-solution.webp" width="1599" height="900" alt="A corkboard of local businesses and families joined by red string, with two robot helpers inspecting cards and a person holding an approval stamp." loading="lazy" decoding="async"></div>
-          <div id="ps-flow-visual" role="img" aria-label="Five steps from screening a lead to human approval"></div>
-        </div>
-        <p class="ps-caption">Agents do the routine work and stop for you on anything that matters.</p>
+      <span class="story-arrow" aria-hidden="true">→</span>
+      <article class="story-card story-proof-card">
+        <div class="story-proof" id="ps-proof" aria-live="polite">Loading this run's results…</div>
+        <div class="story-text"><p class="story-step">Caught in this run</p><h3>Blocked before it posted, then rewritten</h3><p id="ps-proof-more"></p></div>
       </article>
-      <article class="ps proof">
-        <h3><span class="ps-n">3</span>What it caught in this run</h3>
-        <div class="ps-visual proof-visual" id="ps-proof" aria-live="polite">Loading this run's results…</div>
-        <div class="proof-summary" id="ps-proof-more"></div>
+      <span class="story-arrow" aria-hidden="true">→</span>
+      <article class="story-card">
+        <div class="story-media"><img src="/static/img/hero-solution.webp" width="1599" height="900" alt="A corkboard of local businesses and families joined by red string, with two robot helpers inspecting cards and a person holding an approval stamp." decoding="async"></div>
+        <div class="story-text"><p class="story-step">Then you decide</p><h3>Agents do the work, you make the call</h3><p>Scout, Researcher, Producer and Standards handle the routine. Pitches, posts and signings wait for you.</p></div>
       </article>
     </div>
+    <ul class="stats" id="ps-stats" aria-label="This run in numbers"></ul>
     <div class="a-actions">
       <button type="button" class="btn primary big" id="tour-start">Take the 2-minute tour <span aria-hidden="true">→</span></button>
-      <p class="muted">Or scroll: each chart below starts with how to read it.</p>
+      <p class="muted">Or scroll: each section starts with what this run found.</p>
     </div>
     <figure class="a-video" id="a-video" hidden>
       <div class="a-video-frame" id="a-video-frame"></div>
@@ -196,7 +197,7 @@
 
   <section class="chapter" id="ch-architecture" aria-labelledby="graph-architecture-heading">
     <header class="ch-head">
-      <div><h2 class="placard" id="graph-architecture-heading">One shared graph, one private graph per client</h2>
+      <div><p class="ch-kicker">1 · Architecture</p><h2 class="ch-title" id="graph-architecture-heading">Client work stays private. Only technique lists are shared.</h2>
       <p class="ch-cap">Each prospect or client keeps its own graph. Only a Fingerprint, the technique IDs a draft uses, is projected into the shared <code>agency</code> graph. Cross-client checks run there; copy, posts and goals never leave the client.</p></div>
       <p class="ch-tags"><span class="qtag">P1</span><span class="qtag">Q0</span><span class="qtag">Q1</span><span class="qtag">Q2</span></p>
     </header>
@@ -214,7 +215,7 @@
 
   <section class="chapter" id="ch-screening" aria-labelledby="screening-heading">
     <header class="ch-head">
-      <div><h2 class="placard" id="screening-heading">Screening walks the audience graph</h2>
+      <div><p class="ch-kicker">2 · Screening</p><h2 class="ch-title" id="screening-heading">Every lead is scored against every signed client</h2>
       <p class="ch-cap">Scout follows each lead's audiences, and the audiences they overlap, to every signed client. The path weights add up to a conflict score per client, and the highest one sets the verdict. Pick a lead to trace it.</p></div>
       <p class="ch-tags"><span class="qtag">Q1</span><span class="qtag-tool">lead_conflict</span></p>
     </header>
@@ -246,7 +247,7 @@
 
   <section class="chapter" id="ch-double-take" aria-labelledby="double-take-heading">
     <header class="ch-head">
-      <div><h2 class="placard" id="double-take-heading">Double Take compares fingerprints, not copy</h2>
+      <div><p class="ch-kicker">3 · Double Take</p><h2 class="ch-title" id="double-take-heading">Lookalike drafts are blocked before they reach the same people</h2>
       <p class="ch-cap">A draft is blocked when it shares rare techniques with a business that reaches the same people. Risk is similarity times audience overlap; anything at the threshold or above is caught before it ships.</p></div>
       <p class="ch-tags"><span class="qtag">Q2</span><span class="qtag-tool">double_take</span></p>
     </header>
@@ -263,7 +264,7 @@
 
   <section class="chapter" id="ch-territory" aria-labelledby="signatures-heading">
     <header class="ch-head">
-      <div><h2 class="placard" id="signatures-heading">Who owns which creative territory</h2>
+      <div><p class="ch-kicker">4 · Creative territory</p><h2 class="ch-title" id="signatures-heading">Rare techniques already in use by businesses on the same audience</h2>
       <p class="ch-cap">A signature is a rare technique in 30% or more of a business's work. Red marks the territory behind this run's blocked drafts: the same rare techniques, used by businesses that reach the same people.</p></div>
       <p class="ch-tags"><span class="qtag">Q0</span><span class="qtag-tool">derive_signatures</span></p>
     </header>
@@ -280,7 +281,7 @@
 
   <section class="chapter" id="ch-agents" aria-labelledby="agents-heading">
     <header class="ch-head">
-      <div><h2 class="placard" id="agents-heading">Agents never write raw Cypher</h2>
+      <div><p class="ch-kicker">5 · Agents and queries</p><h2 class="ch-title" id="agents-heading">Each agent can run only the queries its job needs</h2>
       <p class="ch-cap">Every query is a named MCP tool, and each agent only gets its slice. Every write also records a Decision with who made it and why.</p></div>
     </header>
     <div class="explain-guide">

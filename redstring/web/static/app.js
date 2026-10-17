@@ -326,30 +326,94 @@ function bizCard(b) {
 
 const TIE = `<svg viewBox="0 0 44 12" aria-hidden="true"><circle cx="3" cy="6" r="3"/><path d="M3 6 C 15 13, 29 -1, 41 6"/><circle cx="41" cy="6" r="3"/></svg>`;
 
-// Needs you holds decisions only. What Double Take caught is news, so it gets its own column.
-function renderAttention(o) {
+// Needs you holds decisions, most urgent first: the first one opens with its buttons, the rest are one line each.
+function needsEntries(o) {
   const items = o.needs_you || [];
-  const byId = Object.fromEntries(o.businesses.map((b) => [b.id, b]));
-  const decisions = items.filter((i) => ["borderline", "pitch", "ready", "approve_posts"].includes(i.type));
-  const unscreened = items.filter((i) => i.type === "unscreened");
-  const blocked = items.filter((i) => i.type === "blocked");
-  let h = decisions.map((i) => i.type === "pitch"
-    ? `<button type="button" class="need-card pitch" data-pitch="${esc(i.pitch_id)}" data-slug="${esc(i.business_id)}"><span class="need-kind">${icon("send")}Pitch to approve</span><span class="need-text">${esc(byId[i.business_id]?.name || i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`
-    : i.type === "approve_posts"
-    ? `<button type="button" class="need-card pitch" data-draft="${esc(i.draft_ids[0])}" data-slug="${esc(i.business_id)}"><span class="need-kind">${icon("circle-check")}Posts to approve</span><span class="need-text">${esc(i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`
-    : i.type === "ready"
-    ? `<button type="button" class="need-card" data-reveal-lane="screened"><span class="need-kind">${icon("sparkles")}Cleared to pitch</span><span class="need-text">${esc(i.message)}</span><span class="need-cta">See them in the pipeline <span aria-hidden="true">→</span></span></button>`
-    : `<button type="button" class="need-card pitch borderline" data-pick="${esc(i.business_id)}"><span class="need-kind">${icon("gavel")}Board call</span><span class="need-text">${esc(i.message)}</span><span class="need-cta">Review and decide <span aria-hidden="true">→</span></span></button>`).join("");
-  if (unscreened.length) {
-    h += `<button type="button" class="need-card" data-reveal-lane="lead"><span class="need-kind">${icon("radar")}Leads to screen</span><span class="need-text">${unscreened.length} new ${unscreened.length === 1 ? "lead is" : "leads are"} waiting for Scout</span><span class="need-cta">See them in the pipeline <span aria-hidden="true">→</span></span></button>`;
+  const byId = Object.fromEntries((o.businesses || []).map((b) => [b.id, b]));
+  const ro = !!o.readonly;
+  const cta = (t) => `<span class="need-cta">${t} <span aria-hidden="true">→</span></span>`;
+  const entries = [];
+  items.filter((i) => i.type === "borderline").forEach((i) => {
+    const b = byId[i.business_id] || { name: i.business_id };
+    const why = displayStudioCopy(b.reason || "").replace(/\s*\(conflict [^)]*\)/i, "").replace(/;?\s*board call\.?$/i, "").trim();
+    entries.push({
+      n: 1, kind: "Board call", icon: "gavel", biz: b,
+      q: `Pursue ${esc(b.name)}?`,
+      what: `${why ? `${esc(why.replace(/\.$/, ""))}. ` : ""}Pursue opens its research; Pass takes it off the pipeline for 90 days.`,
+      actions: ro ? `<span class="focus-wait">Waiting on the board</span><button type="button" class="btn ghost big" data-pick="${esc(i.business_id)}">See the screening</button>`
+        : `<button type="button" class="btn primary big" data-lead-decision="pursue" data-slug="${esc(i.business_id)}">Pursue lead</button><button type="button" class="btn ghost big" data-lead-decision="pass" data-slug="${esc(i.business_id)}">Pass</button>`,
+      more: ro ? "" : `<button type="button" class="text-button" data-pick="${esc(i.business_id)}">See the screening first →</button>`,
+      row: `<button type="button" class="focus-row" data-pick="${esc(i.business_id)}"><span class="focus-n">1</span><span class="focus-row-text">Board call: pursue <b>${esc(b.name)}</b>?</span>${cta("Review")}</button>`,
+    });
+  });
+  items.filter((i) => i.type === "pitch").forEach((i) => {
+    const b = byId[i.business_id] || { name: i.business_id };
+    const attrs = `data-pitch="${esc(i.pitch_id)}" data-slug="${esc(i.business_id)}"`;
+    entries.push({
+      n: 1, kind: "Pitch to approve", icon: "send", biz: b,
+      q: `Approve ${esc(b.name)}'s pitch?`,
+      what: "Account Manager assembled it from spec posts that cleared Double Take. Nothing is sent until you approve.",
+      actions: `<button type="button" class="btn primary big" ${attrs}>Review and decide</button>`,
+      row: `<button type="button" class="focus-row" ${attrs}><span class="focus-n">1</span><span class="focus-row-text">Approve <b>${esc(b.name)}</b>'s pitch</span>${cta("Review")}</button>`,
+    });
+  });
+  const posts = items.filter((i) => i.type === "approve_posts");
+  if (posts.length) {
+    const total = posts.reduce((a, i) => a + i.draft_ids.length, 0);
+    const chips = posts.map((i) => `<button type="button" class="focus-chip" data-draft="${esc(i.draft_ids[0])}" data-slug="${esc(i.business_id)}">${avatar(byId[i.business_id], "xs")}<span>${esc(i.business || byId[i.business_id]?.name)}</span><b>${i.draft_ids.length}</b></button>`).join("");
+    entries.push({
+      n: total, kind: "Posts to approve", icon: "circle-check",
+      q: `Approve ${plural(total, "post", "posts")}?`,
+      what: `All cleared Double Take. Pick a client to review ${posts.length === 1 ? "its" : "their"} posts.`,
+      actions: `<span class="focus-chips">${chips}</span>`,
+      row: `<div class="focus-row multi"><span class="focus-n">${total}</span><span class="focus-row-text">Approve posts for <b>${plural(posts.length, "client", "clients")}</b>, all cleared by Double Take</span><span class="focus-chips">${chips}</span></div>`,
+    });
   }
-  $("#needs-you").innerHTML = h || `<div class="needs-empty"><img class="needs-empty-image" src="/static/img/empty-all-clear.webp" width="720" height="720" alt="A tidy corkboard beside a cup of coffee." loading="lazy" decoding="async"><p>All clear: nothing needs you right now.</p></div>`;
-  $("#caught").innerHTML = blocked.map((i) => `<button type="button" class="caught-card" data-draft="${esc(i.draft_id)}" data-slug="${esc(i.business_id)}">
-      <span class="need-kind">${icon("shield-alert")}Blocked and revised</span>
-      <span class="caught-a">${esc(i.business || byId[i.business_id]?.name)}</span>
-      <span class="caught-pair">${avatar(byId[i.business_id], "sm")}${TIE}${avatar(bizByName(i.with_business), "sm")}<span>looked like <b>${esc(i.with_business || "")}</b>${i.also_like?.length ? ` and <b>${i.also_like.map(esc).join(", ")}</b>` : ""}</span></span>
-      ${i.hook ? `<span class="caught-hook">“${esc(i.hook)}”</span>` : ""}
-      <span class="need-cta">See what it shared <span aria-hidden="true">→</span></span>
+  const ready = items.find((i) => i.type === "ready");
+  if (ready) {
+    const k = ready.business_ids.length;
+    entries.push({
+      n: k, kind: "Cleared to pitch", icon: "sparkles",
+      q: `${plural(k, "screened lead is", "screened leads are")} cleared to pitch`,
+      what: "Scout found no clash with a signed client. Open one in the pipeline to pursue it.",
+      actions: `<button type="button" class="btn primary big" data-reveal-lane="screened">See them in the pipeline</button>`,
+      row: `<button type="button" class="focus-row" data-reveal-lane="screened"><span class="focus-n">${k}</span><span class="focus-row-text">Screened ${k === 1 ? "lead" : "leads"} cleared to pitch</span>${cta("See them")}</button>`,
+    });
+  }
+  const unscreened = items.filter((i) => i.type === "unscreened");
+  if (unscreened.length) {
+    const k = unscreened.length;
+    entries.push({
+      n: k, kind: "Leads to screen", icon: "radar",
+      q: `${plural(k, "new lead is", "new leads are")} waiting for Scout`,
+      what: "Run the next step and Scout screens them against every signed client.",
+      actions: `<button type="button" class="btn primary big" data-reveal-lane="lead">See them in the pipeline</button>`,
+      row: `<button type="button" class="focus-row" data-reveal-lane="lead"><span class="focus-n">${k}</span><span class="focus-row-text">New ${k === 1 ? "lead" : "leads"} waiting for Scout</span>${cta("See them")}</button>`,
+    });
+  }
+  return entries;
+}
+
+function renderAttention(o) {
+  const byId = Object.fromEntries(o.businesses.map((b) => [b.id, b]));
+  const entries = needsEntries(o);
+  const [first, ...rest] = entries;
+  $("#needs-you-heading").textContent = entries.length ? `${plural(entries.length, "decision", "decisions")} waiting` : "All clear";
+  $("#needs-you").innerHTML = first
+    ? `<div class="focus-item">
+        ${first.biz ? avatar(first.biz, "lg") : `<span class="focus-icon">${icon(first.icon)}</span>`}
+        <div class="focus-copy"><p class="focus-item-kind">${icon(first.icon)}${esc(first.kind)}${rest.length ? " · decide first" : ""}</p>
+          <h3 class="focus-q">${first.q}</h3><p class="focus-what">${first.what}</p>${first.more || ""}</div>
+        <div class="focus-actions">${first.actions}</div>
+      </div>${rest.length ? `<div class="focus-rows">${rest.map((e) => e.row).join("")}</div>` : ""}`
+    : `<div class="needs-empty"><img class="needs-empty-image" src="/static/img/empty-all-clear.webp" width="720" height="720" alt="A tidy corkboard beside a cup of coffee." loading="lazy" decoding="async"><p>Nothing needs you right now.</p></div>`;
+  const blocked = (o.needs_you || []).filter((i) => i.type === "blocked").sort((a, z) => (z.risk || 0) - (a.risk || 0));
+  $("#caught-count").textContent = blocked.length || "";
+  $("#caught").innerHTML = blocked.map((i) => `<button type="button" class="caught-row" data-draft="${esc(i.draft_id)}" data-slug="${esc(i.business_id)}">
+      <span class="caught-pair">${avatar(byId[i.business_id], "sm")}<i class="caught-tie" aria-hidden="true"></i>${avatar(bizByName(i.with_business), "sm")}</span>
+      <span class="caught-who"><b>${esc(i.business || byId[i.business_id]?.name)}</b><span>looked like ${esc(i.with_business || "")}${i.also_like?.length ? ` and ${i.also_like.map(esc).join(", ")}` : ""}</span></span>
+      ${typeof i.risk === "number" ? `<span class="risk-pill" title="Double Take risk">${n(i.risk)}</span>` : ""}
+      <span class="caught-go" aria-hidden="true">→</span>
     </button>`).join("")
     || `<p class="empty-row">Nothing caught yet. Double Take checks every draft from step 3 on.</p>`;
 }
@@ -357,16 +421,21 @@ function renderAttention(o) {
 function renderBoard(o) {
   $("#board").innerHTML = STAGES.map(([title, test, empty]) => {
     const items = o.businesses.filter(test);
+    if ((title === "Passed" || title === "Lead") && !items.length) return "";
+    let extra = 0;
     if (title === "Screened") {
       const order = { pursue: 0, pursue_differentiated: 1, borderline: 2, decline: 3 };
       items.sort((a, z) => (order[a.verdict] ?? 4) - (order[z.verdict] ?? 4) || a.name.localeCompare(z.name));
+      const sel = items.findIndex((b) => b.id === state.selected);
+      if (!state.showAllScreened && items.length > 5 && sel < 5) extra = items.length - 4;
     }
+    const shown = extra ? items.slice(0, 4) : items;
     const won = (o.clients || []).filter((client) => client.won_pitch).map((client) => client.name);
     const emptyText = title === "Pitched" && won.length
       ? `No open pitches. Won and signed: ${won.join(", ")}.`
       : empty;
     return `<section class="stage" data-stage="${esc(title.toLowerCase())}" aria-label="${title}, ${items.length}"><h3>${title} <span class="count">${items.length}</span></h3>
-      ${items.length ? `<div class="cards">${items.map(bizCard).join("")}</div>` : `<p class="empty-row">${esc(emptyText)}</p>`}</section>`;
+      ${items.length ? `<div class="cards">${shown.map(bizCard).join("")}${extra ? `<button type="button" class="more-cards" data-more-stage="screened">Show ${extra} more</button>` : ""}</div>` : `<p class="empty-row">${esc(emptyText)}</p>`}</section>`;
   }).join("");
 }
 
@@ -376,11 +445,22 @@ async function renderDays() {
   const a = await api("/api/activity");
   const box = $("#dayloop");
   box.hidden = !a.can_advance && a.day === 0;
-  if (box.hidden) return;
-  $("#day-label").textContent = `Day ${a.day} · ${dayDate(a.date)}`;
-  const left = a.feed_left.length;
-  $("#day-feed").textContent = left ? `${left} new ${left === 1 ? "lead" : "leads"} still to arrive` : "";
+  $("#activity-toggle").hidden = box.hidden;
   $("#next-day").hidden = !a.can_advance;
+  if (box.hidden) {
+    const steps = state.overview?.steps || [];
+    const done = steps.filter((s) => s.done).length;
+    $("#day-label").textContent = "Agent run";
+    $("#day-summary").textContent = steps.length ? (done === steps.length ? `All ${steps.length} steps ran.` : `${done} of ${steps.length} steps ran.`) : "";
+    $("#day-feed").textContent = "";
+    return;
+  }
+  $("#day-label").textContent = `Day ${a.day} · ${dayDate(a.date)}`;
+  const today = a.days.find((d) => d.day === a.day);
+  const did = (today?.entries || []).filter((e) => e.agent !== "Yaz").length;
+  $("#day-summary").textContent = a.day ? `Agents did ${plural(did, "thing", "things")} today on their own.` : "Press Next day and the agents start working.";
+  const left = a.feed_left.length;
+  $("#day-feed").textContent = left ? `${left} new ${left === 1 ? "lead" : "leads"} still to arrive.` : "";
   const byId = Object.fromEntries((state.overview?.businesses || []).map((b) => [b.id, b]));
   const days = a.days.filter((d) => d.day > 0);
   $("#days").innerHTML = days.map((d) => `<li class="day"><h3 class="day-h">Day ${d.day} <span class="muted">· ${esc(dayDate(d.date))}</span><span class="day-count">${d.entries.length} ${d.entries.length === 1 ? "action" : "actions"}</span></h3>
@@ -407,6 +487,13 @@ document.addEventListener("click", async (e) => {
     b.innerHTML = label;
   }
 });
+
+document.querySelectorAll(".fold-toggle").forEach((button) => button.addEventListener("click", () => {
+  const target = document.getElementById(button.getAttribute("aria-controls"));
+  const open = target.classList.toggle("folded") === false;
+  button.setAttribute("aria-expanded", String(open));
+  if (open) target.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "nearest" });
+}));
 
 async function feed() {
   const ds = await api("/api/decisions");
@@ -472,7 +559,8 @@ function renderAnalysis(analysis, overview, decisions) {
   renderDoubleTake(analysis);
   renderTerritory(analysis, overview);
   renderAccess(analysis);
-  renderIntroProof(analysis);
+  renderIntroProof(analysis, overview);
+  renderFindings(analysis);
 
   // raw data
   $("#thresholds").innerHTML = [
@@ -790,63 +878,39 @@ function blockedDrafts(analysis) {
 }
 const andList = (xs) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 
-function renderIntroFlow() {
-  const steps = [
-    ["radar", "Scout screens the lead"],
-    ["search", "Researcher gathers context"],
-    ["clapperboard", "Producer drafts spec posts"],
-    ["shield-check", "Standards runs Double Take"],
-    ["gavel", "You approve"],
-  ];
-  $("#ps-flow-visual").innerHTML = `<ol class="proof-flow">${steps.map(([name, label], i) => `
-    <li class="proof-step${i === steps.length - 1 ? " human-gate" : ""}"><span class="proof-step-icon">${icon(name)}</span><span>${label}</span></li>`).join("")}</ol>`;
-}
-
-function renderIntroProof(analysis) {
+function renderIntroProof(analysis, overview) {
   const t = analysis.thresholds || {};
-  renderIntroFlow();
   const list = blockedDrafts(analysis);
   const top = list[0];
   if (!top) {
     $("#ps-proof").innerHTML = `<div class="proof-empty">${icon("circle-check")}<span>No blocked drafts in this run yet.</span></div>`;
+    $("#ps-proof-more").textContent = "Double Take checks every draft before it can post.";
   } else {
     const lookalikes = [...new Set(top.flags.map((f) => f.with_business).filter(Boolean))];
     const risk = Number(top.worst.risk) || 0;
     const cutoff = Number(top.worst.flag_risk ?? t.flag_risk) || 0;
-    const riskPct = Math.max(0, Math.min(100, risk * 100));
-    const cutoffPct = Math.max(0, Math.min(100, cutoff * 100));
+    const pct = (v) => Math.max(0, Math.min(100, v * 100));
     $("#ps-proof").innerHTML = `
-      <div class="proof-pair">
-        <div class="proof-side">
-          <div class="proof-business">${avatar(bizByName(top.client))}<b>${esc(top.client)}</b></div>
-          <span class="proof-label">Draft</span>
-          <q class="proof-hook">${esc(top.draft_hook || "Draft without a hook")}</q>
-        </div>
-        <div class="proof-thread"><span class="proof-thread-line"></span><span class="proof-techniques">${top.techs.map((tech) => `<span>${esc(tech)}</span>`).join("")}</span></div>
-        <div class="proof-side proof-lookalikes">
-          <span class="proof-label">Looks like</span>
-          ${lookalikes.map((name) => `<span class="proof-business">${avatar(bizByName(name))}<b>${esc(name)}</b></span>`).join("")}
-        </div>
+      <div class="vs">
+        <div class="vs-side">${avatar(bizByName(top.client), "lg")}<b>${esc(top.client)}</b><span>new draft</span></div>
+        <span class="vs-eq" aria-hidden="true">≈</span>
+        <div class="vs-side"><span class="vs-avatars">${lookalikes.map((name) => avatar(bizByName(name), "lg")).join("")}</span><b>${esc(andList(lookalikes))}</b><span>already ${lookalikes.length === 1 ? "does" : "do"} this</span></div>
       </div>
-      <div class="proof-risk">
-        <b class="proof-risk-label">risk ${n(risk)} ≥ ${n(cutoff)} → blocked</b>
-        <span class="proof-risk-track" role="img" aria-label="Risk ${n(risk)}; blocked at ${n(cutoff)}">
-          <span class="proof-risk-fill" style="width:${riskPct}%"></span>
-          <span class="proof-risk-tick" style="left:${cutoffPct}%"></span>
-        </span>
-      </div>`;
+      <q class="vs-hook">${esc(top.draft_hook || "Draft without a hook")}</q>
+      <p class="vs-chips" aria-label="Shared techniques">${top.techs.map((tech) => `<span>${esc(tech)}</span>`).join("")}</p>
+      <div class="vs-meter"><b>risk ${n(risk)}</b>
+        <span class="vs-track" role="img" aria-label="Risk ${n(risk)}; blocked at ${n(cutoff)}"><span class="vs-fill" style="width:${pct(risk)}%"></span><span class="vs-tick" style="left:${pct(cutoff)}%"></span></span>
+        <span>limit ${n(cutoff)}</span></div>`;
+    $("#ps-proof-more").innerHTML = `Same rare techniques, same audience, so the Producer had to find new territory. <a href="#ch-double-take">See all ${plural(list.length, "blocked draft", "blocked drafts")} <span aria-hidden="true">→</span></a>`;
   }
   const screening = analysis.screening || [];
-  const counts = Object.fromEntries(["pursue", "pursue_differentiated", "borderline", "decline"].map((verdict) => [
-    verdict, screening.filter((row) => row.verdict === verdict).length,
-  ]));
-  const pills = [
-    chip("pursue", `${counts.pursue} cleared to pitch`),
-    chip("pursue_differentiated", `${counts.pursue_differentiated} distinct angle`),
-    chip("borderline", `${counts.borderline} board call`),
-    chip("decline", `${counts.decline} declined`),
-  ].join("");
-  $("#ps-proof-more").innerHTML = `<div class="proof-counts"><span class="proof-screened">Scout also screened ${plural(screening.length, "lead", "leads")}</span><span class="proof-pills">${pills}</span><a href="#ch-double-take">See every blocked draft <span aria-hidden="true">→</span></a></div>`;
+  const waiting = overview ? needsEntries(overview).length : 0;
+  $("#ps-stats").innerHTML = [
+    ["", screening.length, `${screening.length === 1 ? "lead" : "leads"} screened against current clients`],
+    ["red", list.length, `lookalike ${list.length === 1 ? "draft" : "drafts"} blocked before posting`],
+    ["", analysis.cleared_checks ?? 0, "Double Take checks cleared"],
+    ["", waiting, `${waiting === 1 ? "decision" : "decisions"} waiting for you in the Studio`],
+  ].map(([cls, v, label]) => `<li class="stat ${cls}"><b>${esc(v)}</b><span>${esc(label)}</span></li>`).join("");
   const conflicts = screening.flatMap((row) => (row.clients || []).map((client) => Number(client.conflict) || 0));
   const maxConflict = Math.max(...conflicts, 0);
   $("#screen-ramp-max").textContent = n(maxConflict);
@@ -858,6 +922,19 @@ function renderIntroProof(analysis) {
     const v = t[el.dataset.t];
     if (typeof v === "number") el.textContent = n(v);
   });
+}
+
+// Each chapter leads with what this run found; the static heading stays as the fallback.
+function renderFindings(analysis) {
+  const rows = (analysis.screening || []).map((r) => ({ r, top: [...(r.clients || [])].sort((x, z) => z.conflict - x.conflict)[0] }))
+    .filter((x) => x.top && x.r.verdict !== "decline").sort((x, z) => z.top.conflict - x.top.conflict);
+  if (rows[0]) $("#screening-heading").innerHTML = `<em>${esc(rows[0].r.name)}</em> competes with ${esc(rows[0].top.client)} for the same people`;
+  const list = blockedDrafts(analysis);
+  $("#double-take-heading").innerHTML = list.length
+    ? `<em>${plural(list.length, "draft was", "drafts were")}</em> blocked before reaching the same people`
+    : "No draft needed blocking in this run";
+  const techs = new Set(list.flatMap((d) => d.techs));
+  if (techs.size) $("#signatures-heading").innerHTML = `<em>${plural(techs.size, "rare technique", "rare techniques")}</em> behind the blocks were already in use on the same audience`;
 }
 
 function renderVideo(u) {
@@ -886,7 +963,7 @@ const TOUR = [
   {
     target: "#ps-grid",
     title: "Start with the problem",
-    body: () => "An agency that serves many local businesses can end up giving two clients lookalike videos aimed at the same parents. Red String catches that before it happens. These three cards are the short version; the rest of the tour shows how.",
+    body: () => "An agency that serves many local businesses can end up giving two clients lookalike videos aimed at the same parents. Red String catches that before it happens. These three panels are the short version: the problem, a real block from this run, and where you come in. The rest of the tour shows how.",
   },
   {
     target: "#graph-cards",
@@ -1005,6 +1082,7 @@ $("#steps").addEventListener("click", async (e) => {
 // ---------------------------------------------------------------- the dossier (business detail, docked)
 
 $("#board").addEventListener("click", (e) => {
+  if (e.target.closest("[data-more-stage]")) { state.showAllScreened = true; renderBoard(state.overview); drawString(false); return; }
   const b = e.target.closest("[data-biz]");
   if (b) select(b.dataset.biz, b);
 });
@@ -1299,7 +1377,7 @@ document.addEventListener("click", async (e) => {
   if (leadDecision) {
     const verdict = leadDecision.dataset.leadDecision;
     if (verdict === "pass" && !confirm("Pass this lead? It leaves the pipeline for 90 days.")) return;
-    const section = leadDecision.closest(".decide");
+    const section = leadDecision.closest(".decide, .focus-item");
     const buttons = [...section.querySelectorAll("button")];
     const note = section.querySelector("#lead-decision-note")?.value.trim() || "";
     buttons.forEach((button) => { button.disabled = true; });
