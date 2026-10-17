@@ -826,14 +826,14 @@ function renderIntroProof(analysis) {
     $("#ps-proof").innerHTML = `
       <div class="proof-pair">
         <div class="proof-side">
-          <div class="proof-business">${avatar(bizByName(top.client), "sm")}<b>${esc(top.client)}</b></div>
+          <div class="proof-business">${avatar(bizByName(top.client))}<b>${esc(top.client)}</b></div>
           <span class="proof-label">Draft</span>
           <q class="proof-hook">${esc(top.draft_hook || "Draft without a hook")}</q>
         </div>
         <div class="proof-thread"><span class="proof-thread-line"></span><span class="proof-techniques">${top.techs.map((tech) => `<span>${esc(tech)}</span>`).join("")}</span></div>
         <div class="proof-side proof-lookalikes">
           <span class="proof-label">Looks like</span>
-          ${lookalikes.map((name) => `<span class="proof-business">${avatar(bizByName(name), "sm")}<b>${esc(name)}</b></span>`).join("")}
+          ${lookalikes.map((name) => `<span class="proof-business">${avatar(bizByName(name))}<b>${esc(name)}</b></span>`).join("")}
         </div>
       </div>
       <div class="proof-risk">
