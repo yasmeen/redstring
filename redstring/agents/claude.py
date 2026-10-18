@@ -59,7 +59,8 @@ def _board_rules(slug: str | None) -> list[dict]:
 
 
 def run_agent(agent: str, task: str, log=print, max_turns: int = 24, *,
-              slug: str | None = None, allowed_leads: set[str] | None = None) -> str:
+              slug: str | None = None, allowed_leads: set[str] | None = None,
+              allowed_pursuits: set[str] | None = None) -> str:
     system = ROLES[agent] + "\n\n" + COMMON.format(agency=tools.world()["agency"]["name"])
     board_rules = _board_rules(slug)
     if board_rules:
@@ -106,6 +107,7 @@ def run_agent(agent: str, task: str, log=print, max_turns: int = 24, *,
                     caller=agent,
                     scope=slug,
                     allowed_slugs=allowed_leads,
+                    allowed_pursuits=allowed_pursuits,
                 )
                 results.append({"type": "tool_result", "tool_use_id": u.id, "content": out[:20000]})
             except Exception as e:  # the agent sees the error and can correct itself

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import functools
+import inspect
 
 from mcp.server.mcpserver import MCPServer
 
@@ -27,6 +28,11 @@ def _mcp_handler(tool: registry.Tool):
     def handler(**kwargs):
         return tool.call(kwargs, caller="mcp")
 
+    signature = inspect.signature(tool.fn)
+    handler.__signature__ = signature.replace(
+        parameters=[parameter for parameter in signature.parameters.values()
+                    if parameter.name not in {"agent", "by", "source"}]
+    )
     return handler
 
 

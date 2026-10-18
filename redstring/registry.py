@@ -23,6 +23,7 @@ class Tool:
     agents: list[str] = field(default_factory=list)
     query: str | None = None  # which spec query it wraps, for the README and UI
     writable: bool = False
+    scoped: bool = True
 
     @property
     def schema(self) -> dict:
@@ -30,12 +31,14 @@ class Tool:
                 "additionalProperties": False}
 
     def call(self, args: dict, *, caller: str | None = None, scope: str | None = None,
-             allowed_slugs: set[str] | None = None) -> Any:
+             allowed_slugs: set[str] | None = None,
+             allowed_pursuits: set[str] | None = None) -> Any:
         kwargs = dict(args)
         kwargs.pop("agent", None)
         kwargs.pop("by", None)
+        kwargs.pop("source", None)
 
-        if scope is not None:
+        if scope is not None and self.scoped:
             for key in ("client", "slug"):
                 if key not in self.properties:
                     continue
@@ -56,6 +59,9 @@ class Tool:
                 requested = kwargs.get(key)
                 if requested is not None and requested not in allowed_slugs:
                     raise ValueError(f"{self.name}: {key} must be one of the allowed leads")
+
+        if allowed_pursuits is not None and self.name == "pursue" and kwargs.get("slug") not in allowed_pursuits:
+            raise ValueError(f"{self.name}: slug must be one of the allowed pursuits")
 
         if caller is not None and "agent" in inspect.signature(self.fn).parameters:
             kwargs["agent"] = caller
@@ -131,10 +137,10 @@ TOOLS: list[Tool] = [
 
     # ---- reads
     Tool("pipeline_board", tools.pipeline_board, "Every business in the agency directory with status, owner and screening verdict.", {}, [], ["scout", "account_manager"]),
-    Tool("audiences_of", tools.audiences_of, "The audience segments a business targets, with weights.", {"client": CLIENT}, ["client"], ["scout", "researcher", "style_director"]),
+    Tool("audiences_of", tools.audiences_of, "The audience segments a business targets, with weights.", {"client": CLIENT}, ["client"], ["scout", "researcher", "style_director"], scoped=False),
     Tool("style_of", _style_of, "The business's home style slice and voice.", {"client": CLIENT}, ["client"], ["style_director", "producer"]),
     Tool("list_styles", tools.list_styles, "All styles (technique clusters) with average rarity.", {}, [], ["style_director"]),
-    Tool("signatures", tools.signatures, "Signature techniques, for one business or all.", {"slug": {"type": ["string", "null"]}}, [], ["style_director", "standards"]),
+    Tool("signatures", tools.signatures, "Signature techniques, for one business or all.", {"slug": {"type": ["string", "null"]}}, [], ["style_director", "standards"], scoped=False),
     Tool("findings", tools.findings, "Findings in the client graph, optionally one kind (audience, competitor, channel, audit).",
          {"client": CLIENT, "kind": {"type": ["string", "null"]}}, ["client"], ["style_director", "strategist", "account_manager", "producer"]),
     Tool("goals", tools.goals, "Goals in the client graph with status (active, hypothesized, retired).", {"client": CLIENT}, ["client"], ["researcher", "strategist", "style_director", "account_manager"]),
@@ -190,6 +196,8 @@ def for_agent(agent: str) -> list[Tool]:
 
 
 def call(name: str, args: dict, *, caller: str | None = None, scope: str | None = None,
-         allowed_slugs: set[str] | None = None) -> str:
-    out = BY_NAME[name].call(args, caller=caller, scope=scope, allowed_slugs=allowed_slugs)
+         allowed_slugs: set[str] | None = None,
+         allowed_pursuits: set[str] | None = None) -> str:
+    out = BY_NAME[name].call(args, caller=caller, scope=scope, allowed_slugs=allowed_slugs,
+                              allowed_pursuits=allowed_pursuits)
     return json.dumps(out, default=str)

@@ -23,8 +23,53 @@ def test_tool_properties_match_function_parameters():
 def test_audiences_of_tool_accepts_client_argument():
     tools._world_cache = None
     seed.seed_all()
-    tool = next(t for t in registry.TOOLS if t.name == "audiences_of")
-    assert tool.call({"client": "wet-paint"})
+    audiences = next(t for t in registry.TOOLS if t.name == "audiences_of")
+    signatures = next(t for t in registry.TOOLS if t.name == "signatures")
+    assert audiences.call({"client": "wet-paint"}, caller="style_director", scope="cannonball")
+    assert signatures.call({"slug": "wet-paint"}, caller="style_director", scope="cannonball")
+
+
+def test_private_client_reads_remain_pinned_to_run_scope():
+    tools._world_cache = None
+    seed.seed_all()
+    findings = next(t for t in registry.TOOLS if t.name == "findings")
+
+    with pytest.raises(ValueError, match="client is pinned to cannonball"):
+        findings.call({"client": "wet-paint"}, caller="style_director", scope="cannonball")
+
+
+def test_mcp_pursue_schema_hides_server_identity_and_source():
+    from redstring.mcp_server import build_server
+
+    async def go():
+        return await build_server(allow_writes=True).list_tools()
+
+    pursue = next(tool for tool in asyncio.run(go()) if tool.name == "pursue")
+    assert not {"agent", "by", "source"} & set(pursue.input_schema["properties"])
+
+
+def test_scout_cannot_set_web_board_source(monkeypatch):
+    tools._world_cache = None
+    seed.seed_all()
+    captured = {}
+    monkeypatch.setattr(db, "list_graphs", lambda: [])
+    monkeypatch.setattr(seed, "create_client_graph", lambda *_args, **_kwargs: {})
+    monkeypatch.setattr(
+        tools,
+        "set_status",
+        lambda slug, status, agent, rationale, source=None: captured.update(
+            slug=slug, status=status, agent=agent, source=source
+        ),
+    )
+
+    registry.BY_NAME["pursue"].call(
+        {"slug": "crux", "rationale": "Pursue.", "source": "web_board"},
+        caller="scout",
+        allowed_slugs={"crux"},
+        allowed_pursuits={"crux"},
+    )
+
+    assert captured == {"slug": "crux", "status": "pursued", "agent": "scout", "source": None}
 
 
 def test_mcp_server_lists_and_calls_tools():
@@ -129,7 +174,7 @@ def test_single_client_run_rejects_mismatched_client_before_recording(monkeypatc
     assert len(tools.findings("wet-paint")) == before
 
 
-def test_single_client_run_rejects_mismatched_slug(monkeypatch):
+def test_single_client_run_rejects_mismatched_private_client(monkeypatch):
     from redstring.agents import claude
 
     class Messages:
@@ -140,12 +185,12 @@ def test_single_client_run_rejects_mismatched_slug(monkeypatch):
             self.calls.append(kwargs)
             if len(self.calls) == 1:
                 return SimpleNamespace(stop_reason="tool_use", content=[
-                    SimpleNamespace(type="tool_use", id="t1", name="signatures", input={
-                        "slug": "wet-paint",
+                    SimpleNamespace(type="tool_use", id="t1", name="findings", input={
+                        "client": "wet-paint",
                     })])
             result = self.calls[-1]["messages"][-1]["content"][0]
             assert result["is_error"] is True
-            assert "slug is pinned to crux" in result["content"]
+            assert "client is pinned to crux" in result["content"]
             return SimpleNamespace(stop_reason="end_turn", content=[
                 SimpleNamespace(type="text", text="Rejected.")])
 
@@ -192,6 +237,49 @@ def test_scout_rejects_lead_and_pursuit_outside_allowed_set(monkeypatch):
     assert tools.screening_card("page-turn") == {}
 
 
+def test_scout_can_screen_any_lead_but_only_pursue_explicit_targets(monkeypatch):
+    from redstring.agents import claude
+
+    class Messages:
+        def __init__(self):
+            self.calls = []
+
+        def create(self, **kwargs):
+            self.calls.append(kwargs)
+            if len(self.calls) == 1:
+                return SimpleNamespace(stop_reason="tool_use", content=[
+                    SimpleNamespace(type="tool_use", id="screen", name="record_screening", input={
+                        "lead": "page-turn", "verdict": "pursue", "reason": "Good fit.",
+                    })])
+            if len(self.calls) == 2:
+                result = self.calls[-1]["messages"][-1]["content"][0]
+                assert result.get("is_error") is not True
+                return SimpleNamespace(stop_reason="tool_use", content=[
+                    SimpleNamespace(type="tool_use", id="pursue", name="pursue", input={
+                        "slug": "page-turn", "rationale": "Good fit.",
+                    })])
+            result = self.calls[-1]["messages"][-1]["content"][0]
+            assert result["is_error"] is True
+            assert "allowed pursuits" in result["content"]
+            return SimpleNamespace(stop_reason="end_turn", content=[
+                SimpleNamespace(type="text", text="Rejected.")])
+
+    tools._world_cache = None
+    seed.seed_all()
+    fake = Messages()
+    monkeypatch.setattr(claude, "_client", SimpleNamespace(beta=SimpleNamespace(messages=fake)))
+
+    assert claude.run_agent(
+        "scout",
+        "Screen page-turn; pursue crux only.",
+        log=None,
+        allowed_leads={"crux", "page-turn"},
+        allowed_pursuits={"crux"},
+    ) == "Rejected."
+    assert tools.screening_card("page-turn")["verdict"] == "pursue"
+    assert "client:page-turn" not in db.list_graphs()
+
+
 def test_invalid_business_slug_is_rejected_before_graph_operations():
     tools._world_cache = None
     world = seed.load_world()
@@ -226,6 +314,17 @@ def test_board_rules_are_web_decisions_in_quoted_user_data(monkeypatch):
     assert "Web board decision." in request["messages"][0]["content"]
     assert "Internal decision." not in request["messages"][0]["content"]
     assert "Web board decision." not in request["system"]
+
+
+def test_full_demo_marks_board_actions_as_web_board_decisions():
+    from redstring.pipeline import Pipeline
+
+    tools._world_cache = None
+    seed.seed_all()
+    Pipeline("offline", log=None).run_demo()
+
+    assert tools.board_rules("tumble-town")
+    assert tools.board_rules("pixel-pond")
 
 
 def test_web_try_inputs(monkeypatch):

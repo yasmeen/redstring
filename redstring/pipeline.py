@@ -61,7 +61,7 @@ class Pipeline:
                 f"Screen these leads one by one with lead_conflict and record each verdict with record_screening: {', '.join(leads)}. "
                 f"Then pursue {', '.join(pursue)} (the agency has capacity for two pursuits this month), "
                 f"giving each pursuit's rationale from its screening."),
-                log=self.log, allowed_leads=set(leads))
+                log=self.log, allowed_leads=set(leads), allowed_pursuits=set(pursue))
             res = [tools.screening_card(lead) | {"lead": lead} for lead in leads]
         else:
             res = offline.scout(leads, pursue)
@@ -168,10 +168,11 @@ class Pipeline:
 
     def approve(self, client: str, note: str = "Approved. The hackathon build sends nothing.") -> dict:
         pid = tools.pitches(client)[-1]["id"]
-        return tools.board_decide(client, "Pitch", pid, "approve", note)
+        return tools.board_decide(client, "Pitch", pid, "approve", note, source="web_board")
 
     def sign(self, client: str) -> dict:
-        return tools.set_status(client, "signed", "board", "Signed. Same graph, now a client; history intact.")
+        return tools.set_status(client, "signed", "board", "Signed. Same graph, now a client; history intact.",
+                                source="web_board")
 
     def client_month(self, client: str) -> dict:
         """A signed client's monthly content run: the expected Cannonball collision lives here."""
@@ -190,7 +191,10 @@ class Pipeline:
 
     def retire_goal(self, client: str) -> dict:
         goal = next(g for g in tools.goals(client) if g["status"] == "active")
-        res = tools.retire_goal(client, goal["id"], "board", "The spring session moved; this goal no longer holds.")
+        res = tools.retire_goal(
+            client, goal["id"], "board", "The spring session moved; this goal no longer holds.",
+            source="web_board",
+        )
         _say(self.log, f"Board retired \"{goal['text']}\"; {len(res['stale_drafts'])} drafts now stale (Q5)")
         return res
 
