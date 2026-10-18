@@ -102,6 +102,25 @@ RETURN f.id AS fingerprint, f.kind AS kind, size(hits) AS hits
 ORDER BY hits DESC LIMIT 5
 """
 
+Q2_AUDIENCE_PATHS = """
+MATCH (x:Business {id: $a})-[tx:TARGETS]->(au:Audience)<-[ty:TARGETS]-(y:Business {id: $b})
+RETURN au.id AS id, au.name AS name, tx.weight AS mine, ty.weight AS theirs, [au.id] AS path
+UNION ALL
+MATCH (x:Business {id: $a})-[tx:TARGETS]->(a0:Audience)-[:OVERLAPS]-(a1:Audience)<-[ty:TARGETS]-(y:Business {id: $b})
+RETURN a0.id AS id, a0.name AS name, tx.weight AS mine, ty.weight AS theirs, [a0.id, a1.id] AS path
+"""
+
+Q2_REFERENCE_COUNTS = """
+MATCH (t:Technique) WHERE t.id IN $ids
+OPTIONAL MATCH (r:Reference)-[:USES]->(t)
+RETURN t.id AS id, count(DISTINCT r) AS ref_count
+"""
+
+Q2_REFERENCE_TOTAL = """
+MATCH (r:Reference)
+RETURN count(DISTINCT r) AS reference_total
+"""
+
 # Q3. Open territory. Style Director. Techniques in a style that no overlapping business has
 # claimed as a signature, rarest first.
 # CHANGE: open pursuits count as claimants too (so two pitches do not converge), $avoid excludes
