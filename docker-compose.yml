@@ -13,6 +13,7 @@ services:
   app:
     build: .
     environment:
+      REDSTRING_READONLY: ${REDSTRING_READONLY:-0}
       FALKORDB_HOST: falkordb
       REDSTRING_MODE: ${REDSTRING_MODE:-offline}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}

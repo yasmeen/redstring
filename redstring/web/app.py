@@ -10,7 +10,7 @@ import threading
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -18,9 +18,9 @@ from .. import config, db, loop, queries, registry, tools
 from ..pipeline import STEPS, Pipeline, run_step
 
 STATIC = Path(__file__).parent / "static"
-MODE = os.environ.get("REDSTRING_MODE", "offline")
+MODE = config.MODE
 # On a public link, REDSTRING_READONLY=1 keeps visitors from resetting the demo or acting as the board.
-# The two "try it" inputs still work: they add only synthetic leads and temporary fingerprints.
+# The two "try it" inputs remain available without persisting anything.
 READONLY = os.environ.get("REDSTRING_READONLY") == "1"
 # Optional walkthrough video shown at the top of /analysis (a YouTube link or an .mp4 URL).
 VIDEO_URL = os.environ.get("REDSTRING_VIDEO_URL", "").strip()
@@ -28,6 +28,7 @@ VIDEO_URL = os.environ.get("REDSTRING_VIDEO_URL", "").strip()
 app = FastAPI(title="Red String")
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 _lock = threading.Lock()
+_resetting = False
 _log: list[str] = []
 _done: list[str] = []
 
@@ -225,6 +226,13 @@ def next_day():
         _lock.release()
 
 
+@app.middleware("http")
+async def reject_reads_during_reset(request, call_next):
+    if request.method == "GET" and _resetting:
+        return JSONResponse({"detail": "resetting"}, status_code=503)
+    return await call_next(request)
+
+
 @app.get("/api/activity")
 def activity():
     w = tools.world()
@@ -371,6 +379,7 @@ def analysis():
 
 @app.post("/api/step/{step}")
 def step(step: str):
+    global _resetting
     _writable()
     if step not in dict(STEPS):
         raise HTTPException(404, step)
@@ -385,6 +394,7 @@ def step(step: str):
             if prev_id not in _done:
                 raise HTTPException(409, f"Run step {i - 1} ({prev_id}) first")
         if step == "reset":
+            _resetting = True
             _log.clear()
             _done.clear()
         p = Pipeline(MODE, log=_log.append)
@@ -395,13 +405,20 @@ def step(step: str):
             raise HTTPException(500, str(e))
         _done.append(step)
     finally:
+        if step == "reset":
+            _resetting = False
         _lock.release()
     return {"ok": True, "log": _log[-30:]}
 
 
 @app.get("/api/business/{slug}")
 def business(slug: str):
-    b = tools.business(slug)
+    try:
+        b = tools.business(slug)
+    except ValueError:
+        b = {}
+    if not b:
+        raise HTTPException(404, slug)
     out = {"business": b, "audiences": tools.audiences_of(slug), "screening": tools.screening_card(slug),
            "signatures": tools.signatures(slug), "has_graph": slug in db.client_slugs()}
     if out["has_graph"]:
@@ -661,11 +678,14 @@ def try_lead(body: LeadIn):
     """Screen a new lead live with Q1; persist it only when the deployment is writable."""
     neighborhoods = {n["id"] for n in db.rows(db.agency(), "MATCH (n:Neighborhood) RETURN n.id AS id")}
     if body.neighborhood not in neighborhoods:
-        raise HTTPException(400, "unknown neighborhood")
+        raise HTTPException(422, "unknown neighborhood")
     valid = {a["id"] for a in db.rows(db.agency(), "MATCH (a:Audience) RETURN a.id AS id")}
+    unknown = sorted(set(body.targets) - valid)
+    if unknown:
+        raise HTTPException(422, f"unknown audience ids: {', '.join(unknown)}")
     targets = {k: max(0.0, min(1.0, float(v))) for k, v in body.targets.items() if k in valid and float(v) > 0}
     if not targets:
-        raise HTTPException(400, "pick at least one audience")
+        raise HTTPException(422, "pick at least one audience")
     preview = READONLY or body.preview
     slug = f"try-{os.urandom(4).hex()}" if preview else (
         "try-" + (re.sub(r"[^a-z0-9]+", "-", body.name.lower()).strip("-")[:40] or "lead")
