@@ -5,6 +5,7 @@
     demo             run the whole demo pipeline (--mode offline|claude)
     step NAME        run one demo step
     check            print the seven queries' key results on the current graph
+    wait-db          wait for FalkorDB to accept a ping
     serve            run the web app
     mcp              run the MCP server (stdio, or --http PORT)
     import-refs F    import an analyzer export (CSV/JSON) into data/references.json
@@ -28,6 +29,9 @@ def main(argv: list[str] | None = None) -> None:
     s.add_argument("name")
     s.add_argument("--mode", default="offline", choices=["offline", "claude"])
     sub.add_parser("check")
+    wait = sub.add_parser("wait-db")
+    wait.add_argument("--tries", type=int, default=60)
+    wait.add_argument("--delay", type=float, default=2)
     sv = sub.add_parser("serve")
     sv.add_argument("--port", type=int, default=8000)
     sv.add_argument("--host", default="127.0.0.1")
@@ -55,6 +59,23 @@ def main(argv: list[str] | None = None) -> None:
         run_step(Pipeline(a.mode), a.name)
     elif a.cmd == "check":
         check()
+    elif a.cmd == "wait-db":
+        if a.tries < 1:
+            ap.error("--tries must be at least 1")
+        if a.delay < 0:
+            ap.error("--delay must be non-negative")
+        import time
+        from . import db
+
+        for attempt in range(1, a.tries + 1):
+            try:
+                db.connect().list_graphs()
+                return
+            except Exception:
+                print(f"Waiting for FalkorDB ({attempt}/{a.tries})", file=sys.stderr)
+                if attempt < a.tries:
+                    time.sleep(a.delay)
+        raise SystemExit(1)
     elif a.cmd == "serve":
         import uvicorn
         uvicorn.run("redstring.web.app:app", host=a.host, port=a.port)
