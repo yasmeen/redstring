@@ -6,9 +6,11 @@ import time
 from types import SimpleNamespace
 
 import pytest
+from jsonschema import validate
 from fastapi.testclient import TestClient
 
 from redstring import db, queries, registry, seed, tools
+from redstring.pipeline import Pipeline
 
 
 def test_every_spec_query_is_a_named_tool():
@@ -44,9 +46,21 @@ def test_strict_registry_schemas_close_every_object():
 
     paths = strict_schemas["record_screening"]["properties"]["paths"]["items"]
     assert set(paths["properties"]) == {
-        "client_id", "client", "same_category", "via", "hop", "conflict",
+        "client_id", "client", "conflict", "same_category", "paths",
     }
     assert set(paths["required"]) == set(paths["properties"])
+    client_paths = paths["properties"]["paths"]["items"]
+    assert set(client_paths["properties"]) == {"via", "conflict"}
+    assert set(client_paths["required"]) == set(client_paths["properties"])
+
+
+def test_record_screening_paths_schema_matches_every_demo_lead():
+    tools._world_cache = None
+    Pipeline("offline", log=None).run_demo()
+    schema = registry.BY_NAME["record_screening"].schema["properties"]["paths"]
+    for business in tools.world()["businesses"]:
+        if business["status"] == "lead":
+            validate(instance=tools.lead_conflict(business["id"])["clients"], schema=schema)
 
 
 def test_audiences_of_tool_accepts_client_argument():

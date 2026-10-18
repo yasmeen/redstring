@@ -162,10 +162,15 @@ TOOLS: list[Tool] = [
           "paths": {"type": "array", "items": {
               "type": "object",
               "properties": {
-                  "client_id": S, "client": S, "same_category": {"type": "boolean"},
-                  "via": S, "hop": {"type": ["string", "null"]}, "conflict": N,
+                  "client_id": S, "client": S, "conflict": N, "same_category": {"type": "boolean"},
+                  "paths": {"type": "array", "items": {
+                      "type": "object",
+                      "properties": {"via": S, "conflict": N},
+                      "required": ["via", "conflict"],
+                      "additionalProperties": False,
+                  }},
               },
-              "required": ["client_id", "client", "same_category", "via", "hop", "conflict"],
+              "required": ["client_id", "client", "conflict", "same_category", "paths"],
               "additionalProperties": False,
           }}}, ["lead", "verdict", "reason"], ["scout"], writable=True),
     Tool("pursue", tools.pursue, "Create the prospect's private graph and set its status to pursued.", {"slug": CLIENT, "rationale": S}, ["slug", "rationale"], ["scout"], writable=True),
