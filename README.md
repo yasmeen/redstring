@@ -217,11 +217,11 @@ The step runner at the top of the web app plays these in order. `redstring demo`
 1. **Seed.** 14 businesses, 3 signed clients, 8 agents plus the board, 63 post fingerprints. Q0 finds Wet Paint's signature: Stop motion, Paint smear wipe and Hand over lens (the planted set), plus Handwritten titles. The planted set is in 4 of Wet Paint's posts and 4 of Cannonball's, and those posts are each history's best performers. That is the ghostwriter story.
 2. **Scout** declines Deep End Swim Club (same category as Cannonball, both in Gramercy Park) and Byte Builders Academy (same category and neighborhood as Pixel Pond in Flatiron). It flags Tumble Town (conflict 1.58 with Wet Paint), Treble Clef and Northpoint for differentiated territory, calls Page Turn borderline (0.72), and clears the rest. It pursues Tumble Town and Treble Clef. Each verdict's thread shows its audience paths.
 3. **Researcher and Auditor** fill both private graphs: sourced findings, a hypothesized goal, and 3 audit findings computed from the posts.
-4. **Spec posts.** Tumble Town's post 2 is blocked: it resembles Wet Paint (and Cannonball), with risk 0.55. Treble Clef's post 1 is blocked against **Tumble Town's open pitch**, with risk 0.45. Both are revised from open territory and pass on re-check.
+4. **Spec posts.** Tumble Town's post 2 is blocked: it resembles Wet Paint and Cannonball, with risk 1.00 against each. Treble Clef's post 1 is blocked against **Tumble Town's open pitch**, with risk 0.598. Both are revised from open territory and pass on re-check.
 5. **Account Manager** assembles the Tumble Town pitch. Every claim opens to its source, and the goal is marked as our hypothesis.
 6. **The board approves.** Nothing is sent.
 7. **Tumble Town signs.** It is the same graph, now a client, with its history intact.
-8. **Cannonball's monthly draft** hits the planted collision (risk ≈ 0.45 against Wet Paint). Q3 offers Calm Explainer open territory, and the revision clears.
+8. **Cannonball's monthly draft** hits the planted collision (risk 1.00 against Wet Paint). Q3 offers Calm Explainer open territory, and the revision clears.
 9. **Retire Pixel Pond's goal.** Q5 surfaces its 2 queued drafts as stale.
 
 Then close on the graph itself in FalkorDB Browser (`docker compose up` serves it on :3000).
