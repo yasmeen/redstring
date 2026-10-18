@@ -111,6 +111,7 @@ def _draft(client: str, plan_id: str, format: str, hook: str, spec: str, techniq
 
 def _project(draft_id: str, client: str, kind: str, technique_ids: list[str]) -> dict:
     from . import db, queries
+    tools.validate_technique_ids(technique_ids)
     db.run(db.agency(), queries.P1_PROJECT_FINGERPRINT,
            {"draft_id": draft_id, "kind": kind, "client": client, "now": tools.now(), "technique_ids": technique_ids})
     return {"fingerprint": draft_id}

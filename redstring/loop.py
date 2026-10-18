@@ -47,15 +47,15 @@ def _waiting_count() -> int:
 
 
 def _new_plan(pipeline: Pipeline, client: str, day: int) -> str:
+    tool_results: dict = {}
     result = pipeline._agent(
         "strategist",
         f"Write a plan for {client} with write_plan, period 'Day {day}', serving its active goal.",
-        offline.strategist, client, f"Day {day}",
+        offline.strategist, client, f"Day {day}", tool_results=tool_results,
     )
     if isinstance(result, dict) and result.get("plan"):
         return result["plan"]
-    return db.rows(db.client(client),
-                   "MATCH (p:Plan) RETURN p.id AS id ORDER BY p.at DESC LIMIT 1")[0]["id"]
+    return pipeline._tool_id(tool_results, "write_plan", "plan")
 
 
 def _post_for_client(pipeline: Pipeline, client: str, day: int, log=None) -> dict:
@@ -100,13 +100,15 @@ def next_day(log=None) -> dict:
 
 def _run_day(world: dict, day: int, log=None) -> dict:
     date = tools.sim_date(day)
-    pipeline = Pipeline(mode="offline", log=log)
+    pipeline = Pipeline(mode=config.MODE, log=log)
     _say(log, f"Day {day} · {date}")
 
     arrived = []
+    existing = {business["id"] for business in tools.pipeline_board()}
     for business in world.get("lead_feed", []):
-        if business.get("arrives") == day:
+        if business.get("arrives", 0) <= day and business["id"] not in existing:
             _arrive(world, business["id"], log)
+            existing.add(business["id"])
             arrived.append(business["id"])
 
     screened = []

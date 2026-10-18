@@ -41,6 +41,13 @@ def world() -> dict:
     return _world_cache
 
 
+def validate_technique_ids(ids: list[str]) -> None:
+    known = {technique["id"] for technique in world()["techniques"]}
+    missing = sorted(set(ids) - known)
+    if missing:
+        raise ValueError(f"unknown technique ids: {', '.join(missing)}")
+
+
 def sim_day() -> int:
     override = _sim_day_override.get()
     if override is not None:
@@ -99,6 +106,11 @@ def _decide(g, agent: str, text: str, rationale: str, affects: list[tuple[str, s
     for label, nid in based_on:
         db.run(g, f"MATCH (d:Decision {{id: $d}}), (n:{label} {{id: $n}}) CREATE (d)-[:BASED_ON]->(n)", {"d": did, "n": nid})
     return did
+
+
+def record_declined(agent: str, reason: str, slug: str | None = None) -> str:
+    graph = db.client(slug) if slug else db.agency()
+    return _decide(graph, agent, "Agent declined", reason, [])
 
 
 # ------------------------------------------------------------------ agency directory
@@ -244,11 +256,12 @@ def pursue(slug: str, agent: str = "scout", rationale: str = "", source: str | N
 # ------------------------------------------------------------------ Researcher
 
 def record_finding(client: str, kind: str, text: str, source_url: str | None, agent: str = "researcher",
-                   rationale: str = "") -> dict:
+                   rationale: str = "", fetched_at: str | None = None) -> dict:
     g = db.client(client)
     fid = _id("find")
-    db.run(g, "CREATE (:Finding {id: $id, kind: $kind, text: $text, source_url: $url, at: $at})",
-           {"id": fid, "kind": kind, "text": text, "url": source_url, "at": now()})
+    db.run(g, """CREATE (:Finding {id: $id, kind: $kind, text: $text, source_url: $url,
+                                   fetched_at: $fetched_at, at: $at})""",
+           {"id": fid, "kind": kind, "text": text, "url": source_url, "fetched_at": fetched_at, "at": now()})
     _decide(g, agent, f"Recorded {kind} finding", rationale or text, [("Finding", fid)])
     return {"finding": fid}
 
@@ -274,7 +287,8 @@ def retire_goal(client: str, goal_id: str, agent: str = "board", rationale: str 
 
 def findings(client: str, kind: str | None = None) -> list[dict]:
     return db.rows(db.client(client), """MATCH (f:Finding) WHERE $kind IS NULL OR f.kind = $kind
-                                         RETURN f.id AS id, f.kind AS kind, f.text AS text, f.source_url AS source_url
+                                         RETURN f.id AS id, f.kind AS kind, f.text AS text, f.source_url AS source_url,
+                                                f.fetched_at AS fetched_at
                                          ORDER BY f.at""", {"kind": kind})
 
 
@@ -335,17 +349,20 @@ def open_territory(client: str, style: str, avoid: list[str] | None = None) -> l
 
 def set_taste_profile(client: str, prefers: dict[str, float], avoids: list[str], summary: str,
                       based_on: list[tuple[str, str]], agent: str = "style_director") -> dict:
+    validate_technique_ids([*prefers, *avoids])
+    prefers = {technique_id: max(0.0, min(1.0, float(weight)))
+               for technique_id, weight in prefers.items()}
     g = db.client(client)
     ver = (db.rows(g, "MATCH (t:TasteProfile) RETURN max(t.version) AS v")[0]["v"] or 0) + 1
     tid = f"{client}-taste-v{ver}"
     names = {t["id"]: t["name"] for t in world()["techniques"]}
     db.run(g, "CREATE (:TasteProfile {id: $id, version: $v, summary: $s, at: $at})", {"id": tid, "v": ver, "s": summary, "at": now()})
     db.run(g, """MATCH (tp:TasteProfile {id: $id}) UNWIND $rows AS r
-                 MERGE (t:Technique {id: r.tid}) ON CREATE SET t.name = r.name
+                 MATCH (t:Technique {id: r.tid})
                  CREATE (tp)-[:PREFERS {weight: r.w}]->(t)""",
            {"id": tid, "rows": [{"tid": k, "w": v, "name": names.get(k, k)} for k, v in prefers.items()]})
     db.run(g, """MATCH (tp:TasteProfile {id: $id}) UNWIND $rows AS r
-                 MERGE (t:Technique {id: r.tid}) ON CREATE SET t.name = r.name
+                 MATCH (t:Technique {id: r.tid})
                  CREATE (tp)-[:AVOIDS]->(t)""",
            {"id": tid, "rows": [{"tid": k, "name": names.get(k, k)} for k in avoids]})
     _decide(g, agent, f"Taste profile v{ver}", summary, [("TasteProfile", tid)], based_on)
@@ -372,6 +389,8 @@ def taste_profile(client: str) -> dict:
 
 def write_plan(client: str, period: str, goal_id: str, rationale: str, agent: str = "strategist") -> dict:
     g = db.client(client)
+    if not db.rows(g, "MATCH (goal:Goal {id: $id}) RETURN goal.id AS id", {"id": goal_id}):
+        raise ValueError(f"unknown goal {goal_id} for {client}")
     pid = _id("plan")
     db.run(g, """MATCH (goal:Goal {id: $goal}) CREATE (p:Plan {id: $id, period: $period, at: $at})-[:SERVES]->(goal)""",
            {"goal": goal_id, "id": pid, "period": period, "at": now()})
@@ -429,6 +448,18 @@ def write_draft(client: str, plan_id: str, fmt: str, hook: str, spec: str, techn
                 based_on: list[tuple[str, str]] = (), agent: str = "producer") -> dict:
     """Write a Draft in the client graph, project its Fingerprint into agency (P1), and log the Decision."""
     g = db.client(client)
+    if not db.rows(g, "MATCH (p:Plan {id: $id}) RETURN p.id AS id", {"id": plan_id}):
+        raise ValueError(f"unknown plan {plan_id} for {client}")
+    validate_technique_ids(technique_ids)
+    if revision_of and not db.rows(g, "MATCH (d:Draft {id: $id}) RETURN d.id AS id", {"id": revision_of}):
+        raise ValueError(f"unknown revision draft {revision_of} for {client}")
+    if reference_ids:
+        found_references = db.rows(db.agency(), "MATCH (r:Reference) WHERE r.id IN $ids RETURN collect(r.id) AS ids",
+                                   {"ids": reference_ids})
+        found_ids = set(found_references[0]["ids"]) if found_references else set()
+        missing = sorted(set(reference_ids) - found_ids)
+        if missing:
+            raise ValueError(f"unknown reference ids: {', '.join(missing)}")
     version = 1
     if revision_of:
         prev = db.rows(g, "MATCH (d:Draft {id: $id}) RETURN d.version AS v", {"id": revision_of})

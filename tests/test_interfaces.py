@@ -155,6 +155,10 @@ def test_single_client_run_rejects_mismatched_client_before_recording(monkeypatc
             self.calls.append(kwargs)
             if len(self.calls) == 1:
                 return SimpleNamespace(stop_reason="tool_use", content=[
+                    SimpleNamespace(type="server_tool_use", name="web_search"),
+                    SimpleNamespace(type="web_search_tool_result", content=[
+                        SimpleNamespace(url="https://example.test/wrong"),
+                    ]),
                     SimpleNamespace(type="tool_use", id="t1", name="record_finding", input={
                         "client": "wet-paint", "kind": "audience", "text": "Wrong client.",
                         "source_url": "https://example.test/wrong",
@@ -355,11 +359,11 @@ def test_web_try_inputs(monkeypatch):
     assert preview["saved"] is False
     assert db.rows(db.agency(), "MATCH (b:Business) RETURN count(b) AS count")[0]["count"] == before_preview
     assert c.post("/api/try/lead", json={"name": "Unknown Place", "category": "Kids dance",
-                                        "targets": {"A1": 1}, "neighborhood": "n_unknown"}).status_code == 400
+                                        "targets": {"A1": 1}, "neighborhood": "n_unknown"}).status_code == 422
     planted = tools.world()["planted"]["collision_techniques"]
     r = c.post("/api/try/draft", json={"client": "cannonball", "technique_ids": planted}).json()
     assert r["flagged"]
-    assert c.post("/api/try/lead", json={"name": "xx", "category": "yy", "targets": {}}).status_code == 400
+    assert c.post("/api/try/lead", json={"name": "xx", "category": "yy", "targets": {}}).status_code == 422
 
 
 def test_web_try_lead_readonly_saves_nothing(monkeypatch):
@@ -625,6 +629,136 @@ def test_claude_agent_loop_uses_only_its_tools(monkeypatch):
     assert tools.screening_card("crux")["verdict"] == "pursue"
 
 
+@pytest.mark.parametrize("stop_reason", ["refusal", "model_context_window_exceeded"])
+def test_claude_refusal_and_context_limit_record_declined(stop_reason, monkeypatch):
+    from redstring.agents import claude
+
+    class DecliningMessages:
+        def create(self, **_kwargs):
+            return SimpleNamespace(stop_reason=stop_reason, stop_details="model stopped", content=[])
+
+    recorded = []
+    monkeypatch.setattr(claude, "_client", SimpleNamespace(beta=SimpleNamespace(messages=DecliningMessages())))
+    monkeypatch.setattr(tools, "record_declined", lambda *args, **kwargs: recorded.append((args, kwargs)))
+
+    result = claude.run_agent("researcher", "Research.", log=None, slug="crux")
+
+    assert result.startswith("Declined:")
+    assert recorded == [(("researcher", "model stopped"), {"slug": "crux"})]
+
+
+def test_claude_max_tokens_fails_loudly(monkeypatch):
+    from redstring.agents import claude
+
+    class TruncatedMessages:
+        def create(self, **_kwargs):
+            return SimpleNamespace(stop_reason="max_tokens", content=[])
+
+    monkeypatch.setattr(claude, "_client", SimpleNamespace(beta=SimpleNamespace(messages=TruncatedMessages())))
+
+    with pytest.raises(RuntimeError, match="reached max_tokens"):
+        claude.run_agent("researcher", "Research.", log=None)
+
+
+def test_claude_limits_searches_and_validates_finding_urls(monkeypatch):
+    from redstring.agents import claude
+
+    class SearchMessages:
+        def __init__(self):
+            self.calls = []
+
+        def create(self, **kwargs):
+            self.calls.append({**kwargs, "messages": list(kwargs["messages"])})
+            index = len(self.calls)
+            if index == 3:
+                return SimpleNamespace(stop_reason="end_turn", content=[
+                    SimpleNamespace(type="text", text="Finished."),
+                ])
+            url = f"https://source.test/{index}"
+            source_url = url if index == 1 else "https://unseen.test/"
+            return SimpleNamespace(stop_reason="tool_use", content=[
+                SimpleNamespace(type="server_tool_use", name="web_search"),
+                SimpleNamespace(type="web_search_tool_result", content=[SimpleNamespace(url=url)]),
+                SimpleNamespace(type="tool_use", id=f"finding-{index}", name="record_finding", input={
+                    "client": "crux", "kind": "audience", "text": "Finding",
+                    "source_url": source_url, "rationale": "Source",
+                }),
+            ])
+
+    messages = SearchMessages()
+    registered_calls = []
+    search_urls = set()
+    monkeypatch.setattr(claude, "_client", SimpleNamespace(beta=SimpleNamespace(messages=messages)))
+    monkeypatch.setattr(registry, "call", lambda name, args, **kwargs: (
+        registered_calls.append((name, args)) or json.dumps({"ok": True})
+    ))
+
+    claude.run_agent("researcher", "Research.", log=None, slug="crux", on_search_urls=search_urls.update)
+
+    web_search_uses = [
+        next(tool["max_uses"] for tool in call["tools"] if tool.get("name") == "web_search")
+        for call in messages.calls
+    ]
+    assert web_search_uses == [8, 7, 6]
+    assert registered_calls == [("record_finding", {
+        "client": "crux", "kind": "audience", "text": "Finding",
+        "source_url": "https://source.test/1", "rationale": "Source",
+    })]
+    assert search_urls == {"https://source.test/1", "https://source.test/2"}
+    assert messages.calls[2]["messages"][-1]["content"][0]["is_error"] is True
+    assert all(tool.get("strict") is True for tool in messages.calls[0]["tools"] if tool.get("name") != "web_search")
+
+
+def test_claude_tool_output_truncation_is_marked(monkeypatch):
+    from redstring.agents import claude
+
+    class ToolMessages:
+        def __init__(self):
+            self.calls = []
+
+        def create(self, **kwargs):
+            self.calls.append({**kwargs, "messages": list(kwargs["messages"])})
+            if len(self.calls) == 1:
+                return SimpleNamespace(stop_reason="tool_use", content=[
+                    SimpleNamespace(type="tool_use", id="board", name="pipeline_board", input={}),
+                ])
+            return SimpleNamespace(stop_reason="end_turn", content=[
+                SimpleNamespace(type="text", text="Done."),
+            ])
+
+    messages = ToolMessages()
+    monkeypatch.setattr(claude, "_client", SimpleNamespace(beta=SimpleNamespace(messages=messages)))
+    monkeypatch.setattr(registry, "call", lambda *_args, **_kwargs: json.dumps("x" * 21000))
+
+    claude.run_agent("scout", "Check the board.", log=None)
+
+    result = messages.calls[1]["messages"][-1]["content"][0]["content"]
+    assert "[truncated at 20000 characters]" in result
+
+
+def test_pipeline_uses_draft_id_returned_by_write_tool(monkeypatch):
+    from redstring.pipeline import Pipeline
+
+    pipeline = Pipeline("claude", log=None)
+    monkeypatch.setattr(
+        pipeline.claude,
+        "run_agent",
+        lambda _agent, _task, tool_results=None, **_kwargs: (
+            tool_results.update({"write_draft": {"draft": "new-draft"}}) if tool_results is not None else None
+        ),
+    )
+    monkeypatch.setattr(tools, "drafts", lambda _client: [
+        {"id": "new-draft", "status": "queued"},
+        {"id": "older-later-draft", "status": "flagged"},
+    ])
+    monkeypatch.setattr(tools, "collision_flags", lambda *_args: [])
+
+    result = pipeline.produce_and_check("wet-paint", "plan", 1, ["tr_whip_pan"], "spec")
+
+    assert result[0]["draft"] == "new-draft"
+    assert result[0]["status"] == "queued"
+
+
 def test_claude_auditor_request_includes_loaded_top_post_ids(monkeypatch, tmp_path):
     from redstring import config
     from redstring.agents import claude
@@ -654,6 +788,8 @@ def test_claude_auditor_request_includes_loaded_top_post_ids(monkeypatch, tmp_pa
 
     def offline_researcher_for_test(agent, task, offline_fn, *args, **kwargs):
         if agent == "researcher":
+            kwargs.pop("tool_results", None)
+            kwargs.pop("on_search_urls", None)
             return offline_fn(*args, **kwargs)
         return run_agent(agent, task, log=None)
 
