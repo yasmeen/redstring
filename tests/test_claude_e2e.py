@@ -5,14 +5,15 @@ from types import SimpleNamespace
 
 from jsonschema import validate
 
-from redstring import config, registry, tools
+from redstring import config, db, registry, tools
 from redstring.agents import claude
 from redstring.pipeline import Pipeline
 
 
 class ScriptedClaude:
-    def __init__(self):
+    def __init__(self, invalid_source_url=False):
         self.beta = SimpleNamespace(messages=SimpleNamespace(create=self.create))
+        self.invalid_source_url = invalid_source_url
         self._next_id = 0
         self._names = {}
         self.emitted = []
@@ -106,6 +107,8 @@ class ScriptedClaude:
     def _researcher(self, task, outputs):
         client = self._client(task)
         findings = [result for name, result in outputs if name == "record_finding"]
+        if any("error" in result for result in findings):
+            return self._finish()
         if not findings:
             url = f"https://example.test/research/{client}"
             search_use, search_result = self._search_result(url)
@@ -116,7 +119,7 @@ class ScriptedClaude:
                     "client": client,
                     "kind": "audience",
                     "text": f"Public category research for {client}.",
-                    "source_url": url,
+                    "source_url": "https://example.test/not-returned" if self.invalid_source_url else url,
                     "rationale": "The source describes the category audience.",
                 }),
             )
@@ -228,7 +231,6 @@ class ScriptedClaude:
         plan = re.search(r"in plan ([\w-]+)", task).group(1)
         slot = int(re.search(r"post (\d+)", task).group(1))
         kind = re.search(r"kind (spec|draft)", task).group(1)
-        revision = re.search(r"revision_of=([\w-]+)", task)
         return self._response(self._use("write_draft", {
             "client": client,
             "plan_id": plan,
@@ -239,7 +241,7 @@ class ScriptedClaude:
             "reference_ids": [item["id"] for item in refs[:2]],
             "rationale": "Built from the requested creative brief.",
             "kind": kind,
-            "revision_of": revision.group(1) if revision else None,
+            "revision_of": None,
             "based_on_findings": [],
         }))
 
@@ -331,6 +333,15 @@ def test_claude_mode_runs_end_to_end_with_a_scripted_client(monkeypatch, tmp_pat
         card = tools.screening_card(lead)
         assert card
         assert card["paths"] == paths
+    for slug in sorted(blocked):
+        drafts = tools.drafts(slug)
+        blocked_v1 = next(draft for draft in drafts if draft["status"] == "flagged" and draft["version"] == 1)
+        revision = next(draft for draft in drafts if draft["revision_of"] == blocked_v1["id"])
+        assert revision["version"] == 2
+        assert db.rows(db.client(slug), """
+            MATCH (revision:Draft {id: $revision})-[:REVISION_OF]->(previous:Draft {id: $previous})
+            RETURN count(*) AS count
+        """, {"revision": revision["id"], "previous": blocked_v1["id"]})[0]["count"] == 1
     assert all(
         args["source_url"] in fake.search_urls
         for name, args in fake.emitted
@@ -338,3 +349,15 @@ def test_claude_mode_runs_end_to_end_with_a_scripted_client(monkeypatch, tmp_pat
     )
     assert not [result for result in fake.tool_results if result.get("is_error")]
     assert fake.emitted
+
+
+def test_record_finding_tool_error_is_logged(monkeypatch):
+    fake = ScriptedClaude(invalid_source_url=True)
+    monkeypatch.setattr(claude, "_client", fake)
+    tools._world_cache = None
+    logs = []
+
+    claude.run_agent("researcher", "Research cannonball.", log=logs.append, slug="cannonball")
+
+    assert any("tool error (record_finding)" in line for line in logs)
+    assert any(result.get("is_error") for result in fake.tool_results)
