@@ -711,16 +711,13 @@ class DraftIn(BaseModel):
 
 @app.post("/api/try/draft")
 def try_draft(body: DraftIn):
-    """Double Take on a hypothetical draft, read only: project a temporary fingerprint, run Q2, delete it."""
-    tools.business(body.client)
-    fid = f"try-{os.urandom(4).hex()}"
-    g = db.agency()
-    db.run(g, queries.P1_PROJECT_FINGERPRINT, {"draft_id": fid, "kind": "draft", "client": body.client,
-                                                "now": tools.now(), "technique_ids": body.technique_ids})
+    """Double Take on a hypothetical draft using the read-only Q2 preview."""
+    if not tools.business(body.client):
+        raise HTTPException(404, body.client)
     try:
-        results = tools.double_take(body.client, fid)
-    finally:
-        db.run(g, "MATCH (f:Fingerprint {id: $id}) DETACH DELETE f", {"id": fid})
+        results = tools.double_take_preview(body.client, body.technique_ids)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
     return {"results": results, "flagged": any(r["flag"] for r in results), "threshold": config.FLAG_RISK}
 
 

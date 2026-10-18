@@ -471,7 +471,7 @@ def write_draft(client: str, plan_id: str, fmt: str, hook: str, spec: str, techn
                          status: 'queued', version: $v, kind: $kind, at: $at})""",
            {"plan": plan_id, "id": did, "fmt": fmt, "hook": hook, "spec": spec, "v": version, "kind": kind, "at": now()})
     db.run(g, """MATCH (d:Draft {id: $id}) UNWIND $rows AS r
-                 MERGE (t:Technique {id: r.id}) ON CREATE SET t.name = r.name
+                 MATCH (t:Technique {id: r.id})
                  CREATE (d)-[:USES]->(t)""",
            {"id": did, "rows": [{"id": t, "name": names.get(t, t)} for t in technique_ids]})
     refs = db.rows(db.agency(), """MATCH (r:Reference) WHERE r.id IN $ids
@@ -526,6 +526,24 @@ def double_take(client: str, draft_id: str) -> list[dict]:
         r["flag"] = r["risk"] >= config.FLAG_RISK
     order = {b["id"]: i for i, b in enumerate(world()["businesses"])}
     return sorted(rows, key=lambda r: (-r["risk"], order.get(r["business_id"], len(order))))
+
+
+def double_take_preview(client: str, technique_ids: list[str]) -> list[dict]:
+    validate_technique_ids(technique_ids)
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=config.PASSED_COOLDOWN_DAYS)).isoformat()
+    rows = db.rows(db.agency(), queries.Q2_DOUBLE_TAKE_PREVIEW, {
+        "client": client,
+        "technique_ids": technique_ids,
+        "rare": config.RARE,
+        "cooldown_cutoff": cutoff,
+    })
+    for row in rows:
+        row["similarity"] = round(row["similarity"], 3)
+        row["overlap"] = audience_overlap(client, row["business_id"])
+        row["risk"] = round(row["similarity"] * row["overlap"], 3)
+        row["flag"] = row["risk"] >= config.FLAG_RISK
+    order = {business["id"]: i for i, business in enumerate(world()["businesses"])}
+    return sorted(rows, key=lambda row: (-row["risk"], order.get(row["business_id"], len(order))))
 
 
 def check_draft(client: str, draft_id: str, agent: str = "standards") -> dict:
