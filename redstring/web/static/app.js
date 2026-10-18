@@ -61,7 +61,11 @@ const introKey = "rs-intro-dismissed";
 
 async function api(path, opts = {}) {
   const r = await fetch(path, { headers: { "content-type": "application/json" }, ...opts });
-  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+  if (!r.ok) {
+    const error = new Error((await r.json().catch(() => ({}))).detail || r.statusText);
+    error.status = r.status;
+    throw error;
+  }
   return r.json();
 }
 
@@ -1021,14 +1025,19 @@ document.addEventListener("click", async (e) => {
   if (!b) return;
   b.disabled = true;
   const label = b.innerHTML;
-  b.textContent = "Agents working…";
+  b.textContent = "Agents are working…";
+  let busy = false;
   try {
     await api("/api/next-day", { method: "POST" });
     await refresh();
+  } catch (err) {
+    if (err.status === 409 && err.message === "agents are busy") busy = true;
+    else alert(err.message);
   } finally {
     b.disabled = false;
     b.innerHTML = label;
   }
+  if (busy) $("#step-latest").textContent = "Agents are working…";
 });
 
 document.querySelectorAll(".fold-toggle").forEach((button) => button.addEventListener("click", () => {
@@ -1728,9 +1737,14 @@ $("#steps").addEventListener("click", async (e) => {
   b.setAttribute("aria-busy", "true");
   $("#log").insertAdjacentHTML("beforeend", `<span class="ln cmd">${esc(`> ${b.dataset.step}…`)}</span>`);
   $("#log").scrollTop = 1e6;
+  let busy = false;
   try { await api(`/api/step/${b.dataset.step}`, { method: "POST" }); }
-  catch (err) { alert(err.message); }
+  catch (err) {
+    if (err.status === 409 && err.message === "agents are busy") busy = true;
+    else alert(err.message);
+  }
   await refresh();
+  if (busy) $("#step-latest").textContent = "Agents are working…";
 });
 
 // ---------------------------------------------------------------- the dossier (business detail, docked)

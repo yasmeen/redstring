@@ -213,12 +213,16 @@ def overview():
 @app.post("/api/next-day")
 def next_day():
     _writable()
-    with _lock:
+    if not _lock.acquire(blocking=False):
+        raise HTTPException(409, "agents are busy")
+    try:
         try:
             return loop.next_day(log=_log.append)
         except Exception as e:
             _log.append(f"ERROR in next day: {e}")
             raise HTTPException(500, str(e))
+    finally:
+        _lock.release()
 
 
 @app.get("/api/activity")
@@ -370,7 +374,9 @@ def step(step: str):
     _writable()
     if step not in dict(STEPS):
         raise HTTPException(404, step)
-    with _lock:
+    if not _lock.acquire(blocking=False):
+        raise HTTPException(409, "agents are busy")
+    try:
         if step != "reset" and step in _done:
             raise HTTPException(409, "already ran; reset first")
         if step != "reset" and step not in _done:
@@ -388,6 +394,8 @@ def step(step: str):
             _log.append(f"ERROR in {step}: {e}")
             raise HTTPException(500, str(e))
         _done.append(step)
+    finally:
+        _lock.release()
     return {"ok": True, "log": _log[-30:]}
 
 

@@ -1,6 +1,8 @@
 import asyncio
 import inspect
 import json
+import threading
+import time
 from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
@@ -146,6 +148,38 @@ def test_completed_step_cannot_be_rerun(monkeypatch):
     finally:
         web._done.clear()
         web._log.clear()
+
+
+def test_step_returns_immediately_when_agents_are_busy(monkeypatch):
+    import redstring.web.app as web
+
+    monkeypatch.setattr(web, "READONLY", False)
+    monkeypatch.setattr(web, "run_step", lambda *_args: None)
+    monkeypatch.setattr(web.loop, "next_day", lambda **_kwargs: None)
+    client = TestClient(web.app)
+
+    for path in ("/api/step/reset", "/api/next-day"):
+        held = threading.Event()
+        release = threading.Event()
+
+        def hold_writer_lock():
+            with web._lock:
+                held.set()
+                release.wait(timeout=0.75)
+
+        holder = threading.Thread(target=hold_writer_lock)
+        holder.start()
+        assert held.wait(timeout=1)
+        started = time.monotonic()
+        try:
+            response = client.post(path)
+        finally:
+            release.set()
+            holder.join(timeout=1)
+
+        assert response.status_code == 409
+        assert response.json()["detail"] == "agents are busy"
+        assert time.monotonic() - started < 0.5
 
 
 def test_overview_groups_cleared_to_pitch_leads(monkeypatch):
