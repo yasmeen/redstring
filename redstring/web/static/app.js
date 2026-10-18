@@ -13,6 +13,14 @@ const VERDICT_HELP = {
   borderline: "Partial overlap; the board decides.",
 };
 const STATUS_LABELS = { passed: "Passed", vetoed: "Vetoed" };
+const status = (kind, text) => `<span class="status s-${esc(kind)}"><i></i>${esc(text)}</span>`;
+const statusKind = (value) => {
+  if (["decline", "flagged", "blocked", "vetoed"].includes(value)) return "red";
+  if (["borderline", "pursue_differentiated", "conditional"].includes(value)) return "amber";
+  if (["pursue", "pitched", "signed", "cleared", "approved", "active", "ready"].includes(value)) return "green";
+  return "ink";
+};
+const verdictStatus = (value, label) => status(statusKind(value), label || VERDICT_LABELS[value] || STATUS_LABELS[value] || String(value || "").replace(/_/g, " "));
 const chip = (v, label) => {
   if (!(v || label)) return "";
   const verdict = label === undefined && Object.prototype.hasOwnProperty.call(VERDICT_LABELS, v);
@@ -65,11 +73,31 @@ const isAnalysisView = () => document.body.dataset.view === "analysis";
 function syncViewFromLocation() {
   const view = location.pathname === "/analysis" ? "analysis" : "studio";
   document.body.dataset.view = view;
+  $("#sidebar-view-label").textContent = view.toUpperCase();
   viewLinks.forEach((link) => {
     if (link.dataset.viewLink === view) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
   });
   return view;
+}
+
+const STUDIO_TABS = ["today", "pipeline", "double-take", "try", "log"];
+function studioTabFromHash() {
+  const hash = decodeURIComponent(location.hash.slice(1));
+  if (hash.startsWith("double-take/")) return "double-take";
+  return STUDIO_TABS.includes(hash) ? hash : "today";
+}
+function syncStudioTab() {
+  const tab = studioTabFromHash();
+  document.body.dataset.tab = tab;
+  document.querySelectorAll("[data-tab]").forEach((section) => {
+    section.dataset.active = String(section.dataset.tab === tab);
+  });
+  document.querySelectorAll("[data-studio-tab]").forEach((link) => {
+    if (link.dataset.studioTab === tab) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+  return tab;
 }
 
 async function viewChanged() {
@@ -78,12 +106,14 @@ async function viewChanged() {
     closeOverlay();
     if ($("#card").open) $("#card").close();
   } else endTour();
+  if (view === "studio") syncStudioTab();
   if (!state.overview) await refresh();
   if (view === "analysis") await loadAnalysisFromLocation();
   else if (state.selected) await openBusiness(state.selected, { quiet: true });
 }
 
 syncViewFromLocation();
+syncStudioTab();
 viewLinks.forEach((link) => link.addEventListener("click", async (e) => {
   e.preventDefault();
   if (link.getAttribute("aria-current") === "page") return;
@@ -91,6 +121,19 @@ viewLinks.forEach((link) => link.addEventListener("click", async (e) => {
   await viewChanged();
 }));
 window.addEventListener("popstate", viewChanged);
+document.querySelectorAll("[data-studio-tab]").forEach((link) => link.addEventListener("click", (e) => {
+  e.preventDefault();
+  history.pushState({}, "", `/#${link.dataset.studioTab}`);
+  syncStudioTab();
+  window.scrollTo({ top: 0, behavior: reduceMotion.matches ? "auto" : "smooth" });
+}));
+window.addEventListener("hashchange", () => {
+  if (isAnalysisView()) loadAnalysisFromLocation();
+  else {
+    syncStudioTab();
+    window.scrollTo({ top: 0, behavior: reduceMotion.matches ? "auto" : "smooth" });
+  }
+});
 const icon = (name, cls = "") => ICON_PATHS[name]
   ? `<svg class="ic${cls ? ` ${cls}` : ""}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name]}</svg>`
   : "";
@@ -106,8 +149,8 @@ const avatar = (b, size = "") => {
   const logo = LOGOS[b.id];
   const fallback = ICON_PATHS[CATEGORY_ICONS[b.category]] || "";
   const mark = logo
-    ? `<svg viewBox="0 0 32 32" aria-hidden="true">${logo}</svg>`
-    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${fallback}</svg>`;
+    ? `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${logo}</svg>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${fallback}</svg>`;
   return `<span class="avatar${size ? ` ${size}` : ""}" style="--av:${CATEGORY_HUE[b.category] || "#5C4A4D"}" aria-hidden="true">${mark}</span>`;
 };
 const bizByName = (name) => state.overview?.businesses.find((b) => b.name === name);
@@ -138,9 +181,9 @@ function scheduleBizCard(target) {
     const detail = b.status === "signed"
       ? client?.goals?.[0]?.text || ""
       : displayStudioCopy(b.reason || "").replace(/\s*\(conflict [^)]*\)/gi, "").trim();
-    const status = b.status === "signed" ? chip("client", "Signed") : chip(b.verdict || b.status);
+    const stateTag = verdictStatus(b.verdict || b.status, b.status === "signed" ? "Signed" : undefined);
     const tip = $("#biz-card");
-    tip.innerHTML = `<div class="biz-card-head">${avatar(b, "lg")}<span><b>${esc(b.name)}</b><span>${esc(meta)}</span>${status}</span></div>${detail ? `<p>${esc(detail)}</p>` : ""}`;
+    tip.innerHTML = `<div class="biz-card-head">${avatar(b, "lg")}<span><b>${esc(b.name)}</b><span>${esc(meta)}</span>${stateTag}</span></div>${detail ? `<p>${esc(detail)}</p>` : ""}`;
     tip.hidden = false;
     const rect = target.getBoundingClientRect();
     const left = Math.max(8, Math.min(rect.left, window.innerWidth - tip.offsetWidth - 8));
@@ -375,7 +418,7 @@ function bizCard(b) {
   const client = (state.overview?.clients || []).find((c) => c.id === b.id);
   const meta = [b.category, hoodOf(b) || client?.neighborhood].filter(Boolean).map(esc).join(" · ");
   const goal = client?.goals?.[0]?.text;
-  const tags = b.status !== "signed" && b.verdict !== "pursue" ? chip(b.verdict) : "";
+  const tags = b.status !== "signed" && b.verdict && b.verdict !== "pursue" ? verdictStatus(b.verdict) : "";
   return `<button type="button" class="biz" data-biz="${esc(b.id)}" data-status="${esc(b.status)}" aria-pressed="${b.id === state.selected}">
     <span class="biz-head">${bizName(b, { link: false })}<span class="biz-title">${meta ? `<span class="biz-meta">${categoryIcon(b.category)}${meta}</span>` : ""}</span></span>
     ${tags ? `<span class="biz-tags">${tags}</span>` : ""}${goal ? `<span class="biz-goal"><b>Goal:</b> ${esc(goal)}</span>` : ""}
@@ -394,15 +437,22 @@ function needsEntries(o) {
   const entries = [];
   items.filter((i) => i.type === "borderline").forEach((i) => {
     const b = byId[i.business_id] || { name: i.business_id };
-    const why = displayStudioCopy(b.reason || "").replace(/\s*\(conflict [^)]*\)/i, "").replace(/;?\s*board call\.?$/i, "").trim();
+    const rawReason = i.reason || b.reason || "";
+    const reason = displayStudioCopy(rawReason);
+    const conflict = rawReason.match(/\(conflict\s+([\d.]+)\)/i)?.[1];
+    const competitor = rawReason.match(/\b(?:with|against)\s+([^;,(]+?)(?=\s*(?:\(|;|$))/i)?.[1]?.trim();
+    const cutoff = o.thresholds?.borderline ?? state.analysis?.thresholds?.borderline;
+    const evidence = conflict && competitor && typeof cutoff === "number"
+      ? `Partial overlap with ${esc(competitor)}: conflict <b class="metric">${n(Number(conflict))}</b>, above the <b class="metric">${n(cutoff)}</b> board-call line.`
+      : `${esc(reason.replace(/\s*\(conflict [^)]*\)/i, "").replace(/;?\s*board call\.?$/i, "").trim())} `;
     entries.push({
       n: 1, kind: "Board call", icon: "gavel", biz: b,
       q: "Pursue this lead?",
-      what: `${why ? `${esc(why.replace(/\.$/, ""))}. ` : ""}Pursue opens its research; Pass takes it off the pipeline for 90 days.`,
+      what: `${evidence} Pursue opens its research; Pass takes it off the pipeline for 90 days.`,
       actions: ro ? `<span class="focus-wait">Waiting on the board</span><button type="button" class="btn ghost big" data-pick="${esc(i.business_id)}">See the screening</button>`
         : `<button type="button" class="btn primary big" data-lead-decision="pursue" data-slug="${esc(i.business_id)}">Pursue lead</button><button type="button" class="btn ghost big" data-lead-decision="pass" data-slug="${esc(i.business_id)}">Pass</button>`,
       more: ro ? "" : `<button type="button" class="text-button" data-pick="${esc(i.business_id)}">See the screening first →</button>`,
-      row: `<button type="button" class="focus-row" data-pick="${esc(i.business_id)}">${unit(1, "lead", "leads")}<span class="focus-row-text">Board call: pursue ${bizName(b, { link: false })}?</span>${cta("Review")}</button>`,
+      row: `<button type="button" class="focus-row" data-pick="${esc(i.business_id)}"><span class="label">ROW_NUM — New lead</span><span class="focus-row-text">Pursue ${bizName(b, { link: false })}?<small>Partial overlap with a signed client · board call</small></span>${cta("Review")}</button>`,
     });
   });
   items.filter((i) => i.type === "pitch").forEach((i) => {
@@ -413,7 +463,7 @@ function needsEntries(o) {
       q: "Approve this pitch?",
       what: "Account Manager assembled it from spec posts that cleared Double Take. Nothing is sent until you approve.",
       actions: `<button type="button" class="btn primary big" ${attrs}>Review and decide</button>`,
-      row: `<button type="button" class="focus-row" ${attrs}>${unit(1, "pitch", "pitches")}<span class="focus-row-text">Approve ${bizName(b, { link: false })}'s pitch</span>${cta("Review")}</button>`,
+      row: `<button type="button" class="focus-row" ${attrs}><span class="label">ROW_NUM — Pitch</span><span class="focus-row-text">Approve ${bizName(b, { link: false })}'s pitch<small>Assembled from spec posts that cleared Double Take</small></span>${cta("Review")}</button>`,
     });
   });
   const posts = items.filter((i) => i.type === "approve_posts");
@@ -425,7 +475,7 @@ function needsEntries(o) {
       q: `Approve ${plural(total, "post", "posts")}?`,
       what: `All cleared Double Take. Pick a client to review ${posts.length === 1 ? "its" : "their"} posts.`,
       actions: `<span class="focus-chips">${chips}</span>`,
-      row: `<div class="focus-row multi">${unit(total, "post", "posts")}<span class="focus-row-text">Approve posts for <b>${plural(posts.length, "client", "clients")}</b>, all cleared by Double Take</span><span class="focus-chips">${chips}</span></div>`,
+      row: `<div class="focus-row multi"><span class="label">ROW_NUM — Posts</span><button type="button" class="focus-row-text" data-draft="${esc(posts[0].draft_ids[0])}" data-slug="${esc(posts[0].business_id)}">Approve ${plural(total, "post", "posts")}<small>All cleared by Double Take</small></button><span class="focus-chips">${chips}</span></div>`,
     });
   }
   const ready = items.find((i) => i.type === "ready");
@@ -436,7 +486,7 @@ function needsEntries(o) {
       q: `${plural(k, "screened lead is", "screened leads are")} cleared to pitch`,
       what: "Scout found no clash with a signed client. Open one in the pipeline to pursue it.",
       actions: `<button type="button" class="btn primary big" data-reveal-lane="screened">See them in the pipeline</button>`,
-      row: `<button type="button" class="focus-row" data-reveal-lane="screened">${unit(k, "lead", "leads")}<span class="focus-row-text">Screened ${k === 1 ? "lead" : "leads"} cleared to pitch</span>${cta("See them")}</button>`,
+      row: `<button type="button" class="focus-row" data-reveal-lane="screened"><span class="label">ROW_NUM — Leads</span><span class="focus-row-text">${plural(k, "lead is", "leads are")} cleared to pitch<small>Scout found no clash with a signed client</small></span>${cta("Review")}</button>`,
     });
   }
   const unscreened = items.filter((i) => i.type === "unscreened");
@@ -447,7 +497,7 @@ function needsEntries(o) {
       q: `${plural(k, "new lead is", "new leads are")} waiting for Scout`,
       what: "Run the next step and Scout screens them against every signed client.",
       actions: `<button type="button" class="btn primary big" data-reveal-lane="lead">See them in the pipeline</button>`,
-      row: `<button type="button" class="focus-row" data-reveal-lane="lead">${unit(k, "lead", "leads")}<span class="focus-row-text">New ${k === 1 ? "lead" : "leads"} waiting for Scout</span>${cta("See them")}</button>`,
+      row: `<button type="button" class="focus-row" data-reveal-lane="lead"><span class="label">ROW_NUM — Leads</span><span class="focus-row-text">${plural(k, "new lead is", "new leads are")} waiting for Scout<small>Run the next step to screen them</small></span>${cta("Review")}</button>`,
     });
   }
   return entries;
@@ -457,24 +507,59 @@ function renderAttention(o) {
   const byId = Object.fromEntries(o.businesses.map((b) => [b.id, b]));
   const entries = needsEntries(o);
   const [first, ...rest] = entries;
-  $("#needs-you-heading").textContent = entries.length ? `${plural(entries.length, "decision", "decisions")} waiting` : "All clear";
+  const count = entries.length;
+  const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+  const countWord = count < words.length ? words[count] : String(count);
+  $("#today-kicker").textContent = `TODAY / ${String(count).padStart(2, "0")} DECISIONS`;
+  $("#today-title").textContent = count ? "Your call." : "All clear.";
+  $("#today-summary").textContent = count === 0
+    ? "The agents ran overnight. Nothing needs you right now."
+    : count === 1
+      ? "The agents ran overnight. This one needs your judgment before anything moves."
+      : `The agents ran overnight. These ${countWord} need your judgment before anything moves.`;
+  $("#needs-you-heading").textContent = count ? `${plural(count, "decision", "decisions")} waiting` : "All clear";
+  const kindLabel = {
+    "Board call": "New lead · board call",
+    "Pitch to approve": "Pitch",
+    "Posts to approve": "Posts",
+    "Cleared to pitch": "Leads",
+    "Leads to screen": "Leads",
+  };
   $("#needs-you").innerHTML = first
     ? `<div class="focus-item">
-        <p class="focus-item-kind">${icon(first.icon)}${esc(first.kind)}${rest.length ? " · decide first" : ""}</p>
+        <p class="focus-item-kind label">01 — ${esc(kindLabel[first.kind] || first.kind)}</p>
         ${first.biz ? `<div class="focus-biz">${bizName(first.biz)}<span>${esc([first.biz.category, hoodOf(first.biz)].filter(Boolean).join(" · "))}</span></div>` : ""}
-        <div class="focus-copy"><h3 class="focus-q">${first.q}</h3><p class="focus-what">${first.what}</p>${first.more || ""}</div>
-        <div class="focus-actions">${first.actions}</div>
-      </div>${rest.length ? `<div class="focus-rows">${rest.map((e) => e.row).join("")}</div>` : ""}`
+        <h3 class="focus-q">${esc(first.q)}</h3><p class="focus-what">${first.what}</p>
+        <div class="focus-actions">${first.actions}</div>${first.more || ""}
+      </div>${rest.length ? `<div class="focus-rows">${rest.map((entry, index) => entry.row.replaceAll("ROW_NUM", String(index + 2).padStart(2, "0"))).join("")}</div>` : ""}`
     : `<div class="needs-empty"><img class="needs-empty-image" src="/static/img/empty-all-clear.webp" width="720" height="720" alt="A tidy corkboard beside a cup of coffee." loading="lazy" decoding="async"><p>All clear: nothing needs you right now.</p></div>`;
   const blocked = (o.needs_you || []).filter((i) => i.type === "blocked").sort((a, z) => (z.risk || 0) - (a.risk || 0));
-  $("#caught-count").textContent = blocked.length || "";
-  $("#caught").innerHTML = blocked.map((i) => `<button type="button" class="caught-row" data-draft="${esc(i.draft_id)}" data-slug="${esc(i.business_id)}">
-      <span class="caught-who"><b>${bizName(byId[i.business_id] || { id: i.business_id, name: i.business }, { link: false })}</b><span class="caught-lookalikes"><span>looked like</span>${[i.with_business, ...(i.also_like || [])].map((name, index) => `${index ? "<span>and</span>" : ""}${bizName(bizByName(name), { link: false })}`).join("")}</span></span>
+  const caughtCount = String(blocked.length).padStart(2, "0");
+  $("#caught-count").textContent = caughtCount;
+  $("#doubletake-count").textContent = caughtCount;
+  const caughtRows = blocked.map((i) => `<button type="button" class="caught-row" data-draft="${esc(i.draft_id)}" data-slug="${esc(i.business_id)}">
+      <span class="caught-who"><b>${bizName(byId[i.business_id] || { id: i.business_id, name: i.business }, { link: false })}</b>
+        <span class="caught-lookalikes"><span>looked like</span>${[i.with_business, ...(i.also_like || [])].map((name, index) => `${index ? "<span>and</span>" : ""}<span class="caught-name">${bizName(bizByName(name), { link: false })}</span>`).join("")}</span>
+      </span>
       ${typeof i.risk === "number" ? `<span class="risk-pill" title="Double Take risk">${n(i.risk)}</span>` : ""}
+      <span class="caught-note">${i.shared?.length ? `Shared: ${i.shared.map(esc).join(", ")}` : "Shared techniques flagged by Double Take."}</span>
       <span class="caught-go" aria-hidden="true">→</span>
-    </button>`).join("")
-    || `<p class="empty-row">Nothing caught yet. Double Take checks every draft from step 3 on.</p>`;
+    </button>`).join("") || `<p class="empty-row">Nothing caught yet. Double Take checks every draft from step 3 on.</p>`;
+  $("#caught").innerHTML = caughtRows;
+  $("#double-take-caught").innerHTML = caughtRows;
+  $("#tab-count-today").textContent = String(count);
+  $("#tab-count-double-take").textContent = String(new Set(blocked.map((i) => i.draft_id)).size);
 }
+
+document.addEventListener("click", (e) => {
+  const row = e.target.closest(".caught-row");
+  if (!row) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  history.pushState({}, "", `/#double-take/${encodeURIComponent(row.dataset.slug)}/${encodeURIComponent(row.dataset.draft)}`);
+  syncStudioTab();
+  window.scrollTo({ top: 0, behavior: reduceMotion.matches ? "auto" : "smooth" });
+});
 
 function renderBoard(o) {
   $("#board").innerHTML = STAGES.map(([title, test, empty]) => {
@@ -495,6 +580,7 @@ function renderBoard(o) {
     return `<section class="stage" data-stage="${esc(title.toLowerCase())}" aria-label="${title}, ${items.length}"><h3>${title} <span class="count">${items.length}</span></h3>
       ${items.length ? `<div class="cards">${shown.map(bizCard).join("")}${extra ? `<button type="button" class="more-cards" data-more-stage="screened">Show ${extra} more</button>` : ""}</div>` : `<p class="empty-row">${esc(emptyText)}</p>`}</section>`;
   }).join("");
+  $("#tab-count-pipeline").textContent = String(o.businesses.length);
 }
 
 const dayDate = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
@@ -776,7 +862,7 @@ function renderScreening(analysis, overview) {
     state.netLead = [...leads].sort((a, z) => (z.max_conflict || 0) - (a.max_conflict || 0))[0]?.id || null;
   }
   $("#lead-picker").innerHTML = [...leads].sort((a, z) => (z.max_conflict || 0) - (a.max_conflict || 0))
-    .map((row) => `<button type="button" class="lead-chip" data-lead="${esc(row.id)}" aria-pressed="${row.id === state.netLead}"><span class="lead-chip-name">${bizName(bizById(row.id) || { id: row.id, name: row.name }, { link: false })}</span>${chip(row.verdict)}</button>`).join("");
+    .map((row) => `<button type="button" class="lead-chip" data-lead="${esc(row.id)}" aria-pressed="${row.id === state.netLead}"><span class="lead-chip-name">${bizName(bizById(row.id) || { id: row.id, name: row.name }, { link: false })}</span>${verdictStatus(row.verdict)}</button>`).join("");
   $("#screening-legend").textContent = `Conflict is the sum of path weights to one client. At ${n(t.borderline)} or more it is a board call; at ${n(t.differentiate)} or more Scout only pitches with a distinct angle. Same category in the same neighborhood is an automatic decline.`;
   $("#screening-table").innerHTML = `<caption class="sr-only">Conflict between each lead and each signed client</caption>
     <thead><tr><th scope="col">Lead</th>${clients.map((c) => `<th scope="col">${esc(c.name)}</th>`).join("")}<th scope="col">Verdict</th></tr></thead>
@@ -786,7 +872,7 @@ function renderScreening(analysis, overview) {
         return `<td><span class="cell b${bin(v)}">${n(v)}</span></td>`;
       }).join("");
       const sel = row.id === state.netLead;
-      return `<tr class="${sel ? "sel" : ""}"><th scope="row"><button type="button" class="lead-btn" data-lead="${esc(row.id)}" aria-pressed="${sel}">${esc(row.name)}<small>${esc(row.category)} · ${esc(row.neighborhood)}</small><span class="mobile-verdict">${chip(row.verdict)}</span></button></th>${cells}<td class="v">${chip(row.verdict)}</td></tr>`;
+      return `<tr class="${sel ? "sel" : ""}"><th scope="row"><button type="button" class="lead-btn" data-lead="${esc(row.id)}" aria-pressed="${sel}">${esc(row.name)}<small>${esc(row.category)} · ${esc(row.neighborhood)}</small><span class="mobile-verdict">${verdictStatus(row.verdict)}</span></button></th>${cells}<td class="v">${verdictStatus(row.verdict)}</td></tr>`;
     }).join("") || `<tr><td colspan="${clients.length + 2}" class="muted">No leads to screen.</td></tr>`}</tbody>`;
   renderNet();
 }
@@ -872,7 +958,7 @@ function renderVerdictMath(row) {
   const cl = [...(row.clients || [])].sort((a, z) => z.conflict - a.conflict);
   const max = Math.max(2, (cl[0]?.conflict || 0) * 1.1);
   const pct = (v) => `${Math.min(100, (v / max) * 100).toFixed(1)}%`;
-  $("#verdict-math").innerHTML = `<div class="vm-head"><b>${esc(row.name)}</b>${chip(row.verdict)}</div>
+  $("#verdict-math").innerHTML = `<div class="vm-head"><b>${esc(row.name)}</b>${verdictStatus(row.verdict)}</div>
     <p class="vm-reason">${esc(row.reason)}</p>
     ${row.competitors?.length ? `<p class="vm-reason">Same category as ${row.competitors.map((c) => esc(c.client)).join(", ")} in the same neighborhood.</p>` : ""}
     <div class="vm-scale" aria-hidden="true"><span style="left:${pct(t.borderline)}">Board call ${n(t.borderline)}</span><span style="left:${pct(t.differentiate)}">Distinct angle ${n(t.differentiate)}</span></div>
@@ -1009,7 +1095,7 @@ if (document.fonts) document.fonts.ready.then(() => requestAnimationFrame(redraw
 document.addEventListener("toggle", (e) => { if (e.target.closest?.(".analysis-page")) requestAnimationFrame(redrawAnalysis); }, true);
 
 // chapter nav follows the reader
-const chapterLinks = [...document.querySelectorAll(".chapter-nav a")];
+const chapterLinks = [...document.querySelectorAll("[data-analysis-nav]")];
 if ("IntersectionObserver" in window) {
   const seen = new Map();
   const io = new IntersectionObserver((entries) => {
@@ -1162,7 +1248,7 @@ const TOUR = [
     body: () => "Agents never write their own database queries. Each one can call only the named queries its job needs, shown as red dots, and every write records who made it and why. That record is what the raw data at the bottom shows.",
   },
   {
-    target: ".view-toggle",
+    target: "#sidebar-view-toggle",
     title: "Where you come in",
     body: () => "Agents handle the routine work on their own. Anything that matters, like board calls, pitches, signing and posts, stops in the Studio's Needs you list until a person decides. The Studio is what the agency sees day to day.",
     finish: "Open the Studio",
@@ -1186,8 +1272,7 @@ function showTourStep(i) {
   $("#tour").hidden = false;
   if (el) {
     el.classList.add("tour-focus");
-    const navH = $(".chapter-nav")?.offsetHeight || 0;
-    const top = i === TOUR.length - 1 ? 0 : el.getBoundingClientRect().top + window.scrollY - navH - 20;
+    const top = i === TOUR.length - 1 ? 0 : el.getBoundingClientRect().top + window.scrollY - 20;
     window.scrollTo({ top: Math.max(0, top), behavior: reduceMotion.matches ? "auto" : "smooth" });
   }
   $("#tour-title").focus({ preventScroll: true });
@@ -1253,10 +1338,16 @@ function pulseTarget(target) {
 }
 
 function revealStage(name) {
-  const stage = [...$("#board").querySelectorAll(".stage")].find((item) => item.dataset.stage === name);
-  if (!stage) return;
-  stage.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "start" });
-  pulseTarget(stage);
+  if (document.body.dataset.tab !== "pipeline") {
+    history.pushState({}, "", "/#pipeline");
+    syncStudioTab();
+  }
+  requestAnimationFrame(() => {
+    const stage = [...$("#board").querySelectorAll(".stage")].find((item) => item.dataset.stage === name);
+    if (!stage) return;
+    stage.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "start" });
+    pulseTarget(stage);
+  });
 }
 
 async function select(slug) {
@@ -1282,7 +1373,7 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   let h = `<div class="dossier-meta"><span class="dossier-cat">${categoryIcon(b.category)}${esc(b.category)}${hood ? ` · ${esc(hood)}` : ""}</span>
       <button type="button" class="btn small dossier-close" data-dossier-close>Close</button></div>
     <div class="dossier-title"><h2 class="name" id="dossier-h" tabindex="-1">${bizName(b, { link: false })}</h2></div>
-    <div class="status-row">${chip(b.status)}${b.voice ? `<span class="muted">Voice: ${esc(b.voice)}</span>` : ""}</div>`;
+    <div class="status-row">${verdictStatus(b.status)}${b.voice ? `<span class="muted">Voice: ${esc(b.voice)}</span>` : ""}</div>`;
 
   let overview = "";
   if (b.status === "lead" && d.screening?.verdict === "borderline") {
@@ -1302,7 +1393,7 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   }
   if (d.screening && d.screening.verdict) {
     const s = d.screening;
-    overview += `<h3>Scout's screening</h3><div class="thread"><div class="knot"><div class="who">${who(s.by || "Scout")} ${chip(s.verdict)}</div><p>${esc(displayStudioCopy(s.reason))}</p></div>
+    overview += `<h3>Scout's screening</h3><div class="thread"><div class="knot"><div class="who">${who(s.by || "Scout")} ${verdictStatus(s.verdict)}</div><p>${esc(displayStudioCopy(s.reason))}</p></div>
       ${(s.paths || []).map((c) => {
         const ps = [...(c.paths || [])].sort((a, z) => z.conflict - a.conflict);
         const pill = (p) => `<li>${esc(p.via)} <span class="metric">· ${n(p.conflict)}</span></li>`;
@@ -1678,7 +1769,7 @@ $("#lead-form").addEventListener("submit", async (e) => {
     const r = await api("/api/try/lead", { method: "POST", body: JSON.stringify({ name: f.get("name"), category: f.get("category"), targets, neighborhood: f.get("neighborhood") }) });
     const box = r.verdict === "pursue" ? "okbox" : ["pass", "decline"].includes(r.verdict) ? "declinebox" : "warnbox";
     const savedNote = r.saved === false ? `<p class="muted">Not saved: screening a lead here does not add it to the graph.</p>` : "";
-    $("#lead-result").innerHTML = `<div class="${box}">${chip(r.verdict)} ${esc(displayCopy(r.reason))}</div>${savedNote}
+    $("#lead-result").innerHTML = `<div class="${box}">${verdictStatus(r.verdict)} ${esc(displayCopy(r.reason))}</div>${savedNote}
       ${r.clients.length ? `<div class="thread">${r.clients.map((c) => {
         const ps = [...c.paths].sort((a, z) => z.conflict - a.conflict);
         return `<div class="knot minor"><div class="who">${esc(c.client)} <span class="metric">· conflict ${n(c.conflict)}</span></div>

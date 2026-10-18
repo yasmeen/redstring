@@ -417,6 +417,148 @@ def route_card(slug: str, draft_id: str):
     return card
 
 
+@app.get("/api/doubletake/{slug}/{draft_id}")
+def doubletake_detail(slug: str, draft_id: str):
+    slug = _client_or_404(slug)
+    drafts = tools.drafts(slug)
+    draft = next((item for item in drafts if item["id"] == draft_id), None)
+    if not draft:
+        raise HTTPException(404, draft_id)
+
+    flags = tools.collision_flags(slug, draft_id)
+    all_technique_ids = {technique_id for technique_id in draft["techniques"] if technique_id}
+    for flag in flags:
+        all_technique_ids.update(technique_id for technique_id in (flag.get("shared_ids") or []) if technique_id)
+    technique_rows = tools.techniques(sorted(all_technique_ids))
+    technique_by_id = {item["id"]: item for item in technique_rows}
+    reference_counts = tools.reference_counts(sorted(all_technique_ids))
+
+    def technique_list(ids, signature_shares=None, include_signature=False):
+        result = []
+        for technique_id in ids:
+            technique = technique_by_id.get(technique_id)
+            if not technique:
+                continue
+            item = {
+                "id": technique_id,
+                "name": technique["name"],
+                "rarity": technique["rarity"],
+            }
+            if include_signature:
+                item["ref_count"] = reference_counts.get(technique_id, 0)
+                item["signature_share"] = (signature_shares or {}).get(technique_id)
+            result.append(item)
+        return result
+
+    revision_row = next((item for item in drafts if item.get("revision_of") == draft_id), None)
+    revision_trace = tools.decision_trace(slug, revision_row["id"]) if revision_row else {}
+    revision_clear = bool(revision_row and any(
+        item.get("decision") == "Double Take: cleared"
+        for item in revision_trace.get("decisions", [])
+    ))
+    revision = None
+    if revision_row:
+        revision = {
+            "id": revision_row["id"],
+            "hook": revision_row["hook"],
+            "status": "cleared" if revision_clear else revision_row["status"],
+            "techniques": technique_list(revision_row["techniques"], None),
+            "cleared": revision_clear,
+        }
+
+    decisions = []
+    for trace in (tools.decision_trace(slug, draft_id), revision_trace):
+        decisions.extend(
+            {"by": item.get("by"), "text": item["decision"], "rationale": item.get("rationale"), "at": item.get("at")}
+            for item in trace.get("decisions", [])
+            if item.get("decision")
+        )
+    decisions = sorted(
+        {(item["by"], item["text"], item["rationale"], item["at"]): item for item in decisions}.values(),
+        key=lambda item: item["at"] or "",
+    )
+
+    flag_details = []
+    for flag in flags:
+        other_id = flag["with_business_id"]
+        other = tools.business(other_id)
+        other_signatures = {
+            item["technique_id"]: item["share"] for item in tools.signatures(other_id)
+        }
+        shared_ids = flag.get("shared_ids") or []
+        evidence_records = flag.get("evidence") or []
+        world_business = next(
+            (item for item in tools.world()["businesses"] if item["id"] == other_id),
+            {},
+        )
+        client_posts = tools.posts(other_id) if other_id in db.client_slugs() else []
+        post_records = {item["id"]: item for item in [*world_business.get("posts", []), *client_posts]}
+        posts_by_id = post_records.copy()
+        other_drafts = tools.drafts(other_id) if other_id in db.client_slugs() else []
+        drafts_by_id = {item["id"]: item for item in other_drafts}
+        evidence = []
+        for item in evidence_records:
+            evidence_id = item.get("fingerprint")
+            source = posts_by_id.get(evidence_id) or drafts_by_id.get(evidence_id)
+            if not source or not source.get("hook"):
+                continue
+            evidence.append({
+                "post_id": evidence_id,
+                "hook": source["hook"],
+                "views": source.get("views"),
+            })
+        flag_details.append({
+            "business": {"id": other_id, "name": other["name"], "status": other["status"]},
+            "shared": technique_list(shared_ids, other_signatures, include_signature=True),
+            "evidence": evidence,
+            "evidence_total_posts": len(post_records),
+            "audiences": tools.audience_paths(slug, other_id),
+            "similarity": flag["similarity"],
+            "overlap": flag["overlap"],
+            "risk": flag["risk"],
+            "limit": config.FLAG_RISK,
+        })
+
+    later_blocks = []
+    revision_ids = {technique_id for technique_id in revision_row["techniques"] if technique_id} if revision_row else set()
+    revision_names = {technique_by_id[technique_id]["name"] for technique_id in revision_ids if technique_id in technique_by_id}
+    for other_client in db.client_slugs():
+        if other_client == slug:
+            continue
+        other_client_drafts = {item["id"]: item for item in tools.drafts(other_client)}
+        for flag in tools.collision_flags(other_client):
+            shared_names = set(flag.get("shared") or [])
+            if flag.get("with_business_id") != slug or not shared_names.intersection(revision_names):
+                continue
+            blocked = other_client_drafts.get(flag["draft"], {})
+            client_business = tools.business(other_client)
+            later_blocks.append({
+                "client_id": other_client,
+                "client": client_business["name"],
+                "draft_id": flag["draft"],
+                "hook": blocked.get("hook"),
+                "shared": flag.get("shared") or [],
+                "risk": flag["risk"],
+            })
+
+    business = tools.business(slug)
+    return {
+        "draft": {
+            "id": draft["id"],
+            "hook": draft["hook"],
+            "version": draft["version"],
+            "status": draft["status"],
+            "techniques": technique_list(draft["techniques"], None),
+        },
+        "business": {"id": slug, "name": business["name"], "status": business["status"]},
+        "flags": flag_details,
+        "revision": revision,
+        "query": {"name": "double_take", "cypher": queries.Q2_DOUBLE_TAKE},
+        "next": decisions,
+        "later_blocks": later_blocks,
+    }
+
+
 @app.get("/api/pitch/{slug}/{pitch_id}")
 def pitch_card(slug: str, pitch_id: str):
     card = tools.pitch_trace(_client_or_404(slug), pitch_id)

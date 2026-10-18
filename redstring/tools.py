@@ -115,6 +115,15 @@ def signatures(slug: str | None = None) -> list[dict]:
     return db.rows(db.agency(), q, {"id": slug})
 
 
+def audience_paths(a: str, b: str) -> list[dict]:
+    return db.rows(db.agency(), queries.Q2_AUDIENCE_PATHS, {"a": a, "b": b})
+
+
+def reference_counts(ids: list[str]) -> dict[str, int]:
+    rows = db.rows(db.agency(), queries.Q2_REFERENCE_COUNTS, {"ids": ids})
+    return {row["id"]: row["ref_count"] for row in rows}
+
+
 # ------------------------------------------------------------------ Q1: Scout
 
 def lead_conflict(lead: str) -> dict:

@@ -8,48 +8,53 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M5 25 C 12 25 14 9 27 8%22 fill=%22none%22 stroke=%22%23BE2A3A%22 stroke-width=%223.2%22 stroke-linecap=%22round%22/%3E%3Ccircle cx=%225%22 cy=%2225%22 r=%224%22 fill=%22%23BE2A3A%22/%3E%3Ccircle cx=%2227%22 cy=%228%22 r=%224%22 fill=%22%23FCFAF9%22 stroke=%22%23BE2A3A%22 stroke-width=%222.5%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@800&amp;family=Schibsted+Grotesk:wght@400;500;600;700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@800&amp;family=JetBrains+Mono:wght@500;600;700&amp;family=Schibsted+Grotesk:wght@400;500;600;700;800&amp;display=swap">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body data-view="studio">
-<a class="skip studio-only" href="#board">Skip to the pipeline</a>
-<a class="skip analysis-only" href="#analysis-content">Skip to the analysis</a>
-
-<header class="appbar">
-  <div class="brand">
-    <h1 class="wordmark">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 25 C 12 25 14 9 27 8" fill="none" stroke="#BE2A3A" stroke-width="3" stroke-linecap="round"/><circle cx="5" cy="25" r="4" fill="#BE2A3A"/><circle cx="27" cy="8" r="4" fill="#FCFAF9" stroke="#BE2A3A" stroke-width="2.5"/></svg>
-      Red String
-    </h1>
-    <p class="brand-sub"><span class="studio-only">Pipeline for creative agencies</span><span class="analysis-only">Pipeline for creative agencies</span></p>
+<div class="app-layout">
+<aside class="sidebar" aria-label="Corkboard Studio navigation">
+  <a class="skip studio-only" href="#board">Skip to the pipeline</a>
+  <a class="skip analysis-only" href="#analysis-content">Skip to the analysis</a>
+  <div class="sidebar-brand">
+    <h1 class="wordmark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 25 C 12 25 14 9 27 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="5" cy="25" r="3.5" fill="currentColor"/><circle cx="27" cy="8" r="3.5" fill="var(--paper)" stroke="currentColor" stroke-width="2"/></svg>Red String</h1>
+    <p class="brand-sub">Corkboard Studio</p>
+    <span class="sr-only" id="agency"></span><span class="sr-only" id="ws-meta"></span>
   </div>
-
-  <div class="workspace">
-    <span class="ws-mark" id="ws-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="5" y="7" width="22" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 12h16M8 17h16M8 22h9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="m22 4 4 4-4 4-4-4 4-4Z" fill="#BE2A3A"/><path d="M22 11v5" stroke="#BE2A3A" stroke-width="1.5"/></svg></span>
-    <div class="ws-text">
-      <p class="ws-name"><b id="agency">…</b></p>
-      <p class="ws-meta" id="ws-meta"><span id="biz-count"></span></p>
-    </div>
+  <nav class="view-toggle sidebar-switch" id="sidebar-view-toggle" aria-label="Choose a view" data-view-toggle>
+    <a href="/" data-view-link="studio" aria-current="page"><b>Studio</b><span>What the agency sees</span></a>
+    <a href="/analysis" data-view-link="analysis"><b>Analysis</b><span>How it uses the graph</span></a>
+  </nav>
+  <p class="label sidebar-view-label" id="sidebar-view-label">STUDIO</p>
+  <nav class="studio-tabs sidebar-tabs studio-only" id="studio-tabs" aria-label="Studio tabs">
+    <a href="#today" data-studio-tab="today" aria-current="page">Today <span class="nav-badge red-badge" id="tab-count-today"></span></a>
+    <a href="#pipeline" data-studio-tab="pipeline">Pipeline <span class="nav-badge" id="tab-count-pipeline"></span></a>
+    <a href="#double-take" data-studio-tab="double-take">Double Take <span class="nav-badge red-badge" id="tab-count-double-take"></span></a>
+    <a href="#try" data-studio-tab="try">Try it</a>
+    <a href="#log" data-studio-tab="log">Decision log</a>
+  </nav>
+  <nav class="analysis-tabs sidebar-tabs analysis-only" id="analysis-tabs" aria-label="Analysis sections">
+    <a href="#ch-architecture" data-analysis-nav>Architecture</a>
+    <a href="#ch-screening" data-analysis-nav>Screening</a>
+    <a href="#ch-double-take" data-analysis-nav>Double Take</a>
+    <a href="#ch-territory" data-analysis-nav>Territory</a>
+    <a href="#ch-agents" data-analysis-nav>Agents and queries</a>
+    <a href="#ch-raw" data-analysis-nav>Raw data</a>
+  </nav>
+  <div class="sidebar-bottom studio-only">
+    <section class="daybar" id="daybar" aria-label="Today in the studio">
+      <p class="daybar-when"><b id="day-label">Agent run</b><span class="muted" id="day-summary"></span><span class="muted" id="day-feed"></span><span class="muted daybar-readonly">Read-only: nothing you try here is saved.</span></p>
+      <div class="daybar-actions">
+        <button type="button" class="text-button fold-toggle" id="activity-toggle" aria-controls="dayloop" aria-expanded="false" hidden>See today's activity</button>
+        <button type="button" class="text-button fold-toggle" id="runner-toggle" aria-controls="runner" aria-expanded="false">Demo controls</button>
+        <button type="button" class="btn ink" id="next-day" hidden>Next day <span aria-hidden="true">→</span></button>
+      </div>
+    </section>
   </div>
-
-  <div class="appbar-actions">
-    <nav class="view-toggle" aria-label="Choose a view">
-      <a href="/" data-view-link="studio" aria-current="page"><b>Studio</b><span>What the agency sees</span></a>
-      <a href="/analysis" data-view-link="analysis"><b>Analysis</b><span>How it uses the graph</span></a>
-    </nav>
-  </div>
-</header>
-
-<section class="daybar studio-only" aria-label="Today in the studio">
-  <p class="daybar-when"><b id="day-label">Agent run</b><span class="muted" id="day-summary"></span><span class="muted" id="day-feed"></span><span class="muted daybar-readonly">Read-only: nothing you try here is saved.</span></p>
-  <div class="daybar-actions">
-    <button type="button" class="text-button fold-toggle" id="activity-toggle" aria-controls="dayloop" aria-expanded="false" hidden>See today's activity</button>
-    <button type="button" class="text-button fold-toggle" id="runner-toggle" aria-controls="runner" aria-expanded="false">Demo controls</button>
-    <button type="button" class="btn ink" id="next-day" hidden>Next day <span aria-hidden="true">→</span></button>
-  </div>
-</section>
-
-<section class="runner studio-only folded" id="runner" aria-labelledby="runner-h">
+</aside>
+<main class="studio-main studio-only" id="studio-main">
+<section class="studio-tab today-tab" id="tab-today" data-tab="today">
+<section class="runner folded" id="runner" aria-labelledby="runner-h">
   <div class="runner-inner">
     <h2 class="placard" id="runner-h">Agent run</h2>
     <ol class="steps" id="steps"></ol>
@@ -58,13 +63,20 @@
   </div>
 </section>
 
-<section class="dayloop studio-only folded" id="dayloop" aria-labelledby="dayloop-h" hidden>
+<section class="dayloop folded" id="dayloop" aria-labelledby="dayloop-h" hidden>
   <h2 class="placard" id="dayloop-h">Studio activity</h2>
   <p class="muted dayloop-note">Agents do the routine work each day on their own and stop at anything that needs you.</p>
   <ol class="days" id="days" aria-live="polite"></ol>
 </section>
 
-<section class="intro studio-only" id="intro" aria-labelledby="intro-title" hidden>
+<header class="today-heading">
+  <p class="label" id="today-kicker">TODAY / 00 DECISIONS</p>
+  <h1 id="today-title">Your call.</h1>
+  <p class="today-summary" id="today-summary">The agents ran overnight. These decisions need your judgment before anything moves.</p>
+  <button type="button" class="text-button" id="intro-open" aria-controls="intro" aria-expanded="false" hidden>New here? How it works</button>
+</header>
+
+<section class="intro" id="intro" aria-labelledby="intro-title" hidden>
   <h2 class="placard small" id="intro-title" tabindex="-1">How it works</h2>
   <ol class="intro-steps">
     <li><img class="intro-thumb" src="/static/img/spot-screen.webp" width="720" height="720" alt="A new business card under a magnifying glass, threaded to families already connected to other businesses." loading="lazy" decoding="async"><span class="intro-step-copy"><strong>Screen leads</strong><span>Scout checks who they reach.</span></span></li>
@@ -78,23 +90,23 @@
   </div>
 </section>
 
-<section class="attention studio-only" aria-label="Attention">
-  <div class="focus" id="needs-panel">
-    <div class="focus-head">
-      <div><p class="focus-kicker">Needs you</p><h2 class="focus-title" id="needs-you-heading">Needs you</h2></div>
-      <button type="button" class="text-button" id="intro-open" aria-controls="intro" aria-expanded="false" hidden>New here? How it works</button>
-    </div>
+<section class="attention today-grid" aria-label="Today's decisions">
+  <div class="needs-panel" id="needs-panel">
+    <h2 class="sr-only" id="needs-you-heading">Needs your decision</h2>
     <div class="needs-you" id="needs-you" aria-live="polite" aria-labelledby="needs-you-heading"></div>
   </div>
   <div class="caught-panel">
-    <h2 class="placard caught-title" id="caught-heading">Caught by Double Take <span class="caught-count" id="caught-count"></span></h2>
+    <p class="label caught-kicker">CAUGHT BY DOUBLE TAKE / <span id="caught-count">00</span></p>
+    <h2 class="caught-title" id="caught-heading">Lookalikes stopped</h2>
     <p class="muted caught-sub">Drafts blocked for looking like another business's work to the same people, then revised.</p>
     <div class="caught" id="caught" aria-labelledby="caught-heading"></div>
     <a class="caught-more" href="/analysis#ch-double-take">How Double Take decides <span aria-hidden="true">→</span></a>
   </div>
 </section>
+</section>
 
-<main class="desk studio-only" id="desk">
+<section class="studio-tab pipeline-tab" id="tab-pipeline" data-tab="pipeline">
+<div class="desk" id="desk">
   <svg class="string-layer" id="string-layer" aria-hidden="true" focusable="false"><path id="string-path" d=""/></svg>
 
   <section class="board-wrap" aria-labelledby="board-h">
@@ -114,9 +126,20 @@
     </div>
   </aside>
   <div class="scrim" id="scrim" hidden></div>
-</main>
+</div>
+</section>
 
-<div class="lower studio-only">
+<section class="studio-tab doubletake-tab" id="tab-double-take" data-tab="double-take">
+  <header class="tab-heading"><p class="label">DOUBLE TAKE</p><h1>Lookalikes stopped.</h1><p>Flagged drafts from this run and the businesses they resembled.</p></header>
+  <section class="caught-panel doubletake-caught-panel" aria-labelledby="doubletake-caught-heading">
+    <p class="label caught-kicker">CAUGHT BY DOUBLE TAKE / <span id="doubletake-count">00</span></p>
+    <h2 class="caught-title" id="doubletake-caught-heading">Lookalikes stopped</h2>
+    <div class="caught" id="double-take-caught"></div>
+  </section>
+</section>
+
+<section class="studio-tab try-tab" id="tab-try" data-tab="try">
+<div class="lower">
   <div class="try">
     <section class="panel" aria-labelledby="lead-h">
       <div class="panel-head"><h2 class="placard" id="lead-h">Screen a new lead</h2></div>
@@ -144,25 +167,22 @@
         <div><button type="submit" class="btn primary">Run Double Take</button></div>
       </form>
       <div id="draft-result" aria-live="polite"></div>
-    </section>
-  </div>
+  </section>
+</div>
+</section>
+
+<section class="studio-tab log-tab" id="tab-log" data-tab="log">
+<div class="lower">
 
   <section class="panel" aria-labelledby="feed-h">
     <div class="panel-head"><h2 class="placard" id="feed-h">Decision log</h2><span class="muted">Every write has a why.</span></div>
     <ul class="feed" id="feed" tabindex="0" aria-label="Decision log, newest first"></ul>
   </section>
 </div>
+</section>
+</main>
 
 <main class="analysis-page analysis-only" id="analysis-content">
-  <nav class="chapter-nav" aria-label="Analysis sections">
-    <a href="#ch-architecture">Architecture</a>
-    <a href="#ch-screening">Screening</a>
-    <a href="#ch-double-take">Double Take</a>
-    <a href="#ch-territory">Territory</a>
-    <a href="#ch-agents">Agents and queries</a>
-    <a href="#ch-raw">Raw data</a>
-  </nav>
-
   <section class="a-intro" aria-labelledby="analysis-intro-heading">
     <p class="a-kicker">What Red String is</p>
     <h2 class="a-title" id="analysis-intro-heading">An AI agency that won't make two clients <em>look alike</em></h2>
@@ -317,8 +337,9 @@
         </section>
       </div>
     </details>
-  </section>
+</section>
 </main>
+</div>
 
 <div class="tour analysis-only" id="tour" role="dialog" aria-modal="false" aria-labelledby="tour-title" hidden>
   <div class="tour-top">
