@@ -712,7 +712,11 @@ class DraftIn(BaseModel):
 @app.post("/api/try/draft")
 def try_draft(body: DraftIn):
     """Double Take on a hypothetical draft using the read-only Q2 preview."""
-    if not tools.business(body.client):
+    try:
+        business = tools.business(body.client)
+    except ValueError as exc:
+        raise HTTPException(404, body.client) from exc
+    if not business:
         raise HTTPException(404, body.client)
     try:
         results = tools.double_take_preview(body.client, body.technique_ids)

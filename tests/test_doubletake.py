@@ -107,6 +107,16 @@ def test_try_draft_preview_does_not_write_under_readonly(seeded_demo, monkeypatc
     assert db.rows(agency, "MATCH (n) RETURN count(n) AS count")[0]["count"] == before
 
 
+def test_try_draft_unknown_client_returns_404(seeded_demo):
+    client = TestClient(web.app)
+    response = client.post("/api/try/draft", json={
+        "client": "unknown-client",
+        "technique_ids": ["pace_stop_motion"],
+    })
+
+    assert response.status_code == 404
+
+
 def test_try_lead_preview_rejects_unknown_neighborhood_and_audience(seeded_demo, monkeypatch):
     monkeypatch.setattr(web, "READONLY", True)
     client = TestClient(web.app)

@@ -159,7 +159,15 @@ TOOLS: list[Tool] = [
     # ---- writes (each writes a Decision with DECIDED_BY)
     Tool("record_screening", tools.record_screening, "Write Scout's SCREENED verdict on a lead, with the reason and audience paths.",
          {"lead": CLIENT, "verdict": {"type": "string", "enum": ["decline", "pursue", "pursue_differentiated", "borderline"]}, "reason": S,
-          "paths": {"type": "array", "items": {"type": "object"}}}, ["lead", "verdict", "reason"], ["scout"], writable=True),
+          "paths": {"type": "array", "items": {
+              "type": "object",
+              "properties": {
+                  "client_id": S, "client": S, "same_category": {"type": "boolean"},
+                  "via": S, "hop": {"type": ["string", "null"]}, "conflict": N,
+              },
+              "required": ["client_id", "client", "same_category", "via", "hop", "conflict"],
+              "additionalProperties": False,
+          }}}, ["lead", "verdict", "reason"], ["scout"], writable=True),
     Tool("pursue", tools.pursue, "Create the prospect's private graph and set its status to pursued.", {"slug": CLIENT, "rationale": S}, ["slug", "rationale"], ["scout"], writable=True),
     Tool("record_finding", tools.record_finding, "Record a Finding with its source URL. Use only URLs you actually read.",
          {"client": CLIENT, "kind": {"type": "string", "enum": ["audience", "competitor", "channel"]}, "text": S, "source_url": S, "rationale": S},

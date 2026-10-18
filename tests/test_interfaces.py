@@ -20,6 +20,35 @@ def test_tool_properties_match_function_parameters():
         assert set(tool.properties) <= set(inspect.signature(tool.fn).parameters), tool.name
 
 
+def test_strict_registry_schemas_close_every_object():
+    from redstring.agents import claude
+
+    agents = {agent for tool in registry.TOOLS for agent in tool.agents}
+    strict_schemas = {}
+    for agent in agents:
+        for definition in claude._tool_defs(agent):
+            if definition.get("strict") is True:
+                strict_schemas[definition["name"]] = definition["input_schema"]
+
+    def assert_closed(schema, path):
+        if schema.get("type") == "object":
+            assert schema.get("additionalProperties") is False, path
+            for name, child in schema.get("properties", {}).items():
+                assert_closed(child, f"{path}.{name}")
+        elif schema.get("type") == "array":
+            assert_closed(schema["items"], f"{path}[]")
+
+    for tool in registry.TOOLS:
+        if tool.name in strict_schemas:
+            assert_closed(strict_schemas[tool.name], tool.name)
+
+    paths = strict_schemas["record_screening"]["properties"]["paths"]["items"]
+    assert set(paths["properties"]) == {
+        "client_id", "client", "same_category", "via", "hop", "conflict",
+    }
+    assert set(paths["required"]) == set(paths["properties"])
+
+
 def test_audiences_of_tool_accepts_client_argument():
     tools._world_cache = None
     seed.seed_all()
