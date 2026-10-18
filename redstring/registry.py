@@ -111,6 +111,7 @@ def _draft(client: str, plan_id: str, format: str, hook: str, spec: str, techniq
 
 def _project(draft_id: str, client: str, kind: str, technique_ids: list[str]) -> dict:
     from . import db, queries
+    tools.validate_technique_ids(technique_ids)
     db.run(db.agency(), queries.P1_PROJECT_FINGERPRINT,
            {"draft_id": draft_id, "kind": kind, "client": client, "now": tools.now(), "technique_ids": technique_ids})
     return {"fingerprint": draft_id}
@@ -158,7 +159,20 @@ TOOLS: list[Tool] = [
     # ---- writes (each writes a Decision with DECIDED_BY)
     Tool("record_screening", tools.record_screening, "Write Scout's SCREENED verdict on a lead, with the reason and audience paths.",
          {"lead": CLIENT, "verdict": {"type": "string", "enum": ["decline", "pursue", "pursue_differentiated", "borderline"]}, "reason": S,
-          "paths": {"type": "array", "items": {"type": "object"}}}, ["lead", "verdict", "reason"], ["scout"], writable=True),
+          "paths": {"type": "array", "items": {
+              "type": "object",
+              "properties": {
+                  "client_id": S, "client": S, "conflict": N, "same_category": {"type": "boolean"},
+                  "paths": {"type": "array", "items": {
+                      "type": "object",
+                      "properties": {"via": S, "conflict": N},
+                      "required": ["via", "conflict"],
+                      "additionalProperties": False,
+                  }},
+              },
+              "required": ["client_id", "client", "conflict", "same_category", "paths"],
+              "additionalProperties": False,
+          }}}, ["lead", "verdict", "reason"], ["scout"], writable=True),
     Tool("pursue", tools.pursue, "Create the prospect's private graph and set its status to pursued.", {"slug": CLIENT, "rationale": S}, ["slug", "rationale"], ["scout"], writable=True),
     Tool("record_finding", tools.record_finding, "Record a Finding with its source URL. Use only URLs you actually read.",
          {"client": CLIENT, "kind": {"type": "string", "enum": ["audience", "competitor", "channel"]}, "text": S, "source_url": S, "rationale": S},

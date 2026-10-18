@@ -47,11 +47,44 @@ def client() -> anthropic.Anthropic:
     return _client
 
 
-def _tool_defs(agent: str) -> list[dict]:
-    defs = [{"name": t.name, "description": t.description, "input_schema": t.schema} for t in registry.for_agent(agent)]
-    if agent == "researcher":
-        defs.append({"type": "web_search_20260209", "name": "web_search", "max_uses": 8})
+def _tool_defs(agent: str, web_search_uses_left: int = 8) -> list[dict]:
+    defs = [{"name": t.name, "description": t.description, "input_schema": t.schema, "strict": True}
+            for t in registry.for_agent(agent)]
+    if agent == "researcher" and web_search_uses_left > 0:
+        defs.append({"type": "web_search_20260209", "name": "web_search", "max_uses": web_search_uses_left})
     return defs
+
+
+def _search_urls(block) -> set[str]:
+    urls: set[str] = set()
+
+    def visit(value):
+        if value is None:
+            return
+        if isinstance(value, dict):
+            if isinstance(value.get("url"), str):
+                urls.add(value["url"])
+            for nested in value.values():
+                visit(nested)
+        elif isinstance(value, (list, tuple)):
+            for nested in value:
+                visit(nested)
+        else:
+            url = getattr(value, "url", None)
+            if isinstance(url, str):
+                urls.add(url)
+            visit(getattr(value, "content", None))
+
+    visit(getattr(block, "content", None))
+    return urls
+
+
+def _search_uses(blocks) -> int:
+    return sum(
+        getattr(block, "type", None) == "server_tool_use"
+        and getattr(block, "name", None) == "web_search"
+        for block in blocks
+    )
 
 
 def _board_rules(slug: str | None) -> list[dict]:
@@ -60,7 +93,8 @@ def _board_rules(slug: str | None) -> list[dict]:
 
 def run_agent(agent: str, task: str, log=print, max_turns: int = 24, *,
               slug: str | None = None, allowed_leads: set[str] | None = None,
-              allowed_pursuits: set[str] | None = None) -> str:
+              allowed_pursuits: set[str] | None = None,
+              tool_results: dict | None = None, on_search_urls=None) -> str:
     system = ROLES[agent] + "\n\n" + COMMON.format(agency=tools.world()["agency"]["name"])
     board_rules = _board_rules(slug)
     if board_rules:
@@ -71,14 +105,15 @@ def run_agent(agent: str, task: str, log=print, max_turns: int = 24, *,
             "</board_decisions>"
         )
     messages: list[dict] = [{"role": "user", "content": task}]
-    defs = _tool_defs(agent)
     allowed_tools = {t.name for t in registry.for_agent(agent)}
+    web_search_uses = 0
+    searched_urls: set[str] = set()
     for _ in range(max_turns):
         resp = client().beta.messages.create(
             model=config.MODEL,
             max_tokens=16000,
             system=system,
-            tools=defs,
+            tools=_tool_defs(agent, 8 - web_search_uses),
             messages=messages,
             thinking={"type": "adaptive"},
             output_config={"effort": "medium"},
@@ -86,8 +121,20 @@ def run_agent(agent: str, task: str, log=print, max_turns: int = 24, *,
             fallbacks="default",
         )
         messages.append({"role": "assistant", "content": resp.content})
-        if resp.stop_reason == "refusal":
-            raise RuntimeError(f"{agent} refused: {resp.stop_details}")
+        new_urls = set().union(*(_search_urls(block) for block in resp.content
+                                 if getattr(block, "type", None) == "web_search_tool_result"))
+        searched_urls.update(new_urls)
+        web_search_uses += _search_uses(resp.content)
+        if on_search_urls and new_urls:
+            on_search_urls(new_urls)
+        if resp.stop_reason in {"refusal", "model_context_window_exceeded"}:
+            reason = getattr(resp, "stop_details", None) or resp.stop_reason
+            tools.record_declined(agent, str(reason), slug=slug)
+            if log:
+                log(f"  {tools.AGENT_NAMES[agent]} declined: {reason}")
+            return f"Declined: {reason}"
+        if resp.stop_reason == "max_tokens":
+            raise RuntimeError(f"{agent} response reached max_tokens and was truncated")
         if resp.stop_reason == "pause_turn":
             continue
         uses = [b for b in resp.content if b.type == "tool_use"]
@@ -101,6 +148,8 @@ def run_agent(agent: str, task: str, log=print, max_turns: int = 24, *,
             try:
                 if u.name not in allowed_tools:
                     raise ValueError(f"{u.name}: not your tool")
+                if u.name == "record_finding" and u.input.get("source_url") not in searched_urls:
+                    raise ValueError("record_finding source_url was not returned by web_search")
                 out = registry.call(
                     u.name,
                     dict(u.input),
@@ -109,7 +158,14 @@ def run_agent(agent: str, task: str, log=print, max_turns: int = 24, *,
                     allowed_slugs=allowed_leads,
                     allowed_pursuits=allowed_pursuits,
                 )
-                results.append({"type": "tool_result", "tool_use_id": u.id, "content": out[:20000]})
+                result = json.loads(out)
+                if tool_results is not None:
+                    tool_results[u.name] = result
+                result_text = out if isinstance(out, str) else json.dumps(out, default=str)
+                if len(result_text) > 20000:
+                    marker = "\n...[truncated at 20000 characters]"
+                    result_text = result_text[:20000 - len(marker)] + marker
+                results.append({"type": "tool_result", "tool_use_id": u.id, "content": result_text})
             except Exception as e:  # the agent sees the error and can correct itself
                 results.append({"type": "tool_result", "tool_use_id": u.id, "content": json.dumps({"error": str(e)}),
                                 "is_error": True})

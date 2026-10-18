@@ -13,6 +13,7 @@ FALKORDB_HOST = os.environ.get("FALKORDB_HOST", "localhost")
 FALKORDB_PORT = int(os.environ.get("FALKORDB_PORT", "6379"))
 FALKORDB_USERNAME = os.environ.get("FALKORDB_USERNAME") or None
 FALKORDB_PASSWORD = os.environ.get("FALKORDB_PASSWORD") or None
+MODE = os.environ.get("REDSTRING_MODE", "offline")
 
 AGENCY_GRAPH = "agency"
 CLIENT_PREFIX = "client:"

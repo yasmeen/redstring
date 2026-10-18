@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import csv
 import json
+import sys
 from pathlib import Path
 from typing import Literal
 
@@ -62,37 +63,59 @@ def extract_one(client, analysis: str, vocab: dict, Extraction) -> dict:
     return {"technique_ids": sorted(set(out.technique_ids)), "proposed": [p.model_dump() for p in out.proposed]}
 
 
-def import_references(path: Path, limit: int | None = None, source: str = "Instinct") -> dict:
-    import anthropic
-
+def import_references(path: Path, limit: int | None = None, source: str = "Instinct", client=None) -> dict:
     vocab = references.load_vocab()
     Extraction = _models(tuple(t["id"] for t in vocab["techniques"]))
-    client = anthropic.Anthropic()
+    if client is None:
+        import anthropic
+        client = anthropic.Anthropic()
     rows = read_export(path)[:limit]
-    refs, proposed = [], []
+    refs = json.loads(config.REFERENCES_PATH.read_text()) if config.REFERENCES_PATH.exists() else []
+    proposed = json.loads(PROPOSED_PATH.read_text()) if PROPOSED_PATH.exists() else []
+    by_url = {reference["url"]: reference for reference in refs if reference.get("url")}
+    used_ids = {reference["id"] for reference in refs if reference.get("id")}
+    next_id = 1
+    added = 0
     for i, r in enumerate(rows, 1):
         if not r.get("url") or not r.get("analysis"):
             continue
-        ex = extract_one(client, r["analysis"], vocab, Extraction)
-        views = r.get("views") or r.get("plays")
-        duration = r.get("duration_s")
-        refs.append({
-            "id": f"ref_{i:03d}",
-            "url": r["url"],
-            "creator": r.get("creator") or r.get("author"),
-            "platform": r.get("platform"),
-            "format": r.get("format"),
-            "category": r.get("category"),
-            "city": r.get("city"),
-            "posted_at": r.get("posted_at"),
-            "duration_s": int(float(duration)) if duration not in (None, "") else None,
-            "analyzed_by": source,
-            "analyzed_at": r.get("analyzed_at"),
-            "views": int(float(views)) if views not in (None, "") else None,
-            "analysis": r["analysis"],
-            "techniques": ex["technique_ids"],
-        })
-        proposed += [{**p, "reference": r["url"]} for p in ex["proposed"]]
-    config.REFERENCES_PATH.write_text(json.dumps(refs, indent=1) + "\n")
-    PROPOSED_PATH.write_text(json.dumps(proposed, indent=1) + "\n")
-    return {"references": len(refs), "proposed": len(proposed)}
+        if r["url"] in by_url:
+            continue
+        try:
+            ex = extract_one(client, r["analysis"], vocab, Extraction)
+            views = r.get("views") or r.get("plays")
+            duration = r.get("duration_s")
+            while f"ref_{next_id:03d}" in used_ids:
+                next_id += 1
+            reference = {
+                "id": f"ref_{next_id:03d}",
+                "url": r["url"],
+                "creator": r.get("creator") or r.get("author"),
+                "platform": r.get("platform"),
+                "format": r.get("format"),
+                "category": r.get("category"),
+                "city": r.get("city"),
+                "posted_at": r.get("posted_at"),
+                "duration_s": int(float(duration)) if duration not in (None, "") else None,
+                "analyzed_by": source,
+                "analyzed_at": r.get("analyzed_at"),
+                "views": int(float(views)) if views not in (None, "") else None,
+                "analysis": r["analysis"],
+                "techniques": ex["technique_ids"],
+            }
+        except Exception as exc:
+            print(f"Skipping import row {i} ({r['url']}): {exc}", file=sys.stderr)
+            continue
+        refs.append(reference)
+        by_url[r["url"]] = reference
+        used_ids.add(reference["id"])
+        next_id += 1
+        proposed.extend(
+            candidate for candidate in ({**item, "reference": r["url"]} for item in ex["proposed"])
+            if not any(old.get("reference") == candidate["reference"] and old.get("name") == candidate["name"]
+                       for old in proposed)
+        )
+        config.REFERENCES_PATH.write_text(json.dumps(refs, indent=1) + "\n")
+        PROPOSED_PATH.write_text(json.dumps(proposed, indent=1) + "\n")
+        added += 1
+    return {"references": len(refs), "proposed": len(proposed), "added": added}

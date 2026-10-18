@@ -114,6 +114,9 @@ def create_client_graph(world: dict, slug: str, include_posts: bool = True) -> N
     g = db.client(slug)
     _indexes(g, CLIENT_INDEXES)
     db.run(g, "MERGE (:Business {id: $id, name: $name, category: $category})", b)
+    db.run(g, """UNWIND $rows AS t
+                 CREATE (:Technique {id: t.id, name: t.name, category: t.category, rarity: t.rarity})""",
+           {"rows": world["techniques"]})
     if include_posts:
         load_posts(world, slug)
     if b["status"] == "signed":
@@ -144,6 +147,9 @@ def load_posts(world: dict, slug: str) -> int:
 
 def seed_all(world: dict | None = None) -> dict:
     world = world or load_world()
+    from . import tools
+    tools._world_cache = world
+    tools._sim_day_cache = None
     for slug in db.client_slugs():
         db.drop(config.client_graph_name(slug))
     seed_agency(world)

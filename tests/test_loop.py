@@ -1,9 +1,11 @@
+import threading
+
 import pytest
 from fastapi.testclient import TestClient
 
 from redstring import config, db, seed, tools, worldgen
 from redstring.agents import offline
-from redstring.loop import _post_for_client, next_day
+from redstring.loop import _post_for_client, _run_day, next_day
 from redstring.pipeline import Pipeline
 
 
@@ -28,6 +30,44 @@ def test_lead_feed_is_deterministic_and_separate_from_businesses():
     assert world["lead_feed"] == committed["lead_feed"]
     assert [business["arrives"] for business in world["lead_feed"]] == list(range(1, 7))
     assert len(world["lead_feed"]) == 6
+
+
+def test_seed_all_clears_simulation_caches():
+    world = seed.load_world()
+    tools._world_cache = {"stale": True}
+    tools._sim_day_cache = 99
+
+    seed.seed_all(world)
+
+    assert tools._world_cache == world
+    assert tools._sim_day_cache is None
+
+
+def test_loop_uses_configured_mode(demo, monkeypatch):
+    import redstring.loop as loop
+
+    observed = {}
+
+    class StubPipeline:
+        def __init__(self, mode, log):
+            observed["mode"] = mode
+
+    monkeypatch.setattr(config, "MODE", "claude")
+    monkeypatch.setattr(loop, "Pipeline", StubPipeline)
+    monkeypatch.setattr(tools, "pipeline_board", lambda: [])
+
+    _run_day({"lead_feed": []}, 3)
+
+    assert observed["mode"] == "claude"
+
+
+def test_next_day_processes_missed_feed_arrivals(demo):
+    tools.set_sim_day(3)
+
+    result = next_day()
+
+    expected = [business["id"] for business in tools.world()["lead_feed"] if business["arrives"] <= 4]
+    assert result["arrived"] == expected
 
 
 def test_feed_categories_support_offline_helpers(demo, monkeypatch):
@@ -222,3 +262,24 @@ def test_reset_api_returns_to_day_zero(demo):
 
     assert response.status_code == 200
     assert tools.sim_day() == 0
+
+
+def test_reads_during_reset_return_resetting_503(demo, monkeypatch):
+    import redstring.web.app as web
+
+    entered = threading.Event()
+    release = threading.Event()
+    client = TestClient(web.app)
+    monkeypatch.setattr(web, "READONLY", False)
+    monkeypatch.setattr(web, "run_step", lambda *_args: (entered.set(), release.wait(5)))
+    web._done.clear()
+    worker = threading.Thread(target=lambda: client.post("/api/step/reset"))
+    worker.start()
+    try:
+        assert entered.wait(2)
+        response = client.get("/api/overview")
+        assert response.status_code == 503
+        assert response.json()["detail"] == "resetting"
+    finally:
+        release.set()
+        worker.join(timeout=5)

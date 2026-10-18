@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from redstring.agents import offline
@@ -70,6 +72,71 @@ def test_client_graphs_are_isolated(seeded):
     for slug in ("pixel-pond", "wet-paint", "cannonball"):
         ids = [r["id"] for r in db.rows(db.client(slug), "MATCH (p:Post) RETURN p.id AS id")]
         assert ids and all(i.startswith(slug) for i in ids)
+
+
+def test_write_plan_rejects_unknown_goal_before_writing(seeded):
+    graph = db.client("wet-paint")
+    before = db.rows(graph, "MATCH (p:Plan) RETURN count(p) AS count")[0]["count"]
+
+    with pytest.raises(ValueError, match="unknown goal"):
+        tools.write_plan("wet-paint", "test", "unknown-goal", "test rationale")
+
+    assert db.rows(graph, "MATCH (p:Plan) RETURN count(p) AS count")[0]["count"] == before
+
+
+def test_write_draft_rejects_missing_plan_and_invented_technique(seeded):
+    goal = next(goal for goal in tools.goals("wet-paint") if goal["status"] == "active")
+    plan = tools.write_plan("wet-paint", "test", goal["id"], "test rationale")["plan"]
+    client_graph = db.client("wet-paint")
+    agency = db.agency()
+    before_drafts = db.rows(client_graph, "MATCH (d:Draft) RETURN count(d) AS count")[0]["count"]
+    before_fingerprints = db.rows(agency, "MATCH (f:Fingerprint) RETURN count(f) AS count")[0]["count"]
+
+    with pytest.raises(ValueError, match="unknown plan"):
+        tools.write_draft("wet-paint", "missing-plan", "reel", "hook", "spec", [], [], "rationale")
+    with pytest.raises(ValueError, match="unknown technique ids"):
+        tools.write_draft("wet-paint", plan, "reel", "hook", "spec", ["invented-technique"], [], "rationale")
+
+    assert db.rows(client_graph, "MATCH (d:Draft) RETURN count(d) AS count")[0]["count"] == before_drafts
+    assert db.rows(agency, "MATCH (f:Fingerprint) RETURN count(f) AS count")[0]["count"] == before_fingerprints
+
+
+def test_taste_profile_weights_are_clamped(seeded):
+    technique_ids = [item["id"] for item in tools.world()["techniques"][:2]]
+    tools.set_taste_profile(
+        "wet-paint",
+        {technique_ids[0]: -0.5, technique_ids[1]: 1.5},
+        [],
+        "test profile",
+        [],
+    )
+
+    weights = {item["id"]: item["weight"] for item in tools.taste_profile("wet-paint")["prefers"]}
+
+    assert weights[technique_ids[0]] == 0.0
+    assert weights[technique_ids[1]] == 1.0
+
+
+def test_cached_findings_keep_fetch_date_and_require_cached_result_urls(seeded, tmp_path, monkeypatch):
+    from redstring.agents import offline
+
+    monkeypatch.setattr(config, "RESEARCH_CACHE", tmp_path)
+    (tmp_path / "crux.json").write_text(json.dumps({
+        "fetched_at": "2026-10-16",
+        "search_result_urls": ["https://source.test/valid"],
+        "findings": [
+            {"kind": "audience", "text": "valid", "source_url": "https://source.test/valid"},
+            {"kind": "audience", "text": "invalid", "source_url": "https://source.test/unseen"},
+        ],
+    }))
+
+    result = offline.researcher("crux")
+
+    cached = [finding for finding in tools.findings("crux") if finding["kind"] == "audience"]
+    assert len(cached) == 1
+    assert cached[0]["source_url"] == "https://source.test/valid"
+    assert cached[0]["fetched_at"] == "2026-10-16"
+    assert result["goal"]
 
 
 @pytest.fixture(scope="module")

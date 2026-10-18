@@ -480,9 +480,15 @@ def researcher(client: str) -> dict:
     fids = []
     if path.exists():
         cache = json.loads(path.read_text())
+        fetched_at = cache.get("fetched_at") or cache.get("researched_at")
+        result_urls = set(cache.get("search_result_urls") or
+                          (finding.get("source_url") for finding in cache.get("findings", [])))
         for f in cache["findings"]:
+            if f.get("source_url") not in result_urls:
+                continue
             fids.append(tools.record_finding(client, f["kind"], f["text"], f["source_url"], "researcher",
-                                             f"From {f.get('source_title') or f['source_url']}")["finding"])
+                                             f"From {f.get('source_title') or f['source_url']}; cached {fetched_at}",
+                                             fetched_at=fetched_at)["finding"])
     else:
         aud = tools.audiences_of(client)
         audience_names = [a["audience"] for a in aud]

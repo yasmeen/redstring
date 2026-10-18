@@ -35,13 +35,20 @@ class Pipeline:
 
     # -------------------------------------------------------------- agent dispatch
 
-    def _agent(self, agent: str, task: str, offline_fn, *args, **kw):
+    def _agent(self, agent: str, task: str, offline_fn, *args, tool_results=None,
+               on_search_urls=None, **kw):
         if self.mode == "claude":
-            return self.claude.run_agent(agent, task, log=self.log, slug=args[0] if args else None)
+            return self.claude.run_agent(agent, task, log=self.log, slug=args[0] if args else None,
+                                         tool_results=tool_results, on_search_urls=on_search_urls)
         return offline_fn(*args, **kw)
 
-    def _latest_draft(self, client: str) -> dict:
-        return tools.drafts(client)[-1]
+    @staticmethod
+    def _tool_id(result: dict, name: str, key: str) -> str:
+        value = result.get(name, {})
+        item_id = value.get(key) if isinstance(value, dict) else None
+        if not item_id:
+            raise RuntimeError(f"{name} did not return a {key} id")
+        return item_id
 
     # -------------------------------------------------------------- steps
 
@@ -70,10 +77,12 @@ class Pipeline:
         return res
 
     def research(self, client: str) -> dict:
+        search_urls: set[str] = set()
+        tool_results: dict = {}
         r = self._agent("researcher", (
             f"Research the category and audience for {client} on the public web. Record 4 to 6 findings with record_finding, "
             f"each with the exact source URL you read. Then record a hypothesized goal with record_goal based on those findings."),
-            offline.researcher, client)
+            offline.researcher, client, tool_results=tool_results, on_search_urls=search_urls.update)
         tools.load_client_posts(client)
         top_post_ids = [
             p["id"] for p in sorted(tools.posts(client), key=lambda post: post["views"], reverse=True)
@@ -89,6 +98,8 @@ class Pipeline:
             fs = [f for f in tools.findings(client) if f["kind"] != "audit"]
             cache.parent.mkdir(exist_ok=True)
             cache.write_text(json.dumps({"business": client, "researched_at": tools.now()[:10],
+                                         "fetched_at": tools.now()[:10],
+                                         "search_result_urls": sorted(search_urls),
                                          "note": "Live research by the Researcher agent (web search).",
                                          "findings": [{k: f[k] for k in ("kind", "text", "source_url")} for f in fs]}, indent=1))
         _say(self.log, f"Researcher + Auditor filled client:{client}: {len(tools.findings(client))} findings, goal hypothesized")
@@ -100,14 +111,15 @@ class Pipeline:
         version, prev = 1, None
         while True:
             if self.mode == "claude":
+                tool_results: dict = {}
                 self.claude.run_agent("producer", (
                     f"Write {kind} post {slot} for {client} in plan {plan_id} with write_draft (kind {kind}). "
                     + (f"Use exactly these technique ids from the creative brief: {technique_ids}. " if version == 1 else
                        f"This revises draft {prev}: use exactly these technique ids from the new taste profile: {technique_ids}, "
                        f"and pass revision_of={prev}. ")
                     + "Pick 2 references with references_for, write the hook and a shot-by-shot spec in the client's voice."),
-                    log=self.log, slug=client)
-                draft = self._latest_draft(client)["id"]
+                    log=self.log, slug=client, tool_results=tool_results)
+                draft = self._tool_id(tool_results, "write_draft", "draft")
             else:
                 draft = offline.producer(client, plan_id, slot, technique_ids, kind, revision_of=prev, version=version)["draft"]
             check = self._agent("standards", f"Run check_draft on {client} draft {draft}.", offline.standards, client, draft)
@@ -139,11 +151,12 @@ class Pipeline:
             f"Set {client}'s first taste profile: read findings and style_of, pull open_territory for its home style, "
             f"and write set_taste_profile preferring the rarest open techniques. Base it on the audit findings."),
             offline.style_director, client)
+        plan_results: dict = {}
         plan = self._agent("strategist", (
             f"Write a plan for {client} with write_plan, period 'Spec work: 3 posts + 30-day plan', serving its hypothesized goal."),
-            offline.strategist, client, "Spec work: 3 posts + 30-day plan")
-        plan_id = plan["plan"] if isinstance(plan, dict) and "plan" in plan else tools.db.rows(
-            tools.db.client(client), "MATCH (p:Plan) RETURN p.id AS id ORDER BY p.at DESC LIMIT 1")[0]["id"]
+            offline.strategist, client, "Spec work: 3 posts + 30-day plan", tool_results=plan_results)
+        plan_id = plan.get("plan") if isinstance(plan, dict) else None
+        plan_id = plan_id or self._tool_id(plan_results, "write_plan", "plan")
         seeds = self.w["spec_seeds"].get(client, [])
         if seeds:
             technique_sets = [s["techniques"] for s in seeds]
@@ -156,18 +169,24 @@ class Pipeline:
         return {"plan": plan_id, "posts": posts}
 
     def pitch(self, client: str) -> dict:
+        tool_results: dict = {}
         p = self._agent("account_manager", (
             f"Assemble {client}'s pitch with write_pitch: show every spec draft that cleared Double Take, cite the audience, "
             f"channel and audit findings it rests on (check each with decision_trace), and serve its hypothesized goal. "
             f"Name the goal as our hypothesis in the angle."),
-            offline.account_manager, client)
+            offline.account_manager, client, tool_results=tool_results)
+        pid = p.get("pitch") if isinstance(p, dict) else None
+        pid = pid or self._tool_id(tool_results, "write_pitch", "pitch")
         tools.set_status(client, "pitched", "account_manager", "Pitch assembled; waiting on the board. Nothing is sent before approval.")
-        pid = tools.pitches(client)[-1]["id"]
         _say(self.log, f"Account Manager: pitch {pid} for {client} is waiting on the board")
         return {"pitch": pid}
 
-    def approve(self, client: str, note: str = "Approved. The hackathon build sends nothing.") -> dict:
-        pid = tools.pitches(client)[-1]["id"]
+    def approve(self, client: str, note: str = "Approved. The hackathon build sends nothing.",
+                pitch_id: str | None = None) -> dict:
+        pending = [pitch for pitch in tools.pitches(client) if pitch["status"] not in ("approved", "vetoed")]
+        pid = pitch_id or (pending[-1]["id"] if pending else None)
+        if not pid:
+            raise ValueError(f"no pending pitch for {client}")
         return tools.board_decide(client, "Pitch", pid, "approve", note, source="web_board")
 
     def sign(self, client: str) -> dict:
@@ -178,9 +197,11 @@ class Pipeline:
         """A signed client's monthly content run: the expected Cannonball collision lives here."""
         self._agent("style_director", f"Set {client}'s taste profile from open_territory for its home style.",
                     offline.style_director, client)
+        plan_results: dict = {}
         plan = self._agent("strategist", f"Write {client}'s November 2026 plan with write_plan, serving its active goal.",
-                           offline.strategist, client, "November 2026")
-        plan_id = tools.db.rows(tools.db.client(client), "MATCH (p:Plan) RETURN p.id AS id ORDER BY p.at DESC LIMIT 1")[0]["id"]
+                           offline.strategist, client, "November 2026", tool_results=plan_results)
+        plan_id = plan.get("plan") if isinstance(plan, dict) else None
+        plan_id = plan_id or self._tool_id(plan_results, "write_plan", "plan")
         seeds = self.w["draft_seeds"].get(client)
         if seeds:
             sets = [s["techniques"] for s in seeds]
@@ -209,7 +230,7 @@ class Pipeline:
             out[f"spec:{c}"] = self.spec_work(c)
         sign = self.w["demo"]["sign"]
         out["pitch"] = self.pitch(sign)
-        out["approve"] = self.approve(sign)
+        out["approve"] = self.approve(sign, pitch_id=out["pitch"]["pitch"])
         out["sign"] = self.sign(sign)
         out["cannonball"] = self.client_month("cannonball")
         out["pixel-pond"] = self.client_month("pixel-pond")
