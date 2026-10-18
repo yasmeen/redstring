@@ -1659,7 +1659,7 @@ const TOUR = [
     body: (a) => {
       const top = blockedDrafts(a)[0];
       if (!top) return "Before any draft ships, Standards compares its rare techniques with every business that reaches the same people. No drafts have been blocked in this run yet.";
-      return `The Producer wrote “${top.draft_hook || "a draft"}” for ${top.client}. Standards found it shares ${andList(top.techs)} with ${andList(top.flags.map((f) => f.with_business))}, which ${top.flags.length === 1 ? "reaches" : "reach"} the same people. Similarity × cosine audience overlap = risk ${n(top.worst.risk)}. The overlap normalizes the shared path weight by each business's own breadth; this is over the ${n(a.thresholds?.flag_risk)} cutoff, so the draft went back for a new idea before anyone saw it.`;
+      return `The Producer wrote “${top.draft_hook || "a draft"}” for ${top.client}. Standards found it shares ${andList(top.techs)} with ${andList(top.flags.map((f) => f.with_business))}, which ${top.flags.length === 1 ? "reaches" : "reach"} the same people. Similarity × audience overlap = risk ${n(top.worst.risk)}, over the ${n(a.thresholds?.flag_risk)} cutoff, so it went back for a new idea before anyone saw it. Overlap is 1.00 only when two businesses reach exactly the same people.`;
     },
   },
   {
