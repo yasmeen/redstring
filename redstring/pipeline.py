@@ -37,7 +37,7 @@ class Pipeline:
 
     def _agent(self, agent: str, task: str, offline_fn, *args, **kw):
         if self.mode == "claude":
-            return self.claude.run_agent(agent, task, log=self.log)
+            return self.claude.run_agent(agent, task, log=self.log, slug=args[0] if args else None)
         return offline_fn(*args, **kw)
 
     def _latest_draft(self, client: str) -> dict:
@@ -60,7 +60,8 @@ class Pipeline:
             self.claude.run_agent("scout", (
                 f"Screen these leads one by one with lead_conflict and record each verdict with record_screening: {', '.join(leads)}. "
                 f"Then pursue {', '.join(pursue)} (the agency has capacity for two pursuits this month), "
-                f"giving each pursuit's rationale from its screening."), log=self.log)
+                f"giving each pursuit's rationale from its screening."),
+                log=self.log, allowed_leads=set(leads), allowed_pursuits=set(pursue))
             res = [tools.screening_card(lead) | {"lead": lead} for lead in leads]
         else:
             res = offline.scout(leads, pursue)
@@ -105,7 +106,7 @@ class Pipeline:
                        f"This revises draft {prev}: use exactly these technique ids from the new taste profile: {technique_ids}, "
                        f"and pass revision_of={prev}. ")
                     + "Pick 2 references with references_for, write the hook and a shot-by-shot spec in the client's voice."),
-                    log=self.log)
+                    log=self.log, slug=client)
                 draft = self._latest_draft(client)["id"]
             else:
                 draft = offline.producer(client, plan_id, slot, technique_ids, kind, revision_of=prev, version=version)["draft"]
@@ -167,10 +168,11 @@ class Pipeline:
 
     def approve(self, client: str, note: str = "Approved. The hackathon build sends nothing.") -> dict:
         pid = tools.pitches(client)[-1]["id"]
-        return tools.board_decide(client, "Pitch", pid, "approve", note)
+        return tools.board_decide(client, "Pitch", pid, "approve", note, source="web_board")
 
     def sign(self, client: str) -> dict:
-        return tools.set_status(client, "signed", "board", "Signed. Same graph, now a client; history intact.")
+        return tools.set_status(client, "signed", "board", "Signed. Same graph, now a client; history intact.",
+                                source="web_board")
 
     def client_month(self, client: str) -> dict:
         """A signed client's monthly content run: the expected Cannonball collision lives here."""
@@ -189,7 +191,10 @@ class Pipeline:
 
     def retire_goal(self, client: str) -> dict:
         goal = next(g for g in tools.goals(client) if g["status"] == "active")
-        res = tools.retire_goal(client, goal["id"], "board", "The spring session moved; this goal no longer holds.")
+        res = tools.retire_goal(
+            client, goal["id"], "board", "The spring session moved; this goal no longer holds.",
+            source="web_board",
+        )
         _say(self.log, f"Board retired \"{goal['text']}\"; {len(res['stale_drafts'])} drafts now stale (Q5)")
         return res
 

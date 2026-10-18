@@ -619,7 +619,10 @@ def board(slug: str, label: str, target_id: str, body: BoardIn):
     _writable()
     if label not in ("Pitch", "Draft"):
         raise HTTPException(400, label)
-    return tools.board_decide(_client_or_404(slug), label, target_id, body.verdict, body.note or f"Board {body.verdict}.")
+    return tools.board_decide(
+        _client_or_404(slug), label, target_id, body.verdict,
+        body.note or f"Board {body.verdict}.", source="web_board",
+    )
 
 
 @app.post("/api/lead/{slug}/decide")
@@ -631,14 +634,16 @@ def decide_lead(slug: str, body: LeadDecisionIn):
     if business.get("status") != "lead" or business.get("verdict") != "borderline":
         raise HTTPException(400, "only borderline leads can be decided by the board")
     if body.verdict == "pursue":
-        return tools.pursue(slug, agent="board", rationale=body.note or "Board: pursue.")
-    return tools.set_status(slug, "passed", "board", body.note or "Board: pass.")
+        return tools.pursue(slug, agent="board", rationale=body.note or "Board: pursue.", source="web_board")
+    return tools.set_status(slug, "passed", "board", body.note or "Board: pass.", source="web_board")
 
 
 @app.post("/api/retire/{slug}/{goal_id}")
 def retire(slug: str, goal_id: str):
     _writable()
-    return tools.retire_goal(_client_or_404(slug), goal_id, "board", "Retired from the board view.")
+    return tools.retire_goal(
+        _client_or_404(slug), goal_id, "board", "Retired from the board view.", source="web_board",
+    )
 
 
 # ------------------------------------------------------------------ try it: outsider inputs

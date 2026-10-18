@@ -17,7 +17,7 @@ from . import config, db, queries, seed
 AGENT_NAMES = {
     "scout": "Scout", "researcher": "Researcher", "auditor": "Auditor", "style_director": "Style Director",
     "strategist": "Strategist", "producer": "Producer", "standards": "Standards",
-    "account_manager": "Account Manager", "board": "Yaz",
+    "account_manager": "Account Manager", "board": "Yaz", "mcp": "MCP",
 }
 
 
@@ -86,14 +86,14 @@ def business(slug: str) -> dict:
 # ------------------------------------------------------------------ decisions
 
 def _decide(g, agent: str, text: str, rationale: str, affects: list[tuple[str, str]],
-            based_on: list[tuple[str, str]] = ()) -> str:
+            based_on: list[tuple[str, str]] = (), source: str | None = None) -> str:
     """Write a Decision, DECIDED_BY the agent, AFFECTS each (label, id), BASED_ON each (label, id)."""
     did = _id("dec")
     db.run(g, """MERGE (a:Agent {id: $agent}) ON CREATE SET a.name = $name
-                 CREATE (d:Decision {id: $id, text: $text, rationale: $rationale, at: $at, day: $day})
+                 CREATE (d:Decision {id: $id, text: $text, rationale: $rationale, at: $at, day: $day, source: $source})
                  -[:DECIDED_BY]->(a)""",
            {"agent": agent, "name": AGENT_NAMES.get(agent, agent), "id": did, "text": text,
-            "rationale": rationale, "at": now(), "day": sim_day()})
+            "rationale": rationale, "at": now(), "day": sim_day(), "source": source})
     for label, nid in affects:
         db.run(g, f"MATCH (d:Decision {{id: $d}}), (n:{label} {{id: $n}}) CREATE (d)-[:AFFECTS]->(n)", {"d": did, "n": nid})
     for label, nid in based_on:
@@ -219,25 +219,26 @@ def screening_card(lead: str) -> dict:
 
 # ------------------------------------------------------------------ lifecycle
 
-def set_status(slug: str, status: str, agent: str, rationale: str) -> dict:
+def set_status(slug: str, status: str, agent: str, rationale: str, source: str | None = None) -> dict:
     g = db.agency()
     extra = ", b.passed_at = $at" if status == "passed" else ""
     db.run(g, f"MATCH (b:Business {{id: $id}}) SET b.status = $status{extra}", {"id": slug, "status": status, "at": now()})
     if status in ("pursued", "pitched", "signed"):
         db.run(g, """MATCH (a:Agent {id: 'account_manager'}), (b:Business {id: $id})
                      MERGE (a)-[o:OWNS]->(b) ON CREATE SET o.since = $at""", {"id": slug, "at": now()})
-    did = _decide(g, agent, f"{slug} is now {status}", rationale, [("Business", slug)])
+    did = _decide(g, agent, f"{slug} is now {status}", rationale, [("Business", slug)], source=source)
     if config.client_graph_name(slug) in db.list_graphs():
         cg = db.client(slug)
-        _decide(cg, agent, f"Status: {status}", rationale, [("Business", slug)])
+        _decide(cg, agent, f"Status: {status}", rationale, [("Business", slug)], source=source)
     return {"business": slug, "status": status, "decision": did}
 
 
-def pursue(slug: str, agent: str = "scout", rationale: str = "") -> dict:
+def pursue(slug: str, agent: str = "scout", rationale: str = "", source: str | None = None) -> dict:
     """Create the prospect's private graph and move it to pursued. Signing later changes a status, not a graph."""
+    seed.validate_business_slug(world(), slug)
     if config.client_graph_name(slug) not in db.list_graphs():
         seed.create_client_graph(world(), slug, include_posts=False)
-    return set_status(slug, "pursued", agent, rationale or "Screened and chosen for pursuit.")
+    return set_status(slug, "pursued", agent, rationale or "Screened and chosen for pursuit.", source=source)
 
 
 # ------------------------------------------------------------------ Researcher
@@ -263,10 +264,11 @@ def record_goal(client: str, text: str, metric: str, target: float, due: str, st
     return {"goal": gid}
 
 
-def retire_goal(client: str, goal_id: str, agent: str = "board", rationale: str = "") -> dict:
+def retire_goal(client: str, goal_id: str, agent: str = "board", rationale: str = "",
+                source: str | None = None) -> dict:
     g = db.client(client)
     db.run(g, "MATCH (g:Goal {id: $id}) SET g.status = 'retired', g.retired_at = $at", {"id": goal_id, "at": now()})
-    _decide(g, agent, "Retired goal", rationale or "Goal changed.", [("Goal", goal_id)])
+    _decide(g, agent, "Retired goal", rationale or "Goal changed.", [("Goal", goal_id)], source=source)
     return {"goal": goal_id, "stale_drafts": stale_drafts(client)}
 
 
@@ -590,7 +592,8 @@ def write_pitch(client: str, angle: str, draft_ids: list[str], finding_ids: list
     return {"pitch": pid}
 
 
-def board_decide(client: str, target_label: str, target_id: str, verdict: str, note: str) -> dict:
+def board_decide(client: str, target_label: str, target_id: str, verdict: str, note: str,
+                 source: str | None = None) -> dict:
     """The board (Yaz). An approve or veto becomes a Decision DECIDED_BY Yaz; agents treat it as a rule."""
     assert verdict in ("approve", "veto")
     g = db.client(client)
@@ -600,12 +603,14 @@ def board_decide(client: str, target_label: str, target_id: str, verdict: str, n
         db.run(g, "MATCH (d:Draft {id: $id}) SET d.status = $s", {"id": target_id, "s": "approved" if verdict == "approve" else "vetoed"})
         if verdict == "veto":
             db.run(db.agency(), queries.RETIRE_FINGERPRINT, {"id": target_id, "now": now()})
-    did = _decide(g, "board", f"Board {verdict}: {target_label}", note, [(target_label, target_id)])
+    did = _decide(g, "board", f"Board {verdict}: {target_label}", note, [(target_label, target_id)],
+                  source=source)
     return {"decision": did, "verdict": verdict}
 
 
 def board_rules(client: str) -> list[dict]:
     return db.rows(db.client(client), """MATCH (d:Decision)-[:DECIDED_BY]->(:Agent {id: 'board'})
+                                         WHERE d.source = 'web_board'
                                          RETURN d.text AS text, d.rationale AS note, d.at AS at ORDER BY d.at""")
 
 
