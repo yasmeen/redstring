@@ -8,6 +8,8 @@ from __future__ import annotations
 import json
 import uuid
 from collections import defaultdict
+from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import date, datetime, timedelta, timezone
 
 from . import config, db, queries, seed
@@ -29,6 +31,7 @@ def _id(prefix: str) -> str:
 
 _world_cache: dict | None = None
 _sim_day_cache: int | None = None
+_sim_day_override: ContextVar[int | None] = ContextVar("redstring_sim_day_override", default=None)
 
 
 def world() -> dict:
@@ -39,11 +42,23 @@ def world() -> dict:
 
 
 def sim_day() -> int:
+    override = _sim_day_override.get()
+    if override is not None:
+        return override
     global _sim_day_cache
     if _sim_day_cache is None:
         rows = db.rows(db.agency(), "MATCH (c:Clock {id: 'studio'}) RETURN c.day AS day")
         _sim_day_cache = int(rows[0]["day"]) if rows else 0
     return _sim_day_cache
+
+
+@contextmanager
+def sim_day_at(day: int):
+    token = _sim_day_override.set(day)
+    try:
+        yield
+    finally:
+        _sim_day_override.reset(token)
 
 
 def set_sim_day(day: int) -> int:
