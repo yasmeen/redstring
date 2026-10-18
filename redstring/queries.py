@@ -102,6 +102,7 @@ MATCH (d)-[:USES]->(t:Technique)<-[:USES]-(of:Fingerprint)-[:OF]->(other)
 WHERE t.rarity >= $rare AND of.active
 WITH d, other, collect(DISTINCT t) AS shared
 MATCH (d)-[:USES]->(mine:Technique)
+WHERE mine.rarity >= $rare
 WITH other, shared, sum(mine.rarity) AS total
 RETURN other.id AS business_id, other.name AS business, other.status AS status,
        [t IN shared | t.id] AS shared_ids, [t IN shared | t.name] AS shared_rare,

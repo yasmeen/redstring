@@ -73,7 +73,7 @@ Each one is a named tool (`redstring/registry.py`), served over MCP, so agents n
 1. P1 takes `kind` as a parameter and sets `active = true`. A revision or a Double Take block retires the old fingerprint, so a draft that never ships stops counting against anyone.
 2. Q0 clears stale `SIGNATURE` edges first, and counts only active fingerprints.
 3. Q1 stores `OVERLAPS` once per pair and matches it undirected. The same-category, same-neighborhood decline rule is its own small query. Verdicts sum conflict per signed client: at least 0.9 means pursue only with differentiated territory, at least 0.5 means borderline, and anything lower means pursue. On the seed this reproduces every verdict in the spec's lead table.
-4. Q2 counts only active fingerprints, and passed prospects count until their cooldown ends. Risk = similarity × audience overlap. Overlap uses Q1's paths between the two businesses, clamped to 1. A draft is flagged at risk 0.35 or more.
+4. Q2 counts only active fingerprints, and passed prospects count until their cooldown ends. Similarity is shared rare-technique rarity divided by the draft's total rare-technique rarity, so common moves do not dilute it. Risk = similarity × audience overlap. Overlap uses Q1's paths between the two businesses, clamped to 1. A draft is flagged at risk 0.35 or more.
 5. Q3 treats open pursuits as claimants too, so two pitches don't converge. It also takes `$avoid` (the flagged techniques) and requires at least one reference as evidence.
 6. Q4 also labels Draft, Audit and CollisionFlag sources.
 
@@ -126,6 +126,7 @@ MATCH (d)-[:USES]->(t:Technique)<-[:USES]-(of:Fingerprint)-[:OF]->(other)
 WHERE t.rarity >= $rare AND of.active
 WITH d, other, collect(DISTINCT t) AS shared
 MATCH (d)-[:USES]->(mine:Technique)
+WHERE mine.rarity >= $rare
 WITH other, shared, sum(mine.rarity) AS total
 RETURN other.id AS business_id, other.name AS business, other.status AS status,
        [t IN shared | t.id] AS shared_ids, [t IN shared | t.name] AS shared_rare,

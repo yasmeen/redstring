@@ -86,7 +86,7 @@ TOOLS: list[Tool] = [
          {}, [], ["standards"], "Q0"),
     Tool("lead_conflict", tools.lead_conflict, "Q1. Audience conflict between a lead and each signed client, including multi-hop paths through overlapping audiences, plus the same-category same-neighborhood rule. Returns a suggested verdict.",
          {"lead": CLIENT}, ["lead"], ["scout"], "Q1"),
-    Tool("double_take", tools.double_take, "Q2, read only. Compare a draft's fingerprint with every business on a shared audience. Similarity counts only rare techniques, weighted by rarity; risk = similarity x audience overlap; flag at risk >= 0.35.",
+    Tool("double_take", tools.double_take, "Q2, read only. Compare a draft's fingerprint with every business on a shared audience. Similarity is shared rare-technique rarity divided by the draft's total rare-technique rarity; common moves do not dilute it. Risk = similarity x audience overlap; flag at risk >= 0.35.",
          {"client": CLIENT, "draft_id": S}, ["client", "draft_id"], ["standards", "style_director"], "Q2"),
     Tool("open_territory", tools.open_territory, "Q3. Techniques in a style that no business on an overlapping audience has claimed as a signature, rarest first. Pass the flagged techniques as avoid.",
          {"client": CLIENT, "style": {"type": "string", "description": "Style name, for example Hype Montage"}, "avoid": SL},
