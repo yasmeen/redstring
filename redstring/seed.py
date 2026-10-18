@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 
 from . import config, db, queries
 
@@ -39,6 +40,12 @@ def find_business(world: dict, slug: str) -> dict:
         if business["id"] == slug:
             return business
     raise ValueError(f"unknown business {slug}")
+
+
+def validate_business_slug(world: dict, slug: str) -> dict:
+    if not isinstance(slug, str) or not re.fullmatch(r"[a-z0-9-]+", slug):
+        raise ValueError(f"invalid business slug {slug!r}")
+    return find_business(world, slug)
 
 
 def _indexes(g, stmts):
@@ -102,10 +109,10 @@ def seed_agency(world: dict) -> None:
 
 def create_client_graph(world: dict, slug: str, include_posts: bool = True) -> None:
     """A business's private graph. Created at pursuit (or at seed for signed clients) and kept through signing."""
+    b = validate_business_slug(world, slug)
     db.drop(config.client_graph_name(slug))
     g = db.client(slug)
     _indexes(g, CLIENT_INDEXES)
-    b = find_business(world, slug)
     db.run(g, "MERGE (:Business {id: $id, name: $name, category: $category})", b)
     if include_posts:
         load_posts(world, slug)

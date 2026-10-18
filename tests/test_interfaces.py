@@ -5,6 +5,7 @@ import threading
 import time
 from types import SimpleNamespace
 
+import pytest
 from fastapi.testclient import TestClient
 
 from redstring import db, queries, registry, seed, tools
@@ -37,8 +38,194 @@ def test_mcp_server_lists_and_calls_tools():
         return listed, out
 
     listed, out = asyncio.run(go())
-    assert len(listed) == len(registry.TOOLS)
+    assert len(listed) == len([tool for tool in registry.TOOLS if not tool.writable])
     assert '"verdict": "decline"' in str(out)
+
+
+def test_mcp_writes_are_opt_in_and_identity_is_server_set():
+    from redstring.mcp_server import build_server, server
+    tools._world_cache = None
+    seed.seed_all()
+
+    async def go():
+        read_only = {tool.name for tool in await server.list_tools()}
+        writable_server = build_server(allow_writes=True)
+        all_tools = {tool.name for tool in await writable_server.list_tools()}
+        result = await writable_server.call_tool("record_finding", {
+            "client": "wet-paint",
+            "kind": "audience",
+            "text": "Audience note.",
+            "source_url": "https://example.test/audience",
+            "rationale": "Recorded from MCP.",
+            "agent": "board",
+        })
+        return read_only, all_tools, result
+
+    read_only, all_tools, _ = asyncio.run(go())
+    assert "record_finding" not in read_only
+    assert "record_finding" in all_tools
+    rows = db.rows(db.client("wet-paint"), """MATCH (d:Decision)-[:DECIDED_BY]->(a:Agent)
+                                             RETURN a.id AS agent ORDER BY d.at DESC LIMIT 1""")
+    assert rows[0]["agent"] == "mcp"
+
+
+def test_claude_rejects_tool_outside_agent_slice(monkeypatch):
+    from redstring.agents import claude
+
+    class Messages:
+        def __init__(self):
+            self.calls = []
+
+        def create(self, **kwargs):
+            self.calls.append(kwargs)
+            if len(self.calls) == 1:
+                return SimpleNamespace(stop_reason="tool_use", content=[
+                    SimpleNamespace(type="tool_use", id="t1", name="record_finding", input={
+                        "client": "crux", "kind": "audience", "text": "Nope.",
+                        "source_url": "https://example.test/nope",
+                    })])
+            if len(self.calls) == 2:
+                result = self.calls[-1]["messages"][-1]["content"][0]
+                assert result["is_error"] is True
+                assert "not your tool" in result["content"]
+                return SimpleNamespace(stop_reason="end_turn", content=[
+                    SimpleNamespace(type="text", text="Rejected.")])
+            raise AssertionError("unexpected extra model call")
+
+    tools._world_cache = None
+    seed.seed_all()
+    fake = Messages()
+    monkeypatch.setattr(claude, "_client", SimpleNamespace(beta=SimpleNamespace(messages=fake)))
+    assert claude.run_agent("scout", "Screen crux.", log=None) == "Rejected."
+
+
+def test_single_client_run_rejects_mismatched_client_before_recording(monkeypatch):
+    from redstring.agents import claude
+
+    class Messages:
+        def __init__(self):
+            self.calls = []
+
+        def create(self, **kwargs):
+            self.calls.append(kwargs)
+            if len(self.calls) == 1:
+                return SimpleNamespace(stop_reason="tool_use", content=[
+                    SimpleNamespace(type="tool_use", id="t1", name="record_finding", input={
+                        "client": "wet-paint", "kind": "audience", "text": "Wrong client.",
+                        "source_url": "https://example.test/wrong",
+                    })])
+            result = self.calls[-1]["messages"][-1]["content"][0]
+            assert result["is_error"] is True
+            assert "client is pinned to crux" in result["content"]
+            return SimpleNamespace(stop_reason="end_turn", content=[
+                SimpleNamespace(type="text", text="Rejected.")])
+
+    tools._world_cache = None
+    seed.seed_all()
+    before = len(tools.findings("wet-paint"))
+    fake = Messages()
+    monkeypatch.setattr(claude, "_client", SimpleNamespace(beta=SimpleNamespace(messages=fake)))
+    assert claude.run_agent("researcher", "Research crux.", log=None, slug="crux") == "Rejected."
+    assert len(tools.findings("wet-paint")) == before
+
+
+def test_single_client_run_rejects_mismatched_slug(monkeypatch):
+    from redstring.agents import claude
+
+    class Messages:
+        def __init__(self):
+            self.calls = []
+
+        def create(self, **kwargs):
+            self.calls.append(kwargs)
+            if len(self.calls) == 1:
+                return SimpleNamespace(stop_reason="tool_use", content=[
+                    SimpleNamespace(type="tool_use", id="t1", name="signatures", input={
+                        "slug": "wet-paint",
+                    })])
+            result = self.calls[-1]["messages"][-1]["content"][0]
+            assert result["is_error"] is True
+            assert "slug is pinned to crux" in result["content"]
+            return SimpleNamespace(stop_reason="end_turn", content=[
+                SimpleNamespace(type="text", text="Rejected.")])
+
+    tools._world_cache = None
+    seed.seed_all()
+    fake = Messages()
+    monkeypatch.setattr(claude, "_client", SimpleNamespace(beta=SimpleNamespace(messages=fake)))
+    assert claude.run_agent("style_director", "Read signatures for crux.", log=None, slug="crux") == "Rejected."
+
+
+def test_scout_rejects_lead_and_pursuit_outside_allowed_set(monkeypatch):
+    from redstring.agents import claude
+
+    class Messages:
+        def __init__(self):
+            self.calls = []
+
+        def create(self, **kwargs):
+            self.calls.append(kwargs)
+            if len(self.calls) == 1:
+                return SimpleNamespace(stop_reason="tool_use", content=[
+                    SimpleNamespace(type="tool_use", id="t1", name="record_screening", input={
+                        "lead": "page-turn", "verdict": "pursue", "reason": "Wrong lead",
+                    })])
+            if len(self.calls) == 2:
+                result = self.calls[-1]["messages"][-1]["content"][0]
+                assert result["is_error"] is True
+                assert "allowed leads" in result["content"]
+                return SimpleNamespace(stop_reason="tool_use", content=[
+                    SimpleNamespace(type="tool_use", id="t2", name="pursue", input={
+                        "slug": "page-turn", "rationale": "Wrong pursuit",
+                    })])
+            result = self.calls[-1]["messages"][-1]["content"][0]
+            assert result["is_error"] is True
+            assert "allowed leads" in result["content"]
+            return SimpleNamespace(stop_reason="end_turn", content=[
+                SimpleNamespace(type="text", text="Rejected.")])
+
+    tools._world_cache = None
+    seed.seed_all()
+    fake = Messages()
+    monkeypatch.setattr(claude, "_client", SimpleNamespace(beta=SimpleNamespace(messages=fake)))
+    assert claude.run_agent("scout", "Screen crux.", log=None, allowed_leads={"crux"}) == "Rejected."
+    assert tools.screening_card("page-turn") == {}
+
+
+def test_invalid_business_slug_is_rejected_before_graph_operations():
+    tools._world_cache = None
+    world = seed.load_world()
+    seed.seed_all(world)
+    before = set(db.list_graphs())
+    with pytest.raises(ValueError, match="invalid business slug"):
+        seed.create_client_graph(world, "Not A Slug", include_posts=False)
+    assert set(db.list_graphs()) == before
+
+
+def test_board_rules_are_web_decisions_in_quoted_user_data(monkeypatch):
+    from redstring.agents import claude
+
+    tools._world_cache = None
+    seed.seed_all()
+    tools.board_decide("wet-paint", "Draft", "internal", "approve", "Internal decision.")
+    tools.board_decide("wet-paint", "Draft", "web", "approve", "Web board decision.", source="web_board")
+
+    class Messages:
+        def __init__(self):
+            self.calls = []
+
+        def create(self, **kwargs):
+            self.calls.append(kwargs)
+            return SimpleNamespace(stop_reason="end_turn", content=[
+                SimpleNamespace(type="text", text="Done.")])
+
+    fake = Messages()
+    monkeypatch.setattr(claude, "_client", SimpleNamespace(beta=SimpleNamespace(messages=fake)))
+    assert claude.run_agent("researcher", "Research wet-paint.", log=None, slug="wet-paint") == "Done."
+    request = fake.calls[0]
+    assert "Web board decision." in request["messages"][0]["content"]
+    assert "Internal decision." not in request["messages"][0]["content"]
+    assert "Web board decision." not in request["system"]
 
 
 def test_web_try_inputs(monkeypatch):

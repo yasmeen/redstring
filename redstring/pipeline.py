@@ -37,7 +37,7 @@ class Pipeline:
 
     def _agent(self, agent: str, task: str, offline_fn, *args, **kw):
         if self.mode == "claude":
-            return self.claude.run_agent(agent, task, log=self.log)
+            return self.claude.run_agent(agent, task, log=self.log, slug=args[0] if args else None)
         return offline_fn(*args, **kw)
 
     def _latest_draft(self, client: str) -> dict:
@@ -60,7 +60,8 @@ class Pipeline:
             self.claude.run_agent("scout", (
                 f"Screen these leads one by one with lead_conflict and record each verdict with record_screening: {', '.join(leads)}. "
                 f"Then pursue {', '.join(pursue)} (the agency has capacity for two pursuits this month), "
-                f"giving each pursuit's rationale from its screening."), log=self.log)
+                f"giving each pursuit's rationale from its screening."),
+                log=self.log, allowed_leads=set(leads))
             res = [tools.screening_card(lead) | {"lead": lead} for lead in leads]
         else:
             res = offline.scout(leads, pursue)
@@ -105,7 +106,7 @@ class Pipeline:
                        f"This revises draft {prev}: use exactly these technique ids from the new taste profile: {technique_ids}, "
                        f"and pass revision_of={prev}. ")
                     + "Pick 2 references with references_for, write the hook and a shot-by-shot spec in the client's voice."),
-                    log=self.log)
+                    log=self.log, slug=client)
                 draft = self._latest_draft(client)["id"]
             else:
                 draft = offline.producer(client, plan_id, slot, technique_ids, kind, revision_of=prev, version=version)["draft"]
