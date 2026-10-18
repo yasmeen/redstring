@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
 
-from redstring import db, registry, seed, tools
+from redstring import db, queries, registry, seed, tools
 
 
 def test_every_spec_query_is_a_named_tool():
@@ -90,6 +90,17 @@ def test_web_try_lead_readonly_saves_nothing(monkeypatch):
         )
 
     before = counts()
+    original_rows = db.rows
+    observed_business_counts = []
+
+    def observe_rows(graph, query, params=None):
+        if query in (queries.Q1_LEAD_CONFLICT, queries.Q1_LEAD_CONFLICT_PREVIEW):
+            observed_business_counts.append(
+                original_rows(db.agency(), "MATCH (b:Business) RETURN count(b) AS count")[0]["count"]
+            )
+        return original_rows(graph, query, params)
+
+    monkeypatch.setattr(db, "rows", observe_rows)
     r = c.post("/api/try/lead", json={"name": "Sprout Dance", "category": "Kids dance", "targets": {"A1": 1},
                                      "neighborhood": "n_flatiron"}).json()
     assert r["verdict"] == "pursue_differentiated"
@@ -98,6 +109,7 @@ def test_web_try_lead_readonly_saves_nothing(monkeypatch):
                                      "targets": {"A1": 0.6}, "neighborhood": "n_gramercy"}).json()
     assert r["verdict"] == "decline"
     assert r["saved"] is False
+    assert observed_business_counts == [before[0], before[0]]
     assert counts() == before
 
 

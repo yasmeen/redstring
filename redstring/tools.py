@@ -146,11 +146,7 @@ def reference_total() -> int:
 
 # ------------------------------------------------------------------ Q1: Scout
 
-def lead_conflict(lead: str) -> dict:
-    """Q1 plus the same-category, same-neighborhood rule. Returns per-client conflict and the audience paths."""
-    g = db.agency()
-    paths = db.rows(g, queries.Q1_LEAD_CONFLICT, {"lead": lead})
-    competitors = db.rows(g, queries.Q1_SAME_AREA_COMPETITOR, {"lead": lead})
+def _lead_conflict_result(lead: str, paths: list[dict], competitors: list[dict]) -> dict:
     per = defaultdict(lambda: {"conflict": 0.0, "same_category": False, "paths": []})
     for p in paths:
         c = per[p["client"]]
@@ -172,6 +168,23 @@ def lead_conflict(lead: str) -> dict:
         verdict, reason = "pursue", "Little or no audience overlap with signed clients." if not clients else f"Light overlap (max {top:.2f}); clear to pitch."
     return {"lead": lead, "verdict": verdict, "reason": reason, "max_conflict": round(top, 3),
             "competitors": competitors, "clients": clients}
+
+
+def lead_conflict(lead: str) -> dict:
+    """Q1 plus the same-category, same-neighborhood rule. Returns per-client conflict and the audience paths."""
+    g = db.agency()
+    paths = db.rows(g, queries.Q1_LEAD_CONFLICT, {"lead": lead})
+    competitors = db.rows(g, queries.Q1_SAME_AREA_COMPETITOR, {"lead": lead})
+    return _lead_conflict_result(lead, paths, competitors)
+
+
+def lead_conflict_preview(lead: str, category: str, neighborhood: str, targets: dict[str, float]) -> dict:
+    g = db.agency()
+    audiences = [{"id": audience, "weight": weight} for audience, weight in targets.items()]
+    paths = db.rows(g, queries.Q1_LEAD_CONFLICT_PREVIEW, {"audiences": audiences, "category": category})
+    competitors = db.rows(g, queries.Q1_SAME_AREA_COMPETITOR_PREVIEW,
+                          {"category": category, "neighborhood": neighborhood})
+    return _lead_conflict_result(lead, paths, competitors)
 
 
 def record_screening(lead: str, verdict: str, reason: str, paths: list | None = None, agent: str = "scout") -> dict:
