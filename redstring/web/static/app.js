@@ -270,13 +270,9 @@ function dismissIntro() {
   try { localStorage.setItem(introKey, "1"); } catch (_) { /* private mode */ }
 }
 
-let introSeen = false;
-try { introSeen = localStorage.getItem(introKey) === "1"; } catch (_) { /* private mode */ }
 const introPhone = window.matchMedia("(max-width: 599px)");
 function syncIntroDefault() {
-  let dismissed = introSeen;
-  try { dismissed = localStorage.getItem(introKey) === "1"; } catch (_) { /* private mode */ }
-  setIntroVisible(!dismissed && !introPhone.matches);
+  setIntroVisible(false);
   introButton.textContent = introPhone.matches ? "New here? See how it works" : "New here? How it works";
 }
 syncIntroDefault();
@@ -453,7 +449,7 @@ function needsEntries(o) {
       actions: ro ? `<span class="focus-wait">Waiting on the board</span><button type="button" class="btn ghost big" data-pick="${esc(i.business_id)}">See the screening</button>`
         : `<button type="button" class="btn primary big" data-lead-decision="pursue" data-slug="${esc(i.business_id)}">Pursue lead</button><button type="button" class="btn ghost big" data-lead-decision="pass" data-slug="${esc(i.business_id)}">Pass</button>`,
       more: ro ? "" : `<button type="button" class="text-button" data-pick="${esc(i.business_id)}">See the screening first →</button>`,
-      row: `<button type="button" class="focus-row" data-pick="${esc(i.business_id)}"><span class="label">ROW_NUM — New lead</span><span class="focus-row-text">Pursue ${bizName(b, { link: false })}?<small>Partial overlap with a signed client · board call</small></span>${cta("Review")}</button>`,
+      row: `<button type="button" class="focus-row" data-pick="${esc(i.business_id)}"><span class="label">ROW_NUM — New lead</span><span class="focus-row-text"><span class="focus-row-title">Pursue ${bizName(b, { link: false })}?</span><small>Partial overlap with a signed client · board call</small></span>${cta("Review")}</button>`,
     });
   });
   items.filter((i) => i.type === "pitch").forEach((i) => {
@@ -464,7 +460,7 @@ function needsEntries(o) {
       q: "Approve this pitch?",
       what: "Account Manager assembled it from spec posts that cleared Double Take. Nothing is sent until you approve.",
       actions: `<button type="button" class="btn primary big" ${attrs}>Review and decide</button>`,
-      row: `<button type="button" class="focus-row" ${attrs}><span class="label">ROW_NUM — Pitch</span><span class="focus-row-text">Approve ${bizName(b, { link: false })}'s pitch<small>Assembled from spec posts that cleared Double Take</small></span>${cta("Review")}</button>`,
+      row: `<button type="button" class="focus-row" ${attrs}><span class="label">ROW_NUM — Pitch</span><span class="focus-row-text"><span class="focus-row-title">Approve ${bizName(b, { link: false })}'s pitch</span><small>Assembled from spec posts that cleared Double Take</small></span>${cta("Review")}</button>`,
     });
   });
   const posts = items.filter((i) => i.type === "approve_posts");
@@ -693,9 +689,10 @@ function renderDoubleTakeGraph() {
   const shared = flag?.shared || [];
   const sharedKey = shared.map((technique) => technique.id).sort().join("|");
   const sameTechFlags = detail.flags.filter((item) => item.shared.map((technique) => technique.id).sort().join("|") === sharedKey);
-  const targets = sameTechFlags.length ? sameTechFlags : (flag ? [flag] : []);
+  const matches = sameTechFlags.length ? sameTechFlags : (flag ? [flag] : []);
+  const targets = flag ? [flag, ...matches.filter((item) => item.business.id !== flag.business.id)] : matches;
   const graphTechniques = v2 ? draft.techniques : draft.techniques.filter((technique) => shared.some((item) => item.id === technique.id));
-  const audienceRows = [...new Map((flag?.audiences || []).map((audience) => [`${audience.id}:${(audience.path || []).join("/")}`, audience])).values()];
+  const audienceRows = [...new Map((flag?.audiences || []).map((audience) => [audience.id, audience])).values()];
   const nodes = [];
   const add = (node) => { node.index = nodes.length; nodes.push(node); return node.index; };
   const draftIndex = add({ id: "draft", type: "draft", label: `Draft · v${draft.version}`, name: detail.business.name, hook: draft.hook, data: draft });
@@ -718,7 +715,7 @@ function renderDoubleTakeGraph() {
     data: { audience, flag },
   }));
   state.doubleTake.nodes = nodes;
-  if (!nodes.some((node) => node.id === state.doubleTake.node?.id)) state.doubleTake.node = nodes.find((node) => node.id === "business-0") || nodes[0];
+  state.doubleTake.node = nodes.find((node) => node.id === state.doubleTake.node?.id) || nodes.find((node) => node.id === "business-0") || nodes[0];
   $("#dt-version-toggle").innerHTML = `<div class="segmented-control">${[
     { version: 1, label: "Draft v1 · blocked" },
     ...(detail.revision ? [{ version: 2, label: "Draft v2 · cleared" }] : []),
@@ -726,20 +723,14 @@ function renderDoubleTakeGraph() {
   $("#dt-graph-box").dataset.version = v2 ? "2" : "1";
   $("#dt-graph-box").innerHTML = `<div class="dt-canvas">
     <svg class="dt-edge-svg" aria-hidden="true"></svg>
-    <p class="label">WHAT THE DRAFT REUSES</p>
-    <div class="dt-band dt-band-top">
-      <div class="dt-slot dt-slot-draft">${dtNodeMarkup(nodes[draftIndex], draftIndex)}</div><span class="dt-edge-word">USES</span>
-      <div class="dt-slot dt-slot-tech">${techIndices.map((index) => dtNodeMarkup(nodes[index], index)).join("") || `<span class="muted">No techniques listed</span>`}</div><span class="dt-edge-word">EVIDENCE</span>
-      <div class="dt-slot dt-slot-proof">${dtNodeMarkup(nodes[fingerprintIndex], fingerprintIndex)}</div><span class="dt-edge-word">${v2 ? "" : "FLAGGED"}</span>
-      <div class="dt-slot dt-slot-target">${businessIndices.map((index) => dtNodeMarkup(nodes[index], index)).join("")}</div>
-    </div>
-    <p class="label">WHO WILL SEE IT</p>
-    <div class="dt-band dt-band-bottom">
-      <div class="dt-slot dt-slot-own">${dtNodeMarkup(nodes[ownIndex], ownIndex)}</div><span class="dt-edge-word">TARGETS</span>
-      <div class="dt-slot dt-slot-audiences">${audienceIndices.map((index) => dtNodeMarkup(nodes[index], index)).join("") || `<span class="muted">No shared audiences returned</span>`}</div><span class="dt-edge-word">OVERLAP</span>
-      <div class="dt-slot dt-slot-empty"></div><span class="dt-edge-word"></span>
-      <div class="dt-slot dt-slot-target-bottom">${businessIndices.length ? dtNodeMarkup(nodes[businessIndices[0]], businessIndices[0], "-bottom") : ""}</div>
-    </div>
+    <p class="label dt-label-top">WHAT THE DRAFT REUSES</p>
+    <div class="dt-slot dt-slot-draft">${dtNodeMarkup(nodes[draftIndex], draftIndex)}</div>
+    <div class="dt-slot dt-slot-tech">${techIndices.map((index) => dtNodeMarkup(nodes[index], index)).join("") || `<span class="muted">No techniques listed</span>`}</div>
+    <div class="dt-slot dt-slot-proof">${dtNodeMarkup(nodes[fingerprintIndex], fingerprintIndex)}</div>
+    <div class="dt-slot dt-slot-target">${businessIndices.map((index) => dtNodeMarkup(nodes[index], index)).join("")}</div>
+    <p class="label dt-label-bottom">WHO WILL SEE IT</p>
+    <div class="dt-slot dt-slot-own">${dtNodeMarkup(nodes[ownIndex], ownIndex)}</div>
+    <div class="dt-slot dt-slot-audiences">${audienceIndices.map((index) => dtNodeMarkup(nodes[index], index)).join("") || `<span class="muted">No shared audiences returned</span>`}</div>
   </div>`;
   renderDoubleTakeInspector();
   renderDoubleTakeHistory();
@@ -762,7 +753,8 @@ function renderDoubleTakeInspector() {
     facts = items.length ? `<ul class="dt-evidence">${items.map((item) => `<li><span>${esc(item.hook)}</span>${item.views == null ? "" : `<b class="mono">${esc(item.views)} views</b>`}</li>`).join("")}</ul>` : `<p class="muted">${node.data.version === 2 ? "No matching business post uses the revision's techniques." : "No evidence posts returned."}</p>`;
   } else if (node.type === "audience") {
     const audience = node.data.audience;
-    facts = `<div class="dt-fact"><span>Draft business</span><b class="mono">${n(audience.mine)}</b></div><div class="dt-fact"><span>${esc(node.data.flag.business.name)}</span><b class="mono">${n(audience.theirs)}</b></div><div class="dt-fact"><span>Path</span><b class="mono">${esc((audience.path || []).join(" → "))}</b></div>`;
+    const paths = audience.paths || [audience.path || []];
+    facts = `<div class="dt-fact"><span>Draft business · max</span><b class="mono">${n(audience.mine)}</b></div><div class="dt-fact"><span>${esc(node.data.flag.business.name)} · max</span><b class="mono">${n(audience.theirs)}</b></div><div class="dt-fact dt-audience-paths"><span>Paths</span><b class="mono">${paths.map((path) => esc(path.join(" → "))).join("<br>")}</b></div>`;
   } else if (node.type === "business") {
     const { business, flag } = node.data;
     facts = `<div class="dt-fact"><span>Status</span><b>${esc(business.status)}</b></div>${flag ? `<div class="dt-fact dt-risk-equation"><span>Risk math</span><b class="mono">similarity ${n(flag.similarity)} × overlap ${n(flag.overlap)} = risk ${n(flag.risk)} · limit ${n(flag.limit)}</b></div>` : ""}`;
@@ -811,25 +803,68 @@ function drawDoubleTakeEdges() {
   const draft = nodes.find((node) => node.id === "draft");
   const own = nodes.find((node) => node.id === "own-business");
   const canvasRect = canvas.getBoundingClientRect();
-  const point = (node, edge, suffix = "") => {
-    const rect = document.getElementById(`dt-node-${node.index}${suffix}`)?.getBoundingClientRect();
-    if (!rect) return null;
-    const x = edge === "left" ? rect.left - canvasRect.left : edge === "bottom" ? rect.left + rect.width / 2 - canvasRect.left : edge === "top" ? rect.left + rect.width / 2 - canvasRect.left : rect.right - canvasRect.left;
-    const y = edge === "top" ? rect.top - canvasRect.top : edge === "bottom" ? rect.bottom - canvasRect.top : rect.top + rect.height / 2 - canvasRect.top;
-    return { x, y };
-  };
   const paths = [];
-  const edge = (from, to, label, vertical = false, targetSuffix = "") => {
-    const a = point(from, vertical ? "bottom" : "right"), b = point(to, vertical ? "top" : "left", targetSuffix);
-    if (!a || !b) return;
-    const middle = vertical ? (a.y + b.y) / 2 : (a.x + b.x) / 2;
-    const d = vertical ? `M${a.x},${a.y} V${middle} H${b.x} V${b.y}` : `M${a.x},${a.y} H${middle} V${b.y} H${b.x}`;
-    paths.push(`<path class="dt-edge" d="${d}"/>${label ? `<text class="dt-edge-label" x="${vertical ? a.x + 5 : middle}" y="${vertical ? middle - 4 : (a.y + b.y) / 2 - 5}">${esc(label)}</text>` : ""}`);
+  const rectOf = (node) => {
+    const rect = document.getElementById(`dt-node-${node.index}`)?.getBoundingClientRect();
+    return rect ? {
+      left: rect.left - canvasRect.left,
+      right: rect.right - canvasRect.left,
+      top: rect.top - canvasRect.top,
+      bottom: rect.bottom - canvasRect.top,
+      centerX: rect.left + rect.width / 2 - canvasRect.left,
+      centerY: rect.top + rect.height / 2 - canvasRect.top,
+    } : null;
   };
-  techniques.forEach((node) => { edge(draft, node, "USES"); edge(node, fingerprint, ""); });
-  if ($("#dt-graph-box").dataset.version === "1") targets.forEach((target) => edge(fingerprint, target, ""));
-  if (own) edge(draft, own, "OF", true);
-  audiences.forEach((node) => { edge(own, node, "TARGETS"); if (targets[0]) edge(node, targets[0], "", false, "-bottom"); });
+  const path = (d) => paths.push(`<path class="dt-edge" d="${d}"/>`);
+  const label = (text, x, y, anchor = "middle") => {
+    paths.push(`<text class="dt-edge-label" text-anchor="${anchor}" x="${x}" y="${y}">${esc(text)}</text>`);
+  };
+  const fanOut = (source, destinations, caption = "") => {
+    const sourceRect = rectOf(source);
+    const destinationRects = destinations.map(rectOf).filter(Boolean);
+    if (!sourceRect || !destinationRects.length) return;
+    const busX = (sourceRect.right + Math.min(...destinationRects.map((rect) => rect.left))) / 2;
+    const ys = [sourceRect.centerY, ...destinationRects.map((rect) => rect.centerY)];
+    let d = `M${sourceRect.right},${sourceRect.centerY} H${busX}`;
+    if (Math.max(...ys) > Math.min(...ys)) d += ` M${busX},${Math.min(...ys)} V${Math.max(...ys)}`;
+    destinationRects.forEach((rect) => { d += ` M${busX},${rect.centerY} H${rect.left}`; });
+    path(d);
+    if (caption) label(caption, busX, Math.min(...destinationRects.map((rect) => rect.top)) - 4);
+  };
+  const fanIn = (sources, destination, caption = "", captionPosition = "top") => {
+    const sourceRects = sources.map(rectOf).filter(Boolean);
+    const destinationRect = rectOf(destination);
+    if (!sourceRects.length || !destinationRect) return;
+    const busX = (Math.max(...sourceRects.map((rect) => rect.right)) + destinationRect.left) / 2;
+    const ys = [...sourceRects.map((rect) => rect.centerY), destinationRect.centerY];
+    let d = `M${busX},${Math.min(...ys)} V${Math.max(...ys)}`;
+    sourceRects.forEach((rect) => { d += ` M${rect.right},${rect.centerY} H${busX}`; });
+    d += ` M${busX},${destinationRect.centerY} H${destinationRect.left}`;
+    path(d);
+    if (caption) {
+      const captionY = captionPosition === "bottom"
+        ? Math.max(...sourceRects.map((rect) => rect.bottom)) + 16
+        : Math.min(...sourceRects.map((rect) => rect.top)) - 4;
+      label(caption, busX, captionY);
+    }
+  };
+  if (draft && techniques.length && fingerprint) {
+    fanOut(draft, techniques, "USES");
+    fanIn(techniques, fingerprint, "EVIDENCE");
+  }
+  if (fingerprint && targets.length && $("#dt-graph-box").dataset.version === "1") fanOut(fingerprint, targets);
+  if (draft && own) {
+    const source = rectOf(draft);
+    const destination = rectOf(own);
+    if (source && destination) {
+      path(`M${source.centerX},${source.bottom} V${destination.top}`);
+      label("OF", source.centerX - 8, (source.bottom + destination.top) / 2, "end");
+    }
+  }
+  if (own && audiences.length && targets.length) {
+    fanOut(own, audiences, "TARGETS");
+    fanIn(audiences, targets[0], "OVERLAP", "bottom");
+  }
   svg.setAttribute("viewBox", `0 0 ${canvas.scrollWidth} ${canvas.scrollHeight}`);
   svg.innerHTML = paths.join("");
 }

@@ -41,6 +41,16 @@ def test_doubletake_detail_matches_analysis_and_uses_client_evidence(seeded_demo
         expected = expected_flags[flag["business"]["id"]]
         assert {item["id"] for item in flag["shared"]} == set(expected["shared_ids"])
         assert flag["risk"] == expected["risk"]
+        audience_ids = [item["id"] for item in flag["audiences"]]
+        assert len(audience_ids) == len(set(audience_ids))
+        raw_audiences = tools.audience_paths("tumble-town", flag["business"]["id"])
+        for audience in flag["audiences"]:
+            matching = [item for item in raw_audiences if item["id"] == audience["id"]]
+            assert audience["mine"] == max(item["mine"] for item in matching)
+            assert audience["theirs"] == max(item["theirs"] for item in matching)
+            assert {tuple(path) for path in audience["paths"]} == {
+                tuple(item["path"]) for item in matching
+            }
         owned_posts = {post["id"] for post in tools.posts(flag["business"]["id"])}
         world_business = next(
             business for business in tools.world()["businesses"]

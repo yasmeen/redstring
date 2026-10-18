@@ -507,12 +507,30 @@ def doubletake_detail(slug: str, draft_id: str):
                 "hook": source["hook"],
                 "views": source.get("views"),
             })
+        audience_by_id = {}
+        for audience in tools.audience_paths(slug, other_id):
+            audience_id = audience["id"]
+            path = list(audience.get("path") or [])
+            merged = audience_by_id.setdefault(audience_id, {
+                "id": audience_id,
+                "name": audience["name"],
+                "mine": None,
+                "theirs": None,
+                "path": path,
+                "paths": [],
+            })
+            if path and path not in merged["paths"]:
+                merged["paths"].append(path)
+            for weight in ("mine", "theirs"):
+                value = audience.get(weight)
+                if value is not None and (merged[weight] is None or value > merged[weight]):
+                    merged[weight] = value
         flag_details.append({
             "business": {"id": other_id, "name": other["name"], "status": other["status"]},
             "shared": technique_list(shared_ids, other_signatures, include_signature=True),
             "evidence": evidence,
             "evidence_total_posts": len(post_records),
-            "audiences": tools.audience_paths(slug, other_id),
+            "audiences": sorted(audience_by_id.values(), key=lambda audience: audience["id"]),
             "similarity": flag["similarity"],
             "overlap": flag["overlap"],
             "risk": flag["risk"],
