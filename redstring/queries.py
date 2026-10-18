@@ -81,13 +81,22 @@ WHERE c.category = $category
 RETURN c.id AS client_id, c.name AS client, n.name AS neighborhood
 """
 
-# Audience overlap between two businesses, same paths as Q1. Q2 risk = similarity x this (clamped to 1).
+# Cross audience overlap for cosine normalization, using the Q1 paths.
 AUDIENCE_OVERLAP = """
 MATCH (x:Business {id: $a})-[tx:TARGETS]->(au:Audience)<-[ty:TARGETS]-(y:Business {id: $b})
 RETURN tx.weight * ty.weight AS conflict
 UNION ALL
 MATCH (x:Business {id: $a})-[tx:TARGETS]->(:Audience)-[o:OVERLAPS]-(au:Audience)<-[ty:TARGETS]-(y:Business {id: $b})
 RETURN tx.weight * ty.weight * o.share AS conflict
+"""
+
+# Self-overlap under the symmetric audience matrix; each OVERLAPS pair contributes both directions.
+AUDIENCE_SELF_OVERLAP = """
+MATCH (x:Business {id: $a})-[t:TARGETS]->(:Audience)
+RETURN t.weight * t.weight AS conflict
+UNION ALL
+MATCH (x:Business {id: $a})-[t1:TARGETS]->(:Audience)-[o:OVERLAPS]-(:Audience)<-[t2:TARGETS]-(x)
+RETURN t1.weight * t2.weight * o.share AS conflict
 """
 
 # Q2. Double Take. Standards. Similarity counts only rare techniques, weighted by rarity, against
