@@ -94,8 +94,11 @@ RETURN tx.weight * ty.weight * o.share AS conflict
 # any active fingerprint from a business that shares an audience and is signed or an open pursuit.
 # CHANGE: only active fingerprints count; passed prospects count until their cooldown ends.
 Q2_DOUBLE_TAKE = """
-MATCH (d:Fingerprint {id: $draft})-[:OF]->(me:Business)-[:TARGETS]->(:Audience)<-[:TARGETS]-(other:Business)
-WHERE d.active AND other <> me AND (other.status IN ['signed', 'pursued', 'pitched']
+MATCH (d:Fingerprint {id: $draft})-[:OF]->(me:Business)
+WHERE d.active
+MATCH (me)-[:TARGETS]->(a0:Audience)
+MATCH (a0)-[:OVERLAPS*0..1]-(a1:Audience)<-[:TARGETS]-(other:Business)
+WHERE other <> me AND (other.status IN ['signed', 'pursued', 'pitched']
       OR (other.status = 'passed' AND other.passed_at >= $cooldown_cutoff))
 WITH DISTINCT d, other
 MATCH (d)-[:USES]->(t:Technique)<-[:USES]-(of:Fingerprint)-[:OF]->(other)
@@ -103,6 +106,25 @@ WHERE t.rarity >= $rare AND of.active
 WITH d, other, collect(DISTINCT t) AS shared
 MATCH (d)-[:USES]->(mine:Technique)
 WHERE mine.rarity >= $rare
+WITH other, shared, sum(mine.rarity) AS total
+RETURN other.id AS business_id, other.name AS business, other.status AS status,
+       [t IN shared | t.id] AS shared_ids, [t IN shared | t.name] AS shared_rare,
+       reduce(s = 0.0, t IN shared | s + t.rarity) / total AS similarity
+ORDER BY similarity DESC
+"""
+
+Q2_DOUBLE_TAKE_PREVIEW = """
+MATCH (me:Business {id: $client})-[:TARGETS]->(a0:Audience)
+MATCH (a0)-[:OVERLAPS*0..1]-(a1:Audience)<-[:TARGETS]-(other:Business)
+WHERE other <> me AND (other.status IN ['signed', 'pursued', 'pitched']
+      OR (other.status = 'passed' AND other.passed_at >= $cooldown_cutoff))
+WITH DISTINCT other
+MATCH (of:Fingerprint)-[:OF]->(other)
+MATCH (of)-[:USES]->(t:Technique)
+WHERE of.active AND t.id IN $technique_ids AND t.rarity >= $rare
+WITH other, collect(DISTINCT t) AS shared
+MATCH (mine:Technique)
+WHERE mine.id IN $technique_ids AND mine.rarity >= $rare
 WITH other, shared, sum(mine.rarity) AS total
 RETURN other.id AS business_id, other.name AS business, other.status AS status,
        [t IN shared | t.id] AS shared_ids, [t IN shared | t.name] AS shared_rare,
