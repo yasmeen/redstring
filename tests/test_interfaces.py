@@ -413,6 +413,45 @@ def test_board_rejects_flagged_draft_and_approved_pitch_without_writes(monkeypat
     assert len(tools.decisions("tumble-town")) == decisions_before
 
 
+def test_board_actions_reject_unknown_targets_and_approve_queued_draft(monkeypatch):
+    import redstring.web.app as web
+
+    monkeypatch.setattr(web, "READONLY", False)
+    tools._world_cache = None
+    Pipeline("offline", log=None).run_demo()
+    client = TestClient(web.app)
+    slug = "tumble-town"
+    decisions_before = len(tools.decisions(slug))
+    rules_before = len(tools.board_rules(slug))
+
+    for label in ("Draft", "Pitch"):
+        response = client.post(
+            f"/api/board/{slug}/{label}/missing-target",
+            json={"verdict": "approve", "note": "repro"},
+        )
+        assert response.status_code == 404
+    response = client.post(f"/api/retire/{slug}/missing-goal")
+    assert response.status_code == 404
+    assert len(tools.decisions(slug)) == decisions_before
+    assert len(tools.board_rules(slug)) == rules_before
+
+    queued_slug, draft = next(
+        (business["id"], draft)
+        for business in tools.world()["businesses"]
+        for draft in tools.drafts(business["id"])
+        if draft["status"] == "queued"
+    )
+    decisions_before = len(tools.decisions(queued_slug))
+    response = client.post(
+        f"/api/board/{queued_slug}/Draft/{draft['id']}",
+        json={"verdict": "approve", "note": "approved queued draft"},
+    )
+    assert response.status_code == 200
+    assert next(item["status"] for item in tools.drafts(queued_slug)
+                if item["id"] == draft["id"]) == "approved"
+    assert len(tools.decisions(queued_slug)) == decisions_before + 1
+
+
 def test_web_try_inputs(monkeypatch):
     import redstring.web.app as web
     monkeypatch.setattr(web, "READONLY", False)

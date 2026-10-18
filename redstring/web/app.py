@@ -663,9 +663,14 @@ def decide_lead(slug: str, body: LeadDecisionIn):
 @app.post("/api/retire/{slug}/{goal_id}")
 def retire(slug: str, goal_id: str):
     _writable()
-    return tools.retire_goal(
-        _client_or_404(slug), goal_id, "board", "Retired from the board view.", source="web_board",
-    )
+    try:
+        return tools.retire_goal(
+            _client_or_404(slug), goal_id, "board", "Retired from the board view.", source="web_board",
+        )
+    except tools.NotFound as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except tools.BoardConflict as exc:
+        raise HTTPException(409, str(exc)) from exc
 
 
 # ------------------------------------------------------------------ try it: outsider inputs

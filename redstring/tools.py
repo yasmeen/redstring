@@ -290,7 +290,18 @@ def record_goal(client: str, text: str, metric: str, target: float, due: str, st
 def retire_goal(client: str, goal_id: str, agent: str = "board", rationale: str = "",
                 source: str | None = None) -> dict:
     g = db.client(client)
-    db.run(g, "MATCH (g:Goal {id: $id}) SET g.status = 'retired', g.retired_at = $at", {"id": goal_id, "at": now()})
+    state = _board_target_state(client, "Goal", goal_id)
+    if state["status"] == "retired":
+        raise BoardConflict(f"goal {goal_id} is already retired")
+    matched = db.rows(g, """MATCH (g:Goal {id: $id})
+                            WHERE coalesce(g.status, '') <> 'retired'
+                            SET g.status = 'retired', g.retired_at = $at
+                            RETURN g.id AS id""", {"id": goal_id, "at": now()})
+    if not matched:
+        state = _board_target_state(client, "Goal", goal_id)
+        if state["status"] == "retired":
+            raise BoardConflict(f"goal {goal_id} is already retired")
+        raise NotFound(f"unknown Goal {goal_id} for {client}")
     _decide(g, agent, "Retired goal", rationale or "Goal changed.", [("Goal", goal_id)], source=source)
     return {"goal": goal_id, "stale_drafts": stale_drafts(client)}
 
@@ -668,6 +679,8 @@ def _board_target_state(client: str, target_label: str, target_id: str) -> dict:
                              OPTIONAL MATCH (d:Decision)-[:AFFECTS]->(p)
                              WHERE d.text STARTS WITH 'Board veto'
                              RETURN p.status AS status, count(d) > 0 AS vetoed""", {"id": target_id})
+    elif target_label == "Goal":
+        rows = db.rows(g, "MATCH (g:Goal {id: $id}) RETURN g.status AS status", {"id": target_id})
     else:
         raise ValueError(f"unsupported board target {target_label}")
     if not rows:
