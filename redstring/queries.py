@@ -116,6 +116,11 @@ OPTIONAL MATCH (r:Reference)-[:USES]->(t)
 RETURN t.id AS id, count(DISTINCT r) AS ref_count
 """
 
+Q2_REFERENCE_TOTAL = """
+MATCH (r:Reference)
+RETURN count(DISTINCT r) AS reference_total
+"""
+
 # Q3. Open territory. Style Director. Techniques in a style that no overlapping business has
 # claimed as a signature, rarest first.
 # CHANGE: open pursuits count as claimants too (so two pitches do not converge), $avoid excludes

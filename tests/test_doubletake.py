@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from redstring import queries, tools
+from redstring import db, queries, tools
 from redstring.pipeline import Pipeline
 import redstring.web.app as web
 
@@ -34,6 +34,7 @@ def test_doubletake_detail_matches_analysis_and_uses_client_evidence(seeded_demo
     }
 
     assert detail["query"]["cypher"] == queries.Q2_DOUBLE_TAKE
+    assert detail["reference_total"] == db.rows(db.agency(), "MATCH (r:Reference) RETURN count(DISTINCT r) AS count")[0]["count"]
     assert detail["revision"] and detail["revision"]["status"] == "cleared"
     assert detail["revision"]["cleared"] is True
     for flag in detail["flags"]:

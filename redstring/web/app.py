@@ -554,6 +554,7 @@ def doubletake_detail(slug: str, draft_id: str):
         "flags": flag_details,
         "revision": revision,
         "query": {"name": "double_take", "cypher": queries.Q2_DOUBLE_TAKE},
+        "reference_total": tools.reference_total(),
         "next": decisions,
         "later_blocks": later_blocks,
     }
@@ -619,6 +620,7 @@ class LeadIn(BaseModel):
     category: str = Field(min_length=2, max_length=60)
     targets: dict[str, float]
     neighborhood: str = "n_flatiron"
+    preview: bool = False
 
 
 @app.post("/api/try/lead")
@@ -631,8 +633,8 @@ def try_lead(body: LeadIn):
     targets = {k: max(0.0, min(1.0, float(v))) for k, v in body.targets.items() if k in valid and float(v) > 0}
     if not targets:
         raise HTTPException(400, "pick at least one audience")
-    readonly = READONLY
-    slug = f"try-{os.urandom(4).hex()}" if readonly else (
+    preview = READONLY or body.preview
+    slug = f"try-{os.urandom(4).hex()}" if preview else (
         "try-" + (re.sub(r"[^a-z0-9]+", "-", body.name.lower()).strip("-")[:40] or "lead")
     )
     g = db.agency()
@@ -641,7 +643,7 @@ def try_lead(body: LeadIn):
                       WITH b UNWIND $targets AS t MATCH (a:Audience {id: t.aud}) CREATE (b)-[:TARGETS {weight: t.w}]->(a)"""
     params = {"id": slug, "name": body.name, "category": body.category, "neighborhood": body.neighborhood,
               "targets": [{"aud": k, "w": v} for k, v in targets.items()]}
-    if readonly:
+    if preview:
         try:
             db.run(g, create_query, params)
             res = tools.lead_conflict(slug)

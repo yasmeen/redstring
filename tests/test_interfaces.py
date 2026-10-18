@@ -61,6 +61,11 @@ def test_web_try_inputs(monkeypatch):
     r = c.post("/api/try/lead", json={"name": "Swim Prospect", "category": "Swim lessons",
                                      "targets": {"A1": 0.6}, "neighborhood": "n_gramercy"}).json()
     assert r["verdict"] == "decline"
+    before_preview = db.rows(db.agency(), "MATCH (b:Business) RETURN count(b) AS count")[0]["count"]
+    preview = c.post("/api/try/lead", json={"name": "Preview Client", "category": "Cafe",
+                                           "targets": {"A6": 0.5}, "neighborhood": "n_nomad", "preview": True}).json()
+    assert preview["saved"] is False
+    assert db.rows(db.agency(), "MATCH (b:Business) RETURN count(b) AS count")[0]["count"] == before_preview
     assert c.post("/api/try/lead", json={"name": "Unknown Place", "category": "Kids dance",
                                         "targets": {"A1": 1}, "neighborhood": "n_unknown"}).status_code == 400
     planted = tools.world()["planted"]["collision_techniques"]

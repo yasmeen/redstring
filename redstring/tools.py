@@ -124,6 +124,11 @@ def reference_counts(ids: list[str]) -> dict[str, int]:
     return {row["id"]: row["ref_count"] for row in rows}
 
 
+def reference_total() -> int:
+    rows = db.rows(db.agency(), queries.Q2_REFERENCE_TOTAL)
+    return rows[0]["reference_total"] if rows else 0
+
+
 # ------------------------------------------------------------------ Q1: Scout
 
 def lead_conflict(lead: str) -> dict:

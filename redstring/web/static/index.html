@@ -45,7 +45,6 @@
     <section class="daybar" id="daybar" aria-label="Today in the studio">
       <p class="daybar-when"><b id="day-label">Agent run</b><span class="muted" id="day-summary"></span><span class="muted" id="day-feed"></span><span class="muted daybar-readonly">Read-only: nothing you try here is saved.</span></p>
       <div class="daybar-actions">
-        <button type="button" class="text-button fold-toggle" id="activity-toggle" aria-controls="dayloop" aria-expanded="false" hidden>See today's activity</button>
         <button type="button" class="text-button fold-toggle" id="runner-toggle" aria-controls="runner" aria-expanded="false">Demo controls</button>
         <button type="button" class="btn ink" id="next-day" hidden>Next day <span aria-hidden="true">→</span></button>
       </div>
@@ -61,12 +60,6 @@
     <p class="runner-status" id="runner-status"><span id="step-next"></span><span class="latest" id="step-latest"></span></p>
     <p class="readonly-note" id="readonly-note" hidden>Nothing you try here is saved.</p>
   </div>
-</section>
-
-<section class="dayloop folded" id="dayloop" aria-labelledby="dayloop-h" hidden>
-  <h2 class="placard" id="dayloop-h">Studio activity</h2>
-  <p class="muted dayloop-note">Agents do the routine work each day on their own and stop at anything that needs you.</p>
-  <ol class="days" id="days" aria-live="polite"></ol>
 </section>
 
 <header class="today-heading">
@@ -106,6 +99,9 @@
 </section>
 
 <section class="studio-tab pipeline-tab" id="tab-pipeline" data-tab="pipeline">
+<header class="tab-heading"><p class="label" id="pipeline-kicker">PIPELINE / 00 BUSINESSES</p><h1>Pipeline</h1></header>
+<div class="pipeline-bar-head"><div id="pipeline-stage-bar" class="pipeline-stage-bar" aria-label="Filter businesses by stage"></div><button type="button" class="text-button" id="pipeline-show-all">Show all stages</button></div>
+<div class="pipeline-register" id="pipeline-register"></div>
 <div class="desk" id="desk">
   <svg class="string-layer" id="string-layer" aria-hidden="true" focusable="false"><path id="string-path" d=""/></svg>
 
@@ -130,55 +126,75 @@
 </section>
 
 <section class="studio-tab doubletake-tab" id="tab-double-take" data-tab="double-take">
-  <header class="tab-heading"><p class="label">DOUBLE TAKE</p><h1>Lookalikes stopped.</h1><p>Flagged drafts from this run and the businesses they resembled.</p></header>
-  <section class="caught-panel doubletake-caught-panel" aria-labelledby="doubletake-caught-heading">
-    <p class="label caught-kicker">CAUGHT BY DOUBLE TAKE / <span id="doubletake-count">00</span></p>
-    <h2 class="caught-title" id="doubletake-caught-heading">Lookalikes stopped</h2>
-    <div class="caught" id="double-take-caught"></div>
-  </section>
+  <header class="tab-heading"><p class="label" id="doubletake-kicker">DOUBLE TAKE</p><h1>Lookalikes stopped.</h1></header>
+  <div class="dt-pairs" id="dt-pairs" aria-label="Flagged draft pairs"></div>
+  <div class="dt-workspace">
+    <div class="dt-graph-column">
+      <div class="dt-version-toggle" id="dt-version-toggle" role="group" aria-label="Draft version"></div>
+      <section class="dt-graph-box" id="dt-graph-box" aria-label="Double Take graph"></section>
+    </div>
+    <aside class="dt-inspector" id="dt-inspector" aria-live="polite"></aside>
+  </div>
+  <section class="dt-history" id="dt-history"></section>
 </section>
 
 <section class="studio-tab try-tab" id="tab-try" data-tab="try">
-<div class="lower">
-  <div class="try">
-    <section class="panel" aria-labelledby="lead-h">
-      <div class="panel-head"><h2 class="placard" id="lead-h">Screen a new lead</h2></div>
-      <p class="panel-sub">Describe a business and who it targets. Scout checks it against every signed client's audience and returns a verdict with the paths behind it.</p>
-      <p class="panel-sub readonly-form-note" hidden>Nothing you try here is saved.</p>
+  <header class="tab-heading"><p class="label">WORKBENCH / LIVE CHECKS</p><h1>Try it</h1></header>
+  <nav class="try-tabs" aria-label="Try it tools">
+    <button type="button" data-try-tab="lead" aria-selected="true">Would we take this client?</button>
+    <button type="button" data-try-tab="draft" aria-selected="false">Would this post look like someone else's?</button>
+  </nav>
+  <div class="try-workbench" id="try-workbench" data-mobile-step="0">
+    <div class="try-mobile-progress" aria-hidden="true"><span id="try-mobile-progress-line"></span></div>
+    <section class="try-tool" data-try-tool="lead" aria-labelledby="lead-h">
+      <div class="try-inputs">
+      <h2 class="label" id="lead-h">SCOUT'S CLIENT CHECK</h2>
+      <div class="lead-presets" id="lead-presets" role="radiogroup" aria-label="Example clients"></div>
+      <p class="panel-sub">Choose an example or describe your own. Your choices are checked live and never saved.</p>
       <form id="lead-form" class="form">
-        <div class="row2">
-          <label class="field">Name <input name="name" required maxlength="60" placeholder="Sprout Dance Studio" autocomplete="off"></label>
-          <label class="field">Category <input name="category" required maxlength="60" placeholder="Kids dance" autocomplete="off"></label>
+        <div class="row2 own-fields" hidden>
+          <label class="field">Name <input name="name" maxlength="60" placeholder="Sprout Dance Studio" autocomplete="off"></label>
+          <label class="field">Category <input name="category" maxlength="60" placeholder="Kids art" autocomplete="off"></label>
           <label class="field">Neighborhood <select name="neighborhood" id="lead-neighborhood"></select></label>
         </div>
-        <fieldset id="aud-sliders"><legend>Who it targets <span class="muted metric">(0 to 1)</span></legend></fieldset>
-        <div><button type="submit" class="btn primary">Screen with Scout</button></div>
+        <fieldset id="aud-sliders"><legend>Customer groups</legend></fieldset>
+        <p class="try-form-warning" id="lead-mobile-warning" hidden></p>
+        <div class="mobile-tool-actions"><button type="submit" class="btn primary">Check this client</button></div>
       </form>
-      <div id="lead-result" aria-live="polite"></div>
+      </div>
+      <section class="try-readout" aria-labelledby="lead-readout-heading"><p class="label" id="lead-readout-heading">READOUT / SCOUT'S CALL</p><div id="lead-result" aria-live="polite"></div></section>
     </section>
 
-    <section class="panel" aria-labelledby="draft-h">
-      <div class="panel-head"><h2 class="placard" id="draft-h">Check a draft idea</h2></div>
+    <section class="try-tool" data-try-tool="draft" aria-labelledby="draft-h" hidden>
+      <div class="try-inputs">
+      <h2 class="label" id="draft-h">DOUBLE TAKE'S POST CHECK</h2>
       <p class="panel-sub">Pick a client and the techniques a draft would use. Double Take compares it with every other business that reaches the same people.</p>
-      <p class="panel-sub readonly-form-note" hidden>Nothing you try here is saved.</p>
       <form id="draft-form" class="form">
         <label class="field">For <select name="client" id="draft-client"></select></label>
-        <fieldset><legend>Techniques in the draft</legend><div class="tech-pick" id="tech-pick"></div></fieldset>
-        <div><button type="submit" class="btn primary">Run Double Take</button></div>
+        <fieldset><legend>Techniques in the draft</legend><div class="tech-pick" id="tech-pick"></div><p class="try-form-warning" id="draft-mobile-warning" hidden></p></fieldset>
+        <div class="mobile-tool-actions"><button type="submit" class="btn primary">Check this post</button></div>
       </form>
-      <div id="draft-result" aria-live="polite"></div>
-  </section>
-</div>
+      </div>
+      <section class="try-readout post-readout" aria-labelledby="draft-readout-heading"><p class="label" id="draft-readout-heading">READOUT / DOUBLE TAKE</p><div id="draft-result" aria-live="polite"></div></section>
+    </section>
+    <div class="try-mobile-controls"><button type="button" class="btn ink" id="try-mobile-next">Next</button></div>
+  </div>
 </section>
 
 <section class="studio-tab log-tab" id="tab-log" data-tab="log">
-<div class="lower">
-
-  <section class="panel" aria-labelledby="feed-h">
-    <div class="panel-head"><h2 class="placard" id="feed-h">Decision log</h2><span class="muted">Every write has a why.</span></div>
+  <section class="log-activity" aria-labelledby="dayloop-h">
+    <p class="label">TODAY'S ACTIVITY</p>
+    <h2 class="log-section-title" id="dayloop-h">Agents at work</h2>
+    <section class="dayloop" id="dayloop" aria-label="Studio activity">
+      <p class="muted dayloop-note">Agents do the routine work each day on their own and stop at anything that needs you.</p>
+      <ol class="days" id="days" aria-live="polite"></ol>
+    </section>
+  </section>
+  <section class="log-decisions" aria-labelledby="feed-h">
+    <p class="label">DECISIONS</p>
+    <h2 class="log-section-title" id="feed-h">Decision log</h2>
     <ul class="feed" id="feed" tabindex="0" aria-label="Decision log, newest first"></ul>
   </section>
-</div>
 </section>
 </main>
 
