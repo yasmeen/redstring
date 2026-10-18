@@ -371,6 +371,8 @@ def step(step: str):
     if step not in dict(STEPS):
         raise HTTPException(404, step)
     with _lock:
+        if step != "reset" and step in _done:
+            raise HTTPException(409, "already ran; reset first")
         if step != "reset" and step not in _done:
             i = next(i for i, (step_id, _) in enumerate(STEPS) if step_id == step)
             prev_id = STEPS[i - 1][0]

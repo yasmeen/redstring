@@ -394,8 +394,10 @@ function renderSteps(o) {
     const cls = s.done ? "done" : i === next ? "next" : "pending";
     const said = s.done ? "done" : i === next ? "next" : "not run yet";
     const locked = i > 0 && !o.steps[i - 1].done;
-    const title = locked ? `Run step ${i - 1} first` : s.label;
-    return `<li class="${cls}"><button type="button" data-step="${esc(s.id)}" ${locked ? "disabled" : ""} title="${esc(title)}" aria-label="Step ${i}: ${esc(s.label)} (${said}${locked ? `, run step ${i - 1} first` : ""})"><span class="knot-dot" aria-hidden="true">${i}</span><span class="step-name">${esc(STEP_SHORT[s.id] || s.label)}</span></button></li>`;
+    const finished = s.done && s.id !== "reset";
+    const disabled = locked || finished;
+    const title = finished ? "Already ran; reset first" : locked ? `Run step ${i - 1} first` : s.label;
+    return `<li class="${cls}"><button type="button" data-step="${esc(s.id)}" ${disabled ? "disabled" : ""} title="${esc(title)}" aria-label="Step ${i}: ${esc(s.label)} (${said}${disabled ? `, ${esc(title)}` : ""})"><span class="knot-dot" aria-hidden="true">${i}</span><span class="step-name">${esc(STEP_SHORT[s.id] || s.label)}</span></button></li>`;
   }).join("");
   $("#step-next").innerHTML = next >= 0
     ? `<b>Next:</b> ${next}. ${esc(o.steps[next].label)}`

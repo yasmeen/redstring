@@ -114,6 +114,28 @@ def test_step_api_enforces_order():
     assert c.post("/api/step/screen").status_code == 200
 
 
+def test_completed_step_cannot_be_rerun(monkeypatch):
+    import redstring.web.app as web
+    monkeypatch.setattr(web, "READONLY", False)
+    web._done.clear()
+    web._log.clear()
+    c = TestClient(web.app)
+
+    try:
+        for step, _ in web.STEPS:
+            assert c.post(f"/api/step/{step}").status_code == 200
+        assert tools.business("tumble-town")["status"] == "signed"
+
+        response = c.post("/api/step/pitch")
+
+        assert response.status_code == 409
+        assert response.json()["detail"] == "already ran; reset first"
+        assert tools.business("tumble-town")["status"] == "signed"
+    finally:
+        web._done.clear()
+        web._log.clear()
+
+
 def test_overview_groups_cleared_to_pitch_leads(monkeypatch):
     import redstring.web.app as web
     monkeypatch.setattr(web, "READONLY", False)
