@@ -342,8 +342,16 @@ def test_board_rules_are_web_decisions_in_quoted_user_data(monkeypatch):
 
     tools._world_cache = None
     seed.seed_all()
-    tools.board_decide("wet-paint", "Draft", "internal", "approve", "Internal decision.")
-    tools.board_decide("wet-paint", "Draft", "web", "approve", "Web board decision.", source="web_board")
+    goal = tools.goals("wet-paint")[0]
+    plan = tools.write_plan("wet-paint", "board-rule-test", goal["id"], "Test board rules.")["plan"]
+    internal = tools.write_draft(
+        "wet-paint", plan, "reel", "Internal decision", "Test draft.", [], [], "Test internal draft."
+    )["draft"]
+    web = tools.write_draft(
+        "wet-paint", plan, "reel", "Web board decision", "Test draft.", [], [], "Test web draft."
+    )["draft"]
+    tools.board_decide("wet-paint", "Draft", internal, "approve", "Internal decision.")
+    tools.board_decide("wet-paint", "Draft", web, "approve", "Web board decision.", source="web_board")
 
     class Messages:
         def __init__(self):
@@ -372,6 +380,84 @@ def test_full_demo_marks_board_actions_as_web_board_decisions():
 
     assert tools.board_rules("tumble-town")
     assert tools.board_rules("pixel-pond")
+
+
+def test_board_rejects_flagged_draft_and_approved_pitch_without_writes(monkeypatch):
+    import redstring.web.app as web
+
+    monkeypatch.setattr(web, "READONLY", False)
+    tools._world_cache = None
+    demo = Pipeline("offline", log=None).run_demo()
+    client = TestClient(web.app)
+    flagged = next(
+        draft for draft in tools.drafts("tumble-town") if draft["status"] == "flagged"
+    )
+    flagged_status = flagged["status"]
+    flagged_collision_flags = tools.collision_flags("tumble-town", flagged["id"])
+    decisions_before = len(tools.decisions("tumble-town"))
+
+    response = client.post(
+        f"/api/board/tumble-town/Draft/{flagged['id']}",
+        json={"verdict": "approve", "note": "repro"},
+    )
+
+    assert response.status_code == 409
+    assert next(draft["status"] for draft in tools.drafts("tumble-town")
+                if draft["id"] == flagged["id"]) == flagged_status
+    assert tools.collision_flags("tumble-town", flagged["id"]) == flagged_collision_flags
+    assert len(tools.decisions("tumble-town")) == decisions_before
+
+    pitch_id = demo["pitch"]["pitch"]
+    pitch = next(item for item in tools.pitches("tumble-town") if item["id"] == pitch_id)
+    assert pitch["status"] == "approved"
+    response = client.post(
+        f"/api/board/tumble-town/Pitch/{pitch_id}",
+        json={"verdict": "veto", "note": "repro"},
+    )
+
+    assert response.status_code == 409
+    assert next(item["status"] for item in tools.pitches("tumble-town")
+                if item["id"] == pitch_id) == "approved"
+    assert len(tools.decisions("tumble-town")) == decisions_before
+
+
+def test_board_actions_reject_unknown_targets_and_approve_queued_draft(monkeypatch):
+    import redstring.web.app as web
+
+    monkeypatch.setattr(web, "READONLY", False)
+    tools._world_cache = None
+    Pipeline("offline", log=None).run_demo()
+    client = TestClient(web.app)
+    slug = "tumble-town"
+    decisions_before = len(tools.decisions(slug))
+    rules_before = len(tools.board_rules(slug))
+
+    for label in ("Draft", "Pitch"):
+        response = client.post(
+            f"/api/board/{slug}/{label}/missing-target",
+            json={"verdict": "approve", "note": "repro"},
+        )
+        assert response.status_code == 404
+    response = client.post(f"/api/retire/{slug}/missing-goal")
+    assert response.status_code == 404
+    assert len(tools.decisions(slug)) == decisions_before
+    assert len(tools.board_rules(slug)) == rules_before
+
+    queued_slug, draft = next(
+        (business["id"], draft)
+        for business in tools.world()["businesses"]
+        for draft in tools.drafts(business["id"])
+        if draft["status"] == "queued"
+    )
+    decisions_before = len(tools.decisions(queued_slug))
+    response = client.post(
+        f"/api/board/{queued_slug}/Draft/{draft['id']}",
+        json={"verdict": "approve", "note": "approved queued draft"},
+    )
+    assert response.status_code == 200
+    assert next(item["status"] for item in tools.drafts(queued_slug)
+                if item["id"] == draft["id"]) == "approved"
+    assert len(tools.decisions(queued_slug)) == decisions_before + 1
 
 
 def test_web_try_inputs(monkeypatch):

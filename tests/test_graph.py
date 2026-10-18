@@ -368,6 +368,39 @@ def test_blocked_fingerprints_stop_counting(demo):
     assert db.rows(db.agency(), "MATCH (f:Fingerprint {id: $id}) RETURN f.active AS a", {"id": blocked})[0]["a"] is False
 
 
+def test_reprojecting_fingerprint_replaces_uses(demo):
+    ids = [technique["id"] for technique in tools.world()["techniques"][:3]]
+    fingerprint = "test-reproject-fingerprint"
+    try:
+        params = {
+            "draft_id": fingerprint,
+            "kind": "draft",
+            "client": "tumble-town",
+            "now": tools.now(),
+            "technique_ids": ids[:2],
+        }
+        db.run(db.agency(), queries.P1_PROJECT_FINGERPRINT, params)
+        params["technique_ids"] = ids[2:]
+        db.run(db.agency(), queries.P1_PROJECT_FINGERPRINT, params)
+        assert {
+            row["id"] for row in db.rows(
+                db.agency(),
+                "MATCH (:Fingerprint {id: $id})-[:USES]->(t:Technique) RETURN t.id AS id",
+                {"id": fingerprint},
+            )
+        } == {ids[2]}
+    finally:
+        db.run(db.agency(), "MATCH (f:Fingerprint {id: $id}) DETACH DELETE f", {"id": fingerprint})
+
+
+def test_q0_combined_clear_and_derive_replaces_stale_signatures(demo):
+    expected = tools.derive_signatures()
+    common = next(t["id"] for t in tools.world()["techniques"] if t["rarity"] < config.RARE)
+    db.run(db.agency(), """MATCH (b:Business {id: 'wet-paint'}), (t:Technique {id: $id})
+                           MERGE (b)-[:SIGNATURE]->(t)""", {"id": common})
+    assert tools.derive_signatures() == expected
+
+
 def test_common_techniques_do_not_dilute_q2_similarity(demo):
     blocked = next(d["id"] for d in tools.drafts("tumble-town") if d["status"] == "flagged")
     fingerprint = db.rows(
@@ -461,17 +494,26 @@ def test_every_artifact_has_a_why(demo):
         assert unowned == []
 
 
-def test_vetoed_draft_is_not_a_needs_you_double_take_block(demo):
+def test_flagged_draft_cannot_be_approved(demo):
     from redstring.web.app import _studio_context
 
     blocked = demo["cannonball"]["posts"][0][0]["draft"]
-    tools.board_decide("cannonball", "Draft", blocked, "veto", "Not for this business.")
+    graph = db.client("cannonball")
+    status_before = next(draft["status"] for draft in tools.drafts("cannonball") if draft["id"] == blocked)
+    flags_before = tools.collision_flags("cannonball", blocked)
+    decisions_before = db.rows(graph, "MATCH (d:Decision) RETURN count(d) AS count")[0]["count"]
+
+    with pytest.raises(tools.BoardConflict, match="not queued"):
+        tools.board_decide("cannonball", "Draft", blocked, "approve", "Not for this business.")
 
     status = next(draft["status"] for draft in tools.drafts("cannonball") if draft["id"] == blocked)
+    decisions_after = db.rows(graph, "MATCH (d:Decision) RETURN count(d) AS count")[0]["count"]
     _, needs_you = _studio_context(tools.pipeline_board())
 
-    assert status == "vetoed"
-    assert blocked not in [item["draft_id"] for item in needs_you if item["type"] == "blocked"]
+    assert status == status_before == "flagged"
+    assert tools.collision_flags("cannonball", blocked) == flags_before
+    assert decisions_after == decisions_before
+    assert blocked in [item["draft_id"] for item in needs_you if item["type"] == "blocked"]
 
 
 def test_vetoed_draft_fingerprint_is_not_live_work(demo):

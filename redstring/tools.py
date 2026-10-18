@@ -15,6 +15,15 @@ from datetime import date, datetime, timedelta, timezone
 
 from . import config, db, queries, seed
 
+
+class NotFound(LookupError):
+    pass
+
+
+class BoardConflict(ValueError):
+    pass
+
+
 AGENT_NAMES = {
     "scout": "Scout", "researcher": "Researcher", "auditor": "Auditor", "style_director": "Style Director",
     "strategist": "Strategist", "producer": "Producer", "standards": "Standards",
@@ -234,8 +243,9 @@ def screening_card(lead: str) -> dict:
 
 def set_status(slug: str, status: str, agent: str, rationale: str, source: str | None = None) -> dict:
     g = db.agency()
-    extra = ", b.passed_at = $at" if status == "passed" else ""
-    db.run(g, f"MATCH (b:Business {{id: $id}}) SET b.status = $status{extra}", {"id": slug, "status": status, "at": now()})
+    extra = ", b.passed_at = $at, b.passed_day = $day" if status == "passed" else ""
+    db.run(g, f"MATCH (b:Business {{id: $id}}) SET b.status = $status{extra}",
+           {"id": slug, "status": status, "at": now(), "day": sim_day()})
     if status in ("pursued", "pitched", "signed"):
         db.run(g, """MATCH (a:Agent {id: 'account_manager'}), (b:Business {id: $id})
                      MERGE (a)-[o:OWNS]->(b) ON CREATE SET o.since = $at""", {"id": slug, "at": now()})
@@ -281,7 +291,18 @@ def record_goal(client: str, text: str, metric: str, target: float, due: str, st
 def retire_goal(client: str, goal_id: str, agent: str = "board", rationale: str = "",
                 source: str | None = None) -> dict:
     g = db.client(client)
-    db.run(g, "MATCH (g:Goal {id: $id}) SET g.status = 'retired', g.retired_at = $at", {"id": goal_id, "at": now()})
+    state = _board_target_state(client, "Goal", goal_id)
+    if state["status"] == "retired":
+        raise BoardConflict(f"goal {goal_id} is already retired")
+    matched = db.rows(g, """MATCH (g:Goal {id: $id})
+                            WHERE coalesce(g.status, '') <> 'retired'
+                            SET g.status = 'retired', g.retired_at = $at
+                            RETURN g.id AS id""", {"id": goal_id, "at": now()})
+    if not matched:
+        state = _board_target_state(client, "Goal", goal_id)
+        if state["status"] == "retired":
+            raise BoardConflict(f"goal {goal_id} is already retired")
+        raise NotFound(f"unknown Goal {goal_id} for {client}")
     _decide(g, agent, "Retired goal", rationale or "Goal changed.", [("Goal", goal_id)], source=source)
     return {"goal": goal_id, "stale_drafts": stale_drafts(client)}
 
@@ -345,7 +366,14 @@ def record_audit(client: str, summary: str, reviewed: list[str], audit_findings:
 
 def open_territory(client: str, style: str, avoid: list[str] | None = None) -> list[dict]:
     """Q3: techniques in a style no overlapping business has claimed as a signature, rarest first."""
-    return db.rows(db.agency(), queries.Q3_OPEN_TERRITORY, {"client": client, "style": style, "avoid": avoid or []})
+    return db.rows(db.agency(), queries.Q3_OPEN_TERRITORY, {
+        "client": client,
+        "style": style,
+        "avoid": avoid or [],
+        "rare": config.RARE,
+        "day": sim_day(),
+        "cooldown_days": config.PASSED_COOLDOWN_DAYS,
+    })
 
 
 def set_taste_profile(client: str, prefers: dict[str, float], avoids: list[str], summary: str,
@@ -525,9 +553,9 @@ def audience_overlap(a: str, b: str) -> float:
 
 def double_take(client: str, draft_id: str) -> list[dict]:
     """Q2: similarity on rare techniques, times audience overlap. Read only."""
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=config.PASSED_COOLDOWN_DAYS)).isoformat()
     rows = db.rows(db.agency(), queries.Q2_DOUBLE_TAKE,
-                   {"draft": draft_id, "rare": config.RARE, "cooldown_cutoff": cutoff})
+                   {"draft": draft_id, "rare": config.RARE, "day": sim_day(),
+                    "cooldown_days": config.PASSED_COOLDOWN_DAYS})
     for r in rows:
         r["similarity"] = round(r["similarity"], 3)
         r["overlap"] = audience_overlap(client, r["business_id"])
@@ -539,12 +567,12 @@ def double_take(client: str, draft_id: str) -> list[dict]:
 
 def double_take_preview(client: str, technique_ids: list[str]) -> list[dict]:
     validate_technique_ids(technique_ids)
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=config.PASSED_COOLDOWN_DAYS)).isoformat()
     rows = db.rows(db.agency(), queries.Q2_DOUBLE_TAKE_PREVIEW, {
         "client": client,
         "technique_ids": technique_ids,
         "rare": config.RARE,
-        "cooldown_cutoff": cutoff,
+        "day": sim_day(),
+        "cooldown_days": config.PASSED_COOLDOWN_DAYS,
     })
     for row in rows:
         row["similarity"] = round(row["similarity"], 3)
@@ -616,9 +644,8 @@ def check_draft(client: str, draft_id: str, agent: str = "standards") -> dict:
 
 
 def derive_signatures() -> list[dict]:
-    """Q0, after clearing stale signatures."""
+    """Q0, clearing stale signatures and deriving replacements in one query."""
     g = db.agency()
-    db.run(g, queries.Q0_CLEAR_SIGNATURES)
     return db.rows(g, queries.Q0_DERIVE_SIGNATURES, {"rare": config.RARE, "share": config.SIGNATURE_SHARE})
 
 
@@ -650,17 +677,51 @@ def write_pitch(client: str, angle: str, draft_ids: list[str], finding_ids: list
     return {"pitch": pid}
 
 
+def _board_target_state(client: str, target_label: str, target_id: str) -> dict:
+    g = db.client(client)
+    if target_label == "Draft":
+        rows = db.rows(g, "MATCH (d:Draft {id: $id}) RETURN d.status AS status", {"id": target_id})
+    elif target_label == "Pitch":
+        rows = db.rows(g, """MATCH (p:Pitch {id: $id})
+                             OPTIONAL MATCH (d:Decision)-[:AFFECTS]->(p)
+                             WHERE d.text STARTS WITH 'Board veto'
+                             RETURN p.status AS status, count(d) > 0 AS vetoed""", {"id": target_id})
+    elif target_label == "Goal":
+        rows = db.rows(g, "MATCH (g:Goal {id: $id}) RETURN g.status AS status", {"id": target_id})
+    else:
+        raise ValueError(f"unsupported board target {target_label}")
+    if not rows:
+        raise NotFound(f"unknown {target_label} {target_id} for {client}")
+    return rows[0]
+
+
 def board_decide(client: str, target_label: str, target_id: str, verdict: str, note: str,
                  source: str | None = None) -> dict:
     """The board (Yaz). An approve or veto becomes a Decision DECIDED_BY Yaz; agents treat it as a rule."""
     assert verdict in ("approve", "veto")
     g = db.client(client)
+    state = _board_target_state(client, target_label, target_id)
+    if target_label == "Draft" and state["status"] != "queued":
+        raise BoardConflict(f"draft {target_id} is {state['status']}, not queued")
     if target_label == "Pitch":
-        db.run(g, "MATCH (p:Pitch {id: $id}) SET p.status = $s", {"id": target_id, "s": "approved" if verdict == "approve" else "draft"})
+        if state["status"] != "draft":
+            raise BoardConflict(f"pitch {target_id} is {state['status']}, not draft")
+        if state["vetoed"]:
+            raise BoardConflict(f"pitch {target_id} has already been vetoed")
+    if target_label == "Pitch":
+        matched = db.rows(g, """MATCH (p:Pitch {id: $id})
+                                SET p.status = $s RETURN p.id AS id""",
+                          {"id": target_id, "s": "approved" if verdict == "approve" else "draft"})
     elif target_label == "Draft":
-        db.run(g, "MATCH (d:Draft {id: $id}) SET d.status = $s", {"id": target_id, "s": "approved" if verdict == "approve" else "vetoed"})
-        if verdict == "veto":
-            db.run(db.agency(), queries.RETIRE_FINGERPRINT, {"id": target_id, "now": now()})
+        matched = db.rows(g, """MATCH (d:Draft {id: $id})
+                                SET d.status = $s RETURN d.id AS id""",
+                          {"id": target_id, "s": "approved" if verdict == "approve" else "vetoed"})
+    else:
+        raise ValueError(f"unsupported board target {target_label}")
+    if not matched:
+        raise NotFound(f"unknown {target_label} {target_id} for {client}")
+    if target_label == "Draft" and verdict == "veto":
+        db.run(db.agency(), queries.RETIRE_FINGERPRINT, {"id": target_id, "now": now()})
     did = _decide(g, "board", f"Board {verdict}: {target_label}", note, [(target_label, target_id)],
                   source=source)
     return {"decision": did, "verdict": verdict}

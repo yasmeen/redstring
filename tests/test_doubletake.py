@@ -97,8 +97,12 @@ def test_try_draft_preview_does_not_write_under_readonly(seeded_demo, monkeypatc
     monkeypatch.setattr(web, "READONLY", True)
     client = TestClient(web.app)
     draft = next(item for item in tools.drafts("tumble-town") if item["status"] == "flagged")
-    agency = db.agency()
-    before = db.rows(agency, "MATCH (n) RETURN count(n) AS count")[0]["count"]
+
+    def fail_write(*args, **kwargs):
+        raise AssertionError("read-only preview attempted a graph write")
+
+    for module in {db, tools.db, web.db}:
+        monkeypatch.setattr(module, "run", fail_write)
 
     response = client.post("/api/try/draft", json={
         "client": "tumble-town",
@@ -106,7 +110,94 @@ def test_try_draft_preview_does_not_write_under_readonly(seeded_demo, monkeypatc
     })
 
     assert response.status_code == 200
-    assert db.rows(agency, "MATCH (n) RETURN count(n) AS count")[0]["count"] == before
+    assert response.json()["results"]
+    assert response.json()["flagged"] is True
+
+
+def test_try_lead_preview_does_not_write(monkeypatch, seeded_demo):
+    monkeypatch.setattr(web, "READONLY", False)
+    client = TestClient(web.app)
+
+    def fail_write(*args, **kwargs):
+        raise AssertionError("read-only preview attempted a graph write")
+
+    for module in {db, tools.db, web.db}:
+        monkeypatch.setattr(module, "run", fail_write)
+
+    response = client.post("/api/try/lead", json={
+        "name": "Preview Studio",
+        "category": "Kids art",
+        "targets": {"A1": 0.7, "A2": 0.5},
+        "neighborhood": "n_flatiron",
+        "preview": True,
+    })
+
+    assert response.status_code == 200
+    assert response.json()["saved"] is False
+    assert response.json()["clients"]
+
+
+def test_q3_excludes_rare_active_fingerprints_and_expires_passed_peers(seeded_demo):
+    peers = db.rows(db.agency(), """
+        MATCH (me:Business {id: $client})-[:TARGETS]->(a0:Audience)
+              -[:OVERLAPS]-(a1:Audience)<-[:TARGETS]-(other:Business)
+        WHERE other <> me AND other.status IN ['signed', 'pursued', 'pitched']
+        RETURN DISTINCT other.id AS id
+    """, {"client": "tumble-town"})
+    peer = next(
+        row["id"] for row in peers
+        if db.rows(db.agency(), """MATCH (f:Fingerprint)-[:OF]->(b:Business {id: $id})
+                                   WHERE f.active RETURN f.id AS id LIMIT 1""", {"id": row["id"]})
+    )
+    style, candidate = next(
+        (style["name"], item)
+        for style in tools.world()["styles"]
+        for item in tools.open_territory("tumble-town", style["name"], [])
+        if item["rarity"] >= config.RARE
+    )
+    fingerprint = db.rows(db.agency(), """MATCH (f:Fingerprint)-[:OF]->(b:Business {id: $id})
+                                           WHERE f.active RETURN f.id AS id LIMIT 1""",
+                           {"id": peer})[0]["id"]
+    db.run(db.agency(), """MATCH (f:Fingerprint {id: $fingerprint}), (t:Technique {id: $technique})
+                           MERGE (f)-[:USES]->(t)""",
+           {"fingerprint": fingerprint, "technique": candidate["technique_id"]})
+
+    db.run(db.agency(), "MERGE (c:Clock {id: 'studio'}) SET c.day = 0")
+    tools._sim_day_cache = None
+    tools.set_status(peer, "passed", "test", "cooldown test")
+    assert db.rows(db.agency(), "MATCH (b:Business {id: $id}) RETURN b.passed_day AS day",
+                   {"id": peer})[0]["day"] == 0
+    assert candidate["technique_id"] not in {
+        item["technique_id"] for item in tools.open_territory("tumble-town", style, [])
+    }
+
+    db.run(db.agency(), "MATCH (c:Clock {id: 'studio'}) SET c.day = 91")
+    tools._sim_day_cache = None
+    assert candidate["technique_id"] in {
+        item["technique_id"] for item in tools.open_territory("tumble-town", style, [])
+    }
+
+
+def test_q2_cooldown_uses_simulation_day_for_saved_and_preview(seeded_demo):
+    draft = _tumble_blocked_draft()
+    db.run(db.agency(), "MATCH (f:Fingerprint {id: $id}) SET f.active = true", {"id": draft["id"]})
+    try:
+        db.run(db.agency(), "MERGE (c:Clock {id: 'studio'}) SET c.day = 0")
+        tools._sim_day_cache = None
+        tools.set_status("wet-paint", "passed", "test", "cooldown test")
+        assert "wet-paint" in {item["business_id"] for item in tools.double_take("tumble-town", draft["id"])}
+        assert "wet-paint" in {
+            item["business_id"] for item in tools.double_take_preview("tumble-town", draft["techniques"])
+        }
+
+        db.run(db.agency(), "MATCH (c:Clock {id: 'studio'}) SET c.day = 91")
+        tools._sim_day_cache = None
+        assert "wet-paint" not in {item["business_id"] for item in tools.double_take("tumble-town", draft["id"])}
+        assert "wet-paint" not in {
+            item["business_id"] for item in tools.double_take_preview("tumble-town", draft["techniques"])
+        }
+    finally:
+        db.run(db.agency(), "MATCH (f:Fingerprint {id: $id}) SET f.active = false", {"id": draft["id"]})
 
 
 def test_try_draft_unknown_client_returns_404(seeded_demo):

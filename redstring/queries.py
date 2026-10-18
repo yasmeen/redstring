@@ -17,6 +17,9 @@ WITH f
 MATCH (b:Business {id: $client})
 MERGE (f)-[:OF]->(b)
 WITH f
+OPTIONAL MATCH (f)-[old:USES]->()
+DELETE old
+WITH DISTINCT f
 UNWIND $technique_ids AS tid
 MATCH (t:Technique {id: tid})
 MERGE (f)-[:USES]->(t)
@@ -27,9 +30,11 @@ MATCH (f:Fingerprint {id: $id}) SET f.active = false, f.retired_at = $now
 """
 
 # Q0. Derive signatures. After seeding and after each new post.
-# CHANGE: clears stale SIGNATURE edges first, and only active fingerprints count.
+# CHANGE: clears stale SIGNATURE edges in the same query, and only active fingerprints count.
 Q0_CLEAR_SIGNATURES = "MATCH ()-[s:SIGNATURE]->() DELETE s"
 Q0_DERIVE_SIGNATURES = """
+MATCH ()-[stale:SIGNATURE]->() DELETE stale
+WITH count(stale) AS cleared
 MATCH (b:Business)<-[:OF]-(f:Fingerprint)
 WHERE f.active
 WITH b, count(f) AS total
@@ -101,14 +106,14 @@ RETURN t1.weight * t2.weight * o.share AS conflict
 
 # Q2. Double Take. Standards. Similarity counts only rare techniques, weighted by rarity, against
 # any active fingerprint from a business that shares an audience and is signed or an open pursuit.
-# CHANGE: only active fingerprints count; passed prospects count until their cooldown ends.
+# CHANGE: only active fingerprints count; passed prospects count through the simulation cooldown.
 Q2_DOUBLE_TAKE = """
 MATCH (d:Fingerprint {id: $draft})-[:OF]->(me:Business)
 WHERE d.active
 MATCH (me)-[:TARGETS]->(a0:Audience)
 MATCH (a0)-[:OVERLAPS*0..1]-(a1:Audience)<-[:TARGETS]-(other:Business)
 WHERE other <> me AND (other.status IN ['signed', 'pursued', 'pitched']
-      OR (other.status = 'passed' AND other.passed_at >= $cooldown_cutoff))
+      OR (other.status = 'passed' AND coalesce(other.passed_day, 0) >= $day - $cooldown_days))
 WITH DISTINCT d, other
 MATCH (d)-[:USES]->(t:Technique)<-[:USES]-(of:Fingerprint)-[:OF]->(other)
 WHERE t.rarity >= $rare AND of.active
@@ -126,7 +131,7 @@ Q2_DOUBLE_TAKE_PREVIEW = """
 MATCH (me:Business {id: $client})-[:TARGETS]->(a0:Audience)
 MATCH (a0)-[:OVERLAPS*0..1]-(a1:Audience)<-[:TARGETS]-(other:Business)
 WHERE other <> me AND (other.status IN ['signed', 'pursued', 'pitched']
-      OR (other.status = 'passed' AND other.passed_at >= $cooldown_cutoff))
+      OR (other.status = 'passed' AND coalesce(other.passed_day, 0) >= $day - $cooldown_days))
 WITH DISTINCT other
 MATCH (of:Fingerprint)-[:OF]->(other)
 MATCH (of)-[:USES]->(t:Technique)
@@ -171,16 +176,21 @@ MATCH (r:Reference)
 RETURN count(DISTINCT r) AS reference_total
 """
 
-# Q3. Open territory. Style Director. Techniques in a style that no overlapping business has
-# claimed as a signature, rarest first.
+# Q3. Open territory. Style Director. Techniques in a style that no Q2-comparison business has
+# claimed in an active fingerprint or as a signature, rarest first.
 # CHANGE: open pursuits count as claimants too (so two pitches do not converge), $avoid excludes
 # the techniques a CollisionFlag named, and techniques need at least one reference as evidence.
 Q3_OPEN_TERRITORY = """
 MATCH (me:Business {id: $client})
-OPTIONAL MATCH (me)-[:TARGETS]->(:Audience)<-[:TARGETS]-(other:Business)
-WHERE other <> me AND other.status IN ['signed', 'pursued', 'pitched']
+OPTIONAL MATCH (me)-[:TARGETS]->(a0:Audience),
+              (a0)-[:OVERLAPS*0..1]-(a1:Audience)<-[:TARGETS]-(other:Business)
+WHERE other <> me AND (other.status IN ['signed', 'pursued', 'pitched']
+      OR (other.status = 'passed' AND coalesce(other.passed_day, 0) >= $day - $cooldown_days))
 OPTIONAL MATCH (other)-[:SIGNATURE]->(claimed:Technique)
-WITH collect(DISTINCT claimed.id) AS taken
+OPTIONAL MATCH (other)<-[:OF]-(f:Fingerprint)-[:USES]->(active:Technique)
+WHERE active IS NULL OR (f.active AND active.rarity >= $rare)
+WITH collect(DISTINCT claimed.id) AS signatures, collect(DISTINCT active.id) AS active_ids
+WITH [id IN signatures WHERE id IS NOT NULL] + [id IN active_ids WHERE id IS NOT NULL] AS taken
 MATCH (t:Technique)-[:PART_OF]->(:Style {name: $style})
 WHERE NOT t.id IN taken AND NOT t.id IN $avoid
 OPTIONAL MATCH (t)<-[:USES]-(r:Reference)

@@ -48,7 +48,7 @@ pytest               # boots its own throwaway FalkorDB
 
 **Agents.** `REDSTRING_MODE=offline` (the default) runs deterministic agents that write the same nodes through the same tools, with templated text. `REDSTRING_MODE=claude` (or `redstring demo --mode claude`) runs each agent as a Claude tool-use loop (`claude-opus-5-5`, adaptive thinking, server-side refusal fallback) whose only graph access is its slice of the tool registry. The Researcher also gets web search, and its findings are cached to `data/research/<slug>.json` so reruns replay them. Set `ANTHROPIC_API_KEY` first. Claude mode has run end to end with a real key against local FalkorDB (about 13 minutes). The same collisions fire and clear on revision.
 
-**Deploy.** Public Docker deployments default to `REDSTRING_READONLY=1`: visitors can still use both try-it inputs, but cannot reset the demo or act as the board. `docker compose up` keeps local development writable by default. For a hosted demo, point `FALKORDB_HOST`, `FALKORDB_PORT`, `FALKORDB_USERNAME` and `FALKORDB_PASSWORD` at FalkorDB Cloud and deploy the `Dockerfile`; boot waits for FalkorDB and starts the finished offline run. To intentionally reseed a writable deployment, run `redstring demo` against its configured graph; this drops and recreates the demo graphs. Set `REDSTRING_VIDEO_URL` to a YouTube link or an `.mp4` URL to show a walkthrough video at the top of Analysis; without it, the video slot stays hidden.
+**Deploy.** Public Docker deployments default to `REDSTRING_READONLY=1`: visitors can still use both try-it inputs, but cannot reset the demo or act as the board. `docker compose up` keeps local development writable by default. For a hosted demo, point `FALKORDB_HOST`, `FALKORDB_PORT`, `FALKORDB_USERNAME` and `FALKORDB_PASSWORD` at FalkorDB Cloud and deploy the `Dockerfile`; boot waits up to 60 attempts for a FalkorDB ping, then runs the selected seed/demo initialization once and starts serving. Initialization errors stop the container instead of retrying. To intentionally reseed a writable deployment, run `redstring demo` against its configured graph; this drops and recreates the demo graphs. Set `REDSTRING_VIDEO_URL` to a YouTube link or an `.mp4` URL to show a walkthrough video at the top of Analysis; without it, the video slot stays hidden.
 
 ## Graph architecture
 
@@ -230,7 +230,7 @@ The two collisions are **planted**, and this README says so. `world.json` carrie
 
 ## Try it as an outsider
 
-The web app has two live inputs. *Screen a new lead* adds a synthetic lead with your audience weights and runs Q1; on a read-only deployment it screens the lead without saving it. *Check a draft idea* (Double Take) projects a temporary fingerprint for any technique mix, runs Q2, and deletes it.
+The web app has two live inputs. *Screen a new lead* adds a synthetic lead with your audience weights and runs Q1; on a read-only deployment it screens the lead without saving it. *Check a draft idea* (Double Take) runs `Q2_DOUBLE_TAKE_PREVIEW` directly on the submitted client and technique IDs, without creating a temporary fingerprint or writing to the graph.
 
 ## AI-use disclosure
 
