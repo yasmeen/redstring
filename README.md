@@ -73,7 +73,7 @@ Each one is a named tool (`redstring/registry.py`), served over MCP, so agents n
 1. P1 takes `kind` as a parameter and sets `active = true`. A revision or a Double Take block retires the old fingerprint, so a draft that never ships stops counting against anyone.
 2. Q0 clears stale `SIGNATURE` edges first, and counts only active fingerprints.
 3. Q1 stores `OVERLAPS` once per pair and matches it undirected. The same-category, same-neighborhood decline rule is its own small query. Verdicts sum conflict per signed client: at least 0.9 means pursue only with differentiated territory, at least 0.5 means borderline, and anything lower means pursue. On the seed this reproduces every verdict in the spec's lead table.
-4. Q2 counts only active fingerprints, and passed prospects count until their cooldown ends. Similarity is shared rare-technique rarity divided by the draft's total rare-technique rarity, so common moves do not dilute it. Risk = similarity × audience overlap. Overlap uses Q1's paths between the two businesses, clamped to 1. A draft is flagged at risk 0.35 or more.
+4. Q2 counts only active fingerprints, and passed prospects count until their cooldown ends. Similarity is shared rare-technique rarity divided by the draft's total rare-technique rarity, so common moves do not dilute it. Risk = similarity × cosine audience overlap. The numerator combines direct and one-hop audience paths; each self term compares a business with itself under the symmetric audience-overlap matrix. Divide the numerator by the square root of the two self terms' product, then clamp to [0, 1]. A draft is flagged at risk 0.35 or more.
 5. Q3 treats open pursuits as claimants too, so two pitches don't converge. It also takes `$avoid` (the flagged techniques) and requires at least one reference as evidence.
 6. Q4 also labels Draft, Audit and CollisionFlag sources.
 
@@ -217,11 +217,11 @@ The step runner at the top of the web app plays these in order. `redstring demo`
 1. **Seed.** 14 businesses, 3 signed clients, 8 agents plus the board, 63 post fingerprints. Q0 finds Wet Paint's signature: Stop motion, Paint smear wipe and Hand over lens (the planted set), plus Handwritten titles. The planted set is in 4 of Wet Paint's posts and 4 of Cannonball's, and those posts are each history's best performers. That is the ghostwriter story.
 2. **Scout** declines Deep End Swim Club (same category as Cannonball, both in Gramercy Park) and Byte Builders Academy (same category and neighborhood as Pixel Pond in Flatiron). It flags Tumble Town (conflict 1.58 with Wet Paint), Treble Clef and Northpoint for differentiated territory, calls Page Turn borderline (0.72), and clears the rest. It pursues Tumble Town and Treble Clef. Each verdict's thread shows its audience paths.
 3. **Researcher and Auditor** fill both private graphs: sourced findings, a hypothesized goal, and 3 audit findings computed from the posts.
-4. **Spec posts.** Tumble Town's post 2 is blocked: it resembles Wet Paint and Cannonball, with risk 1.00 against each. Treble Clef's post 1 is blocked against **Tumble Town's open pitch**, with risk 0.598. Both are revised from open territory and pass on re-check.
+4. **Spec posts.** Tumble Town's post 2 is blocked: it resembles Wet Paint (risk 0.968) and Cannonball (risk 0.973). Treble Clef's post 1 is blocked against **Tumble Town's open pitch**, with risk 0.646. Both are revised from open territory and pass on re-check.
 5. **Account Manager** assembles the Tumble Town pitch. Every claim opens to its source, and the goal is marked as our hypothesis.
 6. **The board approves.** Nothing is sent.
 7. **Tumble Town signs.** It is the same graph, now a client, with its history intact.
-8. **Cannonball's monthly draft** hits the planted collision (risk 1.00 against Wet Paint). Q3 offers Calm Explainer open territory, and the revision clears.
+8. **Cannonball's monthly draft** hits the planted collision (risk 0.996 against Wet Paint). Q3 offers Calm Explainer open territory, and the revision clears.
 9. **Retire Pixel Pond's goal.** Q5 surfaces its 2 queued drafts as stale.
 
 Then close on the graph itself in FalkorDB Browser (`docker compose up` serves it on :3000).

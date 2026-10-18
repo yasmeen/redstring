@@ -6,6 +6,7 @@ Reads that feed the product are P1 and Q0-Q5 from queries.py; the writes below f
 from __future__ import annotations
 
 import json
+import math
 import uuid
 from collections import defaultdict
 from contextlib import contextmanager
@@ -510,8 +511,16 @@ def drafts(client: str) -> list[dict]:
 # ------------------------------------------------------------------ Standards (Q2, Q0)
 
 def audience_overlap(a: str, b: str) -> float:
-    rows = db.rows(db.agency(), queries.AUDIENCE_OVERLAP, {"a": a, "b": b})
-    return round(min(1.0, sum(r["conflict"] for r in rows)), 3)
+    cross = sum(row["conflict"] for row in
+                db.rows(db.agency(), queries.AUDIENCE_OVERLAP, {"a": a, "b": b}))
+    self_a = sum(row["conflict"] for row in
+                 db.rows(db.agency(), queries.AUDIENCE_SELF_OVERLAP, {"a": a}))
+    self_b = sum(row["conflict"] for row in
+                 db.rows(db.agency(), queries.AUDIENCE_SELF_OVERLAP, {"a": b}))
+    if self_a == 0 or self_b == 0:
+        return 0.0
+    overlap = cross / math.sqrt(self_a * self_b)
+    return round(min(1.0, max(0.0, overlap)), 3)
 
 
 def double_take(client: str, draft_id: str) -> list[dict]:

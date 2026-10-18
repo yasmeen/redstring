@@ -1,3 +1,5 @@
+import math
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -173,3 +175,61 @@ def test_q2_includes_business_on_one_overlapping_audience_hop(seeded_demo):
     results = tools.double_take("tumble-town", draft["id"])
 
     assert any(result["business_id"] == "q2-neighbor" for result in results)
+
+
+def test_audience_overlap_is_cosine(seeded_demo):
+    business_ids = [business["id"] for business in tools.world()["businesses"]]
+
+    for index, a in enumerate(business_ids):
+        assert tools.audience_overlap(a, a) == 1.0
+        for b in business_ids[index + 1:]:
+            overlap = tools.audience_overlap(a, b)
+            assert overlap == tools.audience_overlap(b, a)
+            assert 0.0 <= overlap <= 1.0
+
+
+def test_audience_overlap_normalizes_breadth(seeded_demo):
+    a, b = "tumble-town", "wet-paint"
+    target_rows = db.rows(
+        db.agency(),
+        """MATCH (business:Business)-[target:TARGETS]->(audience:Audience)
+           WHERE business.id = $a OR business.id = $b
+           RETURN business.id AS business_id, audience.id AS audience_id, target.weight AS weight""",
+        {"a": a, "b": b},
+    )
+    weights = {a: {}, b: {}}
+    for row in target_rows:
+        weights[row["business_id"]][row["audience_id"]] = row["weight"]
+
+    overlap_rows = db.rows(
+        db.agency(),
+        """MATCH (left:Audience)-[overlap:OVERLAPS]-(right:Audience)
+           RETURN left.id AS left_id, right.id AS right_id, overlap.share AS share""",
+    )
+    shares = {
+        frozenset((row["left_id"], row["right_id"])): row["share"]
+        for row in overlap_rows
+    }
+
+    def matrix(left, right):
+        if left == right:
+            return 1.0
+        return shares.get(frozenset((left, right)), 0.0)
+
+    def self_overlap(business):
+        targets = weights[business]
+        return sum(
+            left_weight * right_weight * matrix(left, right)
+            for left, left_weight in targets.items()
+            for right, right_weight in targets.items()
+        )
+
+    cross = sum(
+        left_weight * right_weight * matrix(left, right)
+        for left, left_weight in weights[a].items()
+        for right, right_weight in weights[b].items()
+    )
+    expected = cross / math.sqrt(self_overlap(a) * self_overlap(b))
+    expected = round(min(1.0, max(0.0, expected)), 3)
+
+    assert tools.audience_overlap(a, b) == pytest.approx(expected, abs=1e-3)

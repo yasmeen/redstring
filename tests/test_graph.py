@@ -313,7 +313,7 @@ def test_tumble_town_spec_collides_with_wet_paint_then_clears(demo):
     assert [c["status"] for c in chain] == ["flagged", "queued"]
     flagged = {f["with_business"] for f in chain[0]["flags"]}
     assert "Wet Paint Kids Studio" in flagged
-    assert chain[0]["flags"][0]["with_business"] == "Wet Paint Kids Studio"
+    assert flagged == {"Wet Paint Kids Studio", "Cannonball Swim School"}
 
 
 def test_pitch_against_pitch_collision(demo):
