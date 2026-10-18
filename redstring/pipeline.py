@@ -119,7 +119,10 @@ class Pipeline:
                        f"and pass revision_of={prev}. ")
                     + "Pick 2 references with references_for, write the hook and a shot-by-shot spec in the client's voice."),
                     log=self.log, slug=client, tool_results=tool_results,
-                    pinned_args={"write_draft": {"revision_of": prev}})
+                    pinned_args={"write_draft": {
+                        "revision_of": prev,
+                        "technique_ids": technique_ids,
+                    }})
                 draft = self._tool_id(tool_results, "write_draft", "draft")
             else:
                 draft = offline.producer(client, plan_id, slot, technique_ids, kind, revision_of=prev, version=version)["draft"]

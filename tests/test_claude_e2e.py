@@ -19,6 +19,7 @@ class ScriptedClaude:
         self.emitted = []
         self.tool_results = []
         self.search_urls = set()
+        self.producer_requests = {}
 
     def _outputs(self, messages):
         outputs = []
@@ -219,7 +220,11 @@ class ScriptedClaude:
         if any(name == "write_draft" for name, _ in outputs):
             return self._finish()
         refs = next((result for name, result in outputs if name == "references_for"), None)
-        technique_ids = self._techniques(task)
+        requested_technique_ids = self._techniques(task)
+        taxonomy_ids = [technique["id"] for technique in tools.world()["techniques"]]
+        replacement = next(technique_id for technique_id in taxonomy_ids
+                           if technique_id not in requested_technique_ids)
+        technique_ids = requested_technique_ids[:-1] + [replacement]
         if refs is None:
             return self._response(self._use("references_for", {
                 "technique_ids": technique_ids,
@@ -231,11 +236,15 @@ class ScriptedClaude:
         plan = re.search(r"in plan ([\w-]+)", task).group(1)
         slot = int(re.search(r"post (\d+)", task).group(1))
         kind = re.search(r"kind (spec|draft)", task).group(1)
+        hook = f"Claude scripted {kind} {slot}"
+        previous_draft = re.search(r"This revises draft ([\w-]+)", task)
+        previous_draft = previous_draft.group(1) if previous_draft else None
+        self.producer_requests[(client, hook, previous_draft)] = requested_technique_ids
         return self._response(self._use("write_draft", {
             "client": client,
             "plan_id": plan,
             "format": "reel",
-            "hook": f"Claude scripted {kind} {slot}",
+            "hook": hook,
             "spec": "A scripted shot-by-shot creative specification.",
             "technique_ids": technique_ids,
             "reference_ids": [item["id"] for item in refs[:2]],
@@ -319,6 +328,12 @@ def test_claude_mode_runs_end_to_end_with_a_scripted_client(monkeypatch, tmp_pat
         }
         for slug in ("cannonball", "treble-clef", "tumble-town")
     }
+    for business in tools.world()["businesses"]:
+        slug = business["id"]
+        for draft in tools.drafts(slug):
+            assert set(draft["techniques"]) == set(
+                fake.producer_requests[(slug, draft["hook"], draft["revision_of"])]
+            )
     assert blocked == {"cannonball", "treble-clef", "tumble-town"}, diagnostic
     assert tools.business("tumble-town")["status"] == "signed"
     assert len(tools.stale_drafts("pixel-pond")) == 2
