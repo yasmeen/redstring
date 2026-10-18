@@ -636,10 +636,15 @@ def board(slug: str, label: str, target_id: str, body: BoardIn):
     _writable()
     if label not in ("Pitch", "Draft"):
         raise HTTPException(400, label)
-    return tools.board_decide(
-        _client_or_404(slug), label, target_id, body.verdict,
-        body.note or f"Board {body.verdict}.", source="web_board",
-    )
+    try:
+        return tools.board_decide(
+            _client_or_404(slug), label, target_id, body.verdict,
+            body.note or f"Board {body.verdict}.", source="web_board",
+        )
+    except tools.NotFound as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except tools.BoardConflict as exc:
+        raise HTTPException(409, str(exc)) from exc
 
 
 @app.post("/api/lead/{slug}/decide")

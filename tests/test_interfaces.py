@@ -374,6 +374,45 @@ def test_full_demo_marks_board_actions_as_web_board_decisions():
     assert tools.board_rules("pixel-pond")
 
 
+def test_board_rejects_flagged_draft_and_approved_pitch_without_writes(monkeypatch):
+    import redstring.web.app as web
+
+    monkeypatch.setattr(web, "READONLY", False)
+    tools._world_cache = None
+    demo = Pipeline("offline", log=None).run_demo()
+    client = TestClient(web.app)
+    flagged = next(
+        draft for draft in tools.drafts("tumble-town") if draft["status"] == "flagged"
+    )
+    flagged_status = flagged["status"]
+    flagged_collision_flags = tools.collision_flags("tumble-town", flagged["id"])
+    decisions_before = len(tools.decisions("tumble-town"))
+
+    response = client.post(
+        f"/api/board/tumble-town/Draft/{flagged['id']}",
+        json={"verdict": "approve", "note": "repro"},
+    )
+
+    assert response.status_code == 409
+    assert next(draft["status"] for draft in tools.drafts("tumble-town")
+                if draft["id"] == flagged["id"]) == flagged_status
+    assert tools.collision_flags("tumble-town", flagged["id"]) == flagged_collision_flags
+    assert len(tools.decisions("tumble-town")) == decisions_before
+
+    pitch_id = demo["pitch"]["pitch"]
+    pitch = next(item for item in tools.pitches("tumble-town") if item["id"] == pitch_id)
+    assert pitch["status"] == "approved"
+    response = client.post(
+        f"/api/board/tumble-town/Pitch/{pitch_id}",
+        json={"verdict": "veto", "note": "repro"},
+    )
+
+    assert response.status_code == 409
+    assert next(item["status"] for item in tools.pitches("tumble-town")
+                if item["id"] == pitch_id) == "approved"
+    assert len(tools.decisions("tumble-town")) == decisions_before
+
+
 def test_web_try_inputs(monkeypatch):
     import redstring.web.app as web
     monkeypatch.setattr(web, "READONLY", False)

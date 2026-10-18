@@ -15,6 +15,15 @@ from datetime import date, datetime, timedelta, timezone
 
 from . import config, db, queries, seed
 
+
+class NotFound(LookupError):
+    pass
+
+
+class BoardConflict(ValueError):
+    pass
+
+
 AGENT_NAMES = {
     "scout": "Scout", "researcher": "Researcher", "auditor": "Auditor", "style_director": "Style Director",
     "strategist": "Strategist", "producer": "Producer", "standards": "Standards",
@@ -650,17 +659,49 @@ def write_pitch(client: str, angle: str, draft_ids: list[str], finding_ids: list
     return {"pitch": pid}
 
 
+def _board_target_state(client: str, target_label: str, target_id: str) -> dict:
+    g = db.client(client)
+    if target_label == "Draft":
+        rows = db.rows(g, "MATCH (d:Draft {id: $id}) RETURN d.status AS status", {"id": target_id})
+    elif target_label == "Pitch":
+        rows = db.rows(g, """MATCH (p:Pitch {id: $id})
+                             OPTIONAL MATCH (d:Decision)-[:AFFECTS]->(p)
+                             WHERE d.text STARTS WITH 'Board veto'
+                             RETURN p.status AS status, count(d) > 0 AS vetoed""", {"id": target_id})
+    else:
+        raise ValueError(f"unsupported board target {target_label}")
+    if not rows:
+        raise NotFound(f"unknown {target_label} {target_id} for {client}")
+    return rows[0]
+
+
 def board_decide(client: str, target_label: str, target_id: str, verdict: str, note: str,
                  source: str | None = None) -> dict:
     """The board (Yaz). An approve or veto becomes a Decision DECIDED_BY Yaz; agents treat it as a rule."""
     assert verdict in ("approve", "veto")
     g = db.client(client)
+    state = _board_target_state(client, target_label, target_id)
+    if target_label == "Draft" and state["status"] != "queued":
+        raise BoardConflict(f"draft {target_id} is {state['status']}, not queued")
     if target_label == "Pitch":
-        db.run(g, "MATCH (p:Pitch {id: $id}) SET p.status = $s", {"id": target_id, "s": "approved" if verdict == "approve" else "draft"})
+        if state["status"] != "draft":
+            raise BoardConflict(f"pitch {target_id} is {state['status']}, not draft")
+        if state["vetoed"]:
+            raise BoardConflict(f"pitch {target_id} has already been vetoed")
+    if target_label == "Pitch":
+        matched = db.rows(g, """MATCH (p:Pitch {id: $id})
+                                SET p.status = $s RETURN p.id AS id""",
+                          {"id": target_id, "s": "approved" if verdict == "approve" else "draft"})
     elif target_label == "Draft":
-        db.run(g, "MATCH (d:Draft {id: $id}) SET d.status = $s", {"id": target_id, "s": "approved" if verdict == "approve" else "vetoed"})
-        if verdict == "veto":
-            db.run(db.agency(), queries.RETIRE_FINGERPRINT, {"id": target_id, "now": now()})
+        matched = db.rows(g, """MATCH (d:Draft {id: $id})
+                                SET d.status = $s RETURN d.id AS id""",
+                          {"id": target_id, "s": "approved" if verdict == "approve" else "vetoed"})
+    else:
+        raise ValueError(f"unsupported board target {target_label}")
+    if not matched:
+        raise NotFound(f"unknown {target_label} {target_id} for {client}")
+    if target_label == "Draft" and verdict == "veto":
+        db.run(db.agency(), queries.RETIRE_FINGERPRINT, {"id": target_id, "now": now()})
     did = _decide(g, "board", f"Board {verdict}: {target_label}", note, [(target_label, target_id)],
                   source=source)
     return {"decision": did, "verdict": verdict}
