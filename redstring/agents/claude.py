@@ -94,7 +94,8 @@ def _board_rules(slug: str | None) -> list[dict]:
 def run_agent(agent: str, task: str, log=print, max_turns: int = 24, *,
               slug: str | None = None, allowed_leads: set[str] | None = None,
               allowed_pursuits: set[str] | None = None,
-              tool_results: dict | None = None, on_search_urls=None) -> str:
+              tool_results: dict | None = None, on_search_urls=None,
+              pinned_args: dict[str, dict] | None = None) -> str:
     system = ROLES[agent] + "\n\n" + COMMON.format(agency=tools.world()["agency"]["name"])
     board_rules = _board_rules(slug)
     if board_rules:
@@ -150,9 +151,11 @@ def run_agent(agent: str, task: str, log=print, max_turns: int = 24, *,
                     raise ValueError(f"{u.name}: not your tool")
                 if u.name == "record_finding" and u.input.get("source_url") not in searched_urls:
                     raise ValueError("record_finding source_url was not returned by web_search")
+                args = dict(u.input)
+                args.update((pinned_args or {}).get(u.name, {}))
                 out = registry.call(
                     u.name,
-                    dict(u.input),
+                    args,
                     caller=agent,
                     scope=slug,
                     allowed_slugs=allowed_leads,
@@ -167,6 +170,8 @@ def run_agent(agent: str, task: str, log=print, max_turns: int = 24, *,
                     result_text = result_text[:20000 - len(marker)] + marker
                 results.append({"type": "tool_result", "tool_use_id": u.id, "content": result_text})
             except Exception as e:  # the agent sees the error and can correct itself
+                if log:
+                    log(f"  {tools.AGENT_NAMES[agent]} tool error ({u.name}): {e}")
                 results.append({"type": "tool_result", "tool_use_id": u.id, "content": json.dumps({"error": str(e)}),
                                 "is_error": True})
         messages.append({"role": "user", "content": results})
