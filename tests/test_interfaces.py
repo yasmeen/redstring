@@ -339,6 +339,50 @@ def test_claude_agent_loop_uses_only_its_tools(monkeypatch):
     assert tools.screening_card("crux")["verdict"] == "pursue"
 
 
+def test_claude_auditor_request_includes_loaded_top_post_ids(monkeypatch, tmp_path):
+    from redstring import config
+    from redstring.agents import claude
+    from redstring.pipeline import Pipeline
+
+    tools._world_cache = None
+    world = tools.world()
+    seed.seed_all(world)
+    seed.create_client_graph(world, "crux", include_posts=False)
+    monkeypatch.setattr(config, "RESEARCH_CACHE", tmp_path)
+
+    class MessageRecorder:
+        def __init__(self):
+            self.calls = []
+
+        def create(self, **kwargs):
+            self.calls.append(kwargs)
+            return SimpleNamespace(
+                stop_reason="end_turn",
+                content=[SimpleNamespace(type="text", text="Reviewed the supplied posts.")],
+            )
+
+    recorder = MessageRecorder()
+    monkeypatch.setattr(claude, "_client", SimpleNamespace(beta=SimpleNamespace(messages=recorder)))
+    pipeline = Pipeline("claude", log=None)
+    run_agent = pipeline.claude.run_agent
+
+    def offline_researcher_for_test(agent, task, offline_fn, *args, **kwargs):
+        if agent == "researcher":
+            return offline_fn(*args, **kwargs)
+        return run_agent(agent, task, log=None)
+
+    monkeypatch.setattr(pipeline, "_agent", offline_researcher_for_test)
+    pipeline.research("crux")
+
+    posts = sorted(tools.posts("crux"), key=lambda post: post["views"], reverse=True)
+    assert posts
+    first_request = recorder.calls[0]
+    prompt = first_request["messages"][0]["content"]
+    assert all(post["id"] in prompt for post in posts[:3])
+    assert "post IDs in descending view order" in prompt
+    assert any(tool["name"] == "posts" for tool in first_request["tools"])
+
+
 def test_overview_exposes_walkthrough_video(monkeypatch):
     import redstring.web.app as web
     tools._world_cache = None
