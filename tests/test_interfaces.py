@@ -342,8 +342,16 @@ def test_board_rules_are_web_decisions_in_quoted_user_data(monkeypatch):
 
     tools._world_cache = None
     seed.seed_all()
-    tools.board_decide("wet-paint", "Draft", "internal", "approve", "Internal decision.")
-    tools.board_decide("wet-paint", "Draft", "web", "approve", "Web board decision.", source="web_board")
+    goal = tools.goals("wet-paint")[0]
+    plan = tools.write_plan("wet-paint", "board-rule-test", goal["id"], "Test board rules.")["plan"]
+    internal = tools.write_draft(
+        "wet-paint", plan, "reel", "Internal decision", "Test draft.", [], [], "Test internal draft."
+    )["draft"]
+    web = tools.write_draft(
+        "wet-paint", plan, "reel", "Web board decision", "Test draft.", [], [], "Test web draft."
+    )["draft"]
+    tools.board_decide("wet-paint", "Draft", internal, "approve", "Internal decision.")
+    tools.board_decide("wet-paint", "Draft", web, "approve", "Web board decision.", source="web_board")
 
     class Messages:
         def __init__(self):

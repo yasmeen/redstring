@@ -494,17 +494,26 @@ def test_every_artifact_has_a_why(demo):
         assert unowned == []
 
 
-def test_vetoed_draft_is_not_a_needs_you_double_take_block(demo):
+def test_flagged_draft_cannot_be_approved(demo):
     from redstring.web.app import _studio_context
 
     blocked = demo["cannonball"]["posts"][0][0]["draft"]
-    tools.board_decide("cannonball", "Draft", blocked, "veto", "Not for this business.")
+    graph = db.client("cannonball")
+    status_before = next(draft["status"] for draft in tools.drafts("cannonball") if draft["id"] == blocked)
+    flags_before = tools.collision_flags("cannonball", blocked)
+    decisions_before = db.rows(graph, "MATCH (d:Decision) RETURN count(d) AS count")[0]["count"]
+
+    with pytest.raises(tools.BoardConflict, match="not queued"):
+        tools.board_decide("cannonball", "Draft", blocked, "approve", "Not for this business.")
 
     status = next(draft["status"] for draft in tools.drafts("cannonball") if draft["id"] == blocked)
+    decisions_after = db.rows(graph, "MATCH (d:Decision) RETURN count(d) AS count")[0]["count"]
     _, needs_you = _studio_context(tools.pipeline_board())
 
-    assert status == "vetoed"
-    assert blocked not in [item["draft_id"] for item in needs_you if item["type"] == "blocked"]
+    assert status == status_before == "flagged"
+    assert tools.collision_flags("cannonball", blocked) == flags_before
+    assert decisions_after == decisions_before
+    assert blocked in [item["draft_id"] for item in needs_you if item["type"] == "blocked"]
 
 
 def test_vetoed_draft_fingerprint_is_not_live_work(demo):
