@@ -497,6 +497,28 @@ def double_take(client: str, draft_id: str) -> list[dict]:
 
 def check_draft(client: str, draft_id: str, agent: str = "standards") -> dict:
     """Standards' whole move: run Q2, and either clear the draft or block it with a CollisionFlag."""
+    draft = next((d for d in drafts(client) if d["id"] == draft_id), None)
+    if draft is None:
+        raise ValueError(f"unknown draft {draft_id} for {client}")
+    if draft["status"] in {"blocked", "flagged", "vetoed", "retired"}:
+        flags = collision_flags(client, draft_id)
+        results = []
+        for flag in flags:
+            other = business(flag["with_business_id"])
+            results.append({
+                "business": flag["with_business"],
+                "business_id": flag["with_business_id"],
+                "status": other["status"],
+                "shared_rare": flag["shared"],
+                "shared_ids": flag["shared_ids"],
+                "similarity": flag["similarity"],
+                "overlap": flag["overlap"],
+                "risk": flag["risk"],
+                "flag": True,
+                "evidence": flag["evidence"],
+            })
+        return {"draft": draft_id, "status": draft["status"], "results": results, "flags": flags}
+
     results = double_take(client, draft_id)
     flagged = [r for r in results if r["flag"]]
     g = db.client(client)

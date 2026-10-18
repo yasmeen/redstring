@@ -301,6 +301,35 @@ def test_blocked_fingerprints_stop_counting(demo):
     assert db.rows(db.agency(), "MATCH (f:Fingerprint {id: $id}) RETURN f.active AS a", {"id": blocked})[0]["a"] is False
 
 
+def test_rechecking_blocked_draft_preserves_verdict(demo, monkeypatch):
+    blocked = demo["cannonball"]["posts"][0][0]["draft"]
+    decisions_before = len(tools.decisions("cannonball"))
+
+    def unexpected_double_take(*_args):
+        pytest.fail("a blocked draft should not be rechecked")
+
+    monkeypatch.setattr(tools, "double_take", unexpected_double_take)
+    result = tools.check_draft("cannonball", blocked)
+
+    assert result["status"] == "flagged"
+    assert result["flags"]
+    assert len(tools.decisions("cannonball")) == decisions_before
+    assert next(d["status"] for d in tools.drafts("cannonball") if d["id"] == blocked) == "flagged"
+
+
+def test_check_draft_rejects_unknown_id(demo, monkeypatch):
+    decisions_before = len(tools.decisions("cannonball"))
+
+    def unexpected_double_take(*_args):
+        pytest.fail("an unknown draft should not be checked")
+
+    monkeypatch.setattr(tools, "double_take", unexpected_double_take)
+    with pytest.raises(ValueError, match="unknown draft missing-draft for cannonball"):
+        tools.check_draft("cannonball", "missing-draft")
+
+    assert len(tools.decisions("cannonball")) == decisions_before
+
+
 def test_every_artifact_has_a_why(demo):
     """Every agent-written node is AFFECTED by a Decision. Seeded history (posts, signed clients' first goal) is exempt."""
     for slug in db.client_slugs():
