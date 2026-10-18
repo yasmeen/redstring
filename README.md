@@ -230,7 +230,7 @@ The two collisions are **planted**, and this README says so. `world.json` carrie
 
 ## Try it as an outsider
 
-The web app has two live inputs. *Screen a new lead* adds a synthetic lead with your audience weights and runs Q1; on a read-only deployment it screens the lead without saving it. *Check a draft idea* (Double Take) projects a temporary fingerprint for any technique mix, runs Q2, and deletes it.
+The web app has two live inputs. *Screen a new lead* adds a synthetic lead with your audience weights and runs Q1; on a read-only deployment it screens the lead without saving it. *Check a draft idea* (Double Take) runs `Q2_DOUBLE_TAKE_PREVIEW` directly on the submitted client and technique IDs, without creating a temporary fingerprint or writing to the graph.
 
 ## AI-use disclosure
 

@@ -97,8 +97,12 @@ def test_try_draft_preview_does_not_write_under_readonly(seeded_demo, monkeypatc
     monkeypatch.setattr(web, "READONLY", True)
     client = TestClient(web.app)
     draft = next(item for item in tools.drafts("tumble-town") if item["status"] == "flagged")
-    agency = db.agency()
-    before = db.rows(agency, "MATCH (n) RETURN count(n) AS count")[0]["count"]
+
+    def fail_write(*args, **kwargs):
+        raise AssertionError("read-only preview attempted a graph write")
+
+    for module in {db, tools.db, web.db}:
+        monkeypatch.setattr(module, "run", fail_write)
 
     response = client.post("/api/try/draft", json={
         "client": "tumble-town",
@@ -106,7 +110,31 @@ def test_try_draft_preview_does_not_write_under_readonly(seeded_demo, monkeypatc
     })
 
     assert response.status_code == 200
-    assert db.rows(agency, "MATCH (n) RETURN count(n) AS count")[0]["count"] == before
+    assert response.json()["results"]
+    assert response.json()["flagged"] is True
+
+
+def test_try_lead_preview_does_not_write(monkeypatch, seeded_demo):
+    monkeypatch.setattr(web, "READONLY", False)
+    client = TestClient(web.app)
+
+    def fail_write(*args, **kwargs):
+        raise AssertionError("read-only preview attempted a graph write")
+
+    for module in {db, tools.db, web.db}:
+        monkeypatch.setattr(module, "run", fail_write)
+
+    response = client.post("/api/try/lead", json={
+        "name": "Preview Studio",
+        "category": "Kids art",
+        "targets": {"A1": 0.7, "A2": 0.5},
+        "neighborhood": "n_flatiron",
+        "preview": True,
+    })
+
+    assert response.status_code == 200
+    assert response.json()["saved"] is False
+    assert response.json()["clients"]
 
 
 def test_try_draft_unknown_client_returns_404(seeded_demo):
