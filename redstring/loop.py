@@ -91,7 +91,14 @@ def _post_for_client(pipeline: Pipeline, client: str, day: int, log=None) -> dic
 
 def next_day(log=None) -> dict:
     world = tools.world()
-    day = tools.set_sim_day(tools.sim_day() + 1)
+    day = tools.sim_day() + 1
+    with tools.sim_day_at(day):
+        result = _run_day(world, day, log)
+        tools.set_sim_day(day)
+    return result
+
+
+def _run_day(world: dict, day: int, log=None) -> dict:
     date = tools.sim_date(day)
     pipeline = Pipeline(mode="offline", log=log)
     _say(log, f"Day {day} · {date}")
@@ -116,6 +123,7 @@ def next_day(log=None) -> dict:
     candidates = [
         business for business in businesses
         if business.get("status") == "lead"
+        and not business["id"].startswith("try-")
         and business.get("verdict") in ("pursue", "pursue_differentiated")
         and feed_arrivals.get(business["id"], 0) < day
     ]

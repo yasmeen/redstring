@@ -301,6 +301,84 @@ def test_blocked_fingerprints_stop_counting(demo):
     assert db.rows(db.agency(), "MATCH (f:Fingerprint {id: $id}) RETURN f.active AS a", {"id": blocked})[0]["a"] is False
 
 
+def test_common_techniques_do_not_dilute_q2_similarity(demo):
+    blocked = next(d["id"] for d in tools.drafts("tumble-town") if d["status"] == "flagged")
+    fingerprint = db.rows(
+        db.agency(), "MATCH (f:Fingerprint {id: $id}) RETURN f.active AS active", {"id": blocked}
+    )[0]
+    existing_ids = {
+        row["id"] for row in db.rows(
+            db.agency(), "MATCH (:Fingerprint {id: $id})-[:USES]->(t:Technique) RETURN t.id AS id",
+            {"id": blocked},
+        )
+    }
+    common_ids = [
+        t["id"] for t in tools.world()["techniques"]
+        if t["rarity"] < config.RARE and t["id"] not in existing_ids
+    ][:12]
+    assert len(common_ids) == 12
+
+    db.run(db.agency(), "MATCH (f:Fingerprint {id: $id}) SET f.active = true", {"id": blocked})
+    try:
+        original = {
+            row["business_id"]: row for row in tools.double_take("tumble-town", blocked)
+        }
+        assert original
+        for count in (0, 6, 12):
+            ids = common_ids[:count]
+            if ids:
+                db.run(db.agency(), """MATCH (f:Fingerprint {id: $draft})
+                                       UNWIND $ids AS id
+                                       MATCH (t:Technique {id: id})
+                                       MERGE (f)-[:USES]->(t)""",
+                       {"draft": blocked, "ids": ids})
+            try:
+                expanded = {
+                    row["business_id"]: row for row in tools.double_take("tumble-town", blocked)
+                }
+                assert expanded.keys() == original.keys()
+                for business_id, row in original.items():
+                    assert expanded[business_id]["similarity"] == row["similarity"]
+                    assert expanded[business_id]["risk"] == row["risk"]
+            finally:
+                if ids:
+                    db.run(db.agency(), """MATCH (f:Fingerprint {id: $draft})-[r:USES]->(t:Technique)
+                                           WHERE t.id IN $ids DELETE r""",
+                           {"draft": blocked, "ids": ids})
+    finally:
+        db.run(db.agency(), "MATCH (f:Fingerprint {id: $id}) SET f.active = $active",
+               {"id": blocked, "active": fingerprint["active"]})
+
+
+def test_rechecking_blocked_draft_preserves_verdict(demo, monkeypatch):
+    blocked = demo["cannonball"]["posts"][0][0]["draft"]
+    decisions_before = len(tools.decisions("cannonball"))
+
+    def unexpected_double_take(*_args):
+        pytest.fail("a blocked draft should not be rechecked")
+
+    monkeypatch.setattr(tools, "double_take", unexpected_double_take)
+    result = tools.check_draft("cannonball", blocked)
+
+    assert result["status"] == "flagged"
+    assert result["flags"]
+    assert len(tools.decisions("cannonball")) == decisions_before
+    assert next(d["status"] for d in tools.drafts("cannonball") if d["id"] == blocked) == "flagged"
+
+
+def test_check_draft_rejects_unknown_id(demo, monkeypatch):
+    decisions_before = len(tools.decisions("cannonball"))
+
+    def unexpected_double_take(*_args):
+        pytest.fail("an unknown draft should not be checked")
+
+    monkeypatch.setattr(tools, "double_take", unexpected_double_take)
+    with pytest.raises(ValueError, match="unknown draft missing-draft for cannonball"):
+        tools.check_draft("cannonball", "missing-draft")
+
+    assert len(tools.decisions("cannonball")) == decisions_before
+
+
 def test_every_artifact_has_a_why(demo):
     """Every agent-written node is AFFECTED by a Decision. Seeded history (posts, signed clients' first goal) is exempt."""
     for slug in db.client_slugs():

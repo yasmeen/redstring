@@ -213,12 +213,16 @@ def overview():
 @app.post("/api/next-day")
 def next_day():
     _writable()
-    with _lock:
+    if not _lock.acquire(blocking=False):
+        raise HTTPException(409, "agents are busy")
+    try:
         try:
             return loop.next_day(log=_log.append)
         except Exception as e:
             _log.append(f"ERROR in next day: {e}")
             raise HTTPException(500, str(e))
+    finally:
+        _lock.release()
 
 
 @app.get("/api/activity")
@@ -370,7 +374,11 @@ def step(step: str):
     _writable()
     if step not in dict(STEPS):
         raise HTTPException(404, step)
-    with _lock:
+    if not _lock.acquire(blocking=False):
+        raise HTTPException(409, "agents are busy")
+    try:
+        if step != "reset" and step in _done:
+            raise HTTPException(409, "already ran; reset first")
         if step != "reset" and step not in _done:
             i = next(i for i, (step_id, _) in enumerate(STEPS) if step_id == step)
             prev_id = STEPS[i - 1][0]
@@ -386,6 +394,8 @@ def step(step: str):
             _log.append(f"ERROR in {step}: {e}")
             raise HTTPException(500, str(e))
         _done.append(step)
+    finally:
+        _lock.release()
     return {"ok": True, "log": _log[-30:]}
 
 
@@ -655,19 +665,15 @@ def try_lead(body: LeadIn):
     slug = f"try-{os.urandom(4).hex()}" if preview else (
         "try-" + (re.sub(r"[^a-z0-9]+", "-", body.name.lower()).strip("-")[:40] or "lead")
     )
+    if preview:
+        return {**tools.lead_conflict_preview(slug, body.category, body.neighborhood, targets), "saved": False}
+
     g = db.agency()
     create_query = """MATCH (n:Neighborhood {id: $neighborhood})
                       CREATE (b:Business {id: $id, name: $name, category: $category, status: 'lead', synthetic: true, user_added: true})-[:LOCATED_IN]->(n)
                       WITH b UNWIND $targets AS t MATCH (a:Audience {id: t.aud}) CREATE (b)-[:TARGETS {weight: t.w}]->(a)"""
     params = {"id": slug, "name": body.name, "category": body.category, "neighborhood": body.neighborhood,
               "targets": [{"aud": k, "w": v} for k, v in targets.items()]}
-    if preview:
-        try:
-            db.run(g, create_query, params)
-            res = tools.lead_conflict(slug)
-        finally:
-            db.run(g, "MATCH (b:Business {id: $id}) DETACH DELETE b", {"id": slug})
-        return {**res, "saved": False}
     db.run(g, "MATCH (b:Business {id: $id}) DETACH DELETE b", {"id": slug})
     db.run(g, create_query, params)
     return {**tools.screen_lead(slug), "saved": True}

@@ -73,8 +73,13 @@ class Pipeline:
             f"Research the category and audience for {client} on the public web. Record 4 to 6 findings with record_finding, "
             f"each with the exact source URL you read. Then record a hypothesized goal with record_goal based on those findings."),
             offline.researcher, client)
+        tools.load_client_posts(client)
+        top_post_ids = [
+            p["id"] for p in sorted(tools.posts(client), key=lambda post: post["views"], reverse=True)
+        ]
         a = self._agent("auditor", (
-            f"Audit {client}'s past posts (call posts). Record one audit with record_audit with 3 findings: what worked, "
+            f"Audit {client}'s past posts (call posts). The post IDs in descending view order are "
+            f"{', '.join(top_post_ids)}. Record one audit with record_audit with 3 findings: what worked, "
             f"what was weakest and why, and what is distinctive. Cite views and saves."),
             offline.auditor, client)
         cache = config.RESEARCH_CACHE / f"{client}.json"

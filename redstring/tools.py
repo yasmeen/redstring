@@ -8,6 +8,8 @@ from __future__ import annotations
 import json
 import uuid
 from collections import defaultdict
+from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import date, datetime, timedelta, timezone
 
 from . import config, db, queries, seed
@@ -29,6 +31,7 @@ def _id(prefix: str) -> str:
 
 _world_cache: dict | None = None
 _sim_day_cache: int | None = None
+_sim_day_override: ContextVar[int | None] = ContextVar("redstring_sim_day_override", default=None)
 
 
 def world() -> dict:
@@ -39,11 +42,23 @@ def world() -> dict:
 
 
 def sim_day() -> int:
+    override = _sim_day_override.get()
+    if override is not None:
+        return override
     global _sim_day_cache
     if _sim_day_cache is None:
         rows = db.rows(db.agency(), "MATCH (c:Clock {id: 'studio'}) RETURN c.day AS day")
         _sim_day_cache = int(rows[0]["day"]) if rows else 0
     return _sim_day_cache
+
+
+@contextmanager
+def sim_day_at(day: int):
+    token = _sim_day_override.set(day)
+    try:
+        yield
+    finally:
+        _sim_day_override.reset(token)
 
 
 def set_sim_day(day: int) -> int:
@@ -131,11 +146,7 @@ def reference_total() -> int:
 
 # ------------------------------------------------------------------ Q1: Scout
 
-def lead_conflict(lead: str) -> dict:
-    """Q1 plus the same-category, same-neighborhood rule. Returns per-client conflict and the audience paths."""
-    g = db.agency()
-    paths = db.rows(g, queries.Q1_LEAD_CONFLICT, {"lead": lead})
-    competitors = db.rows(g, queries.Q1_SAME_AREA_COMPETITOR, {"lead": lead})
+def _lead_conflict_result(lead: str, paths: list[dict], competitors: list[dict]) -> dict:
     per = defaultdict(lambda: {"conflict": 0.0, "same_category": False, "paths": []})
     for p in paths:
         c = per[p["client"]]
@@ -157,6 +168,23 @@ def lead_conflict(lead: str) -> dict:
         verdict, reason = "pursue", "Little or no audience overlap with signed clients." if not clients else f"Light overlap (max {top:.2f}); clear to pitch."
     return {"lead": lead, "verdict": verdict, "reason": reason, "max_conflict": round(top, 3),
             "competitors": competitors, "clients": clients}
+
+
+def lead_conflict(lead: str) -> dict:
+    """Q1 plus the same-category, same-neighborhood rule. Returns per-client conflict and the audience paths."""
+    g = db.agency()
+    paths = db.rows(g, queries.Q1_LEAD_CONFLICT, {"lead": lead})
+    competitors = db.rows(g, queries.Q1_SAME_AREA_COMPETITOR, {"lead": lead})
+    return _lead_conflict_result(lead, paths, competitors)
+
+
+def lead_conflict_preview(lead: str, category: str, neighborhood: str, targets: dict[str, float]) -> dict:
+    g = db.agency()
+    audiences = [{"id": audience, "weight": weight} for audience, weight in targets.items()]
+    paths = db.rows(g, queries.Q1_LEAD_CONFLICT_PREVIEW, {"audiences": audiences, "category": category})
+    competitors = db.rows(g, queries.Q1_SAME_AREA_COMPETITOR_PREVIEW,
+                          {"category": category, "neighborhood": neighborhood})
+    return _lead_conflict_result(lead, paths, competitors)
 
 
 def record_screening(lead: str, verdict: str, reason: str, paths: list | None = None, agent: str = "scout") -> dict:
@@ -469,6 +497,28 @@ def double_take(client: str, draft_id: str) -> list[dict]:
 
 def check_draft(client: str, draft_id: str, agent: str = "standards") -> dict:
     """Standards' whole move: run Q2, and either clear the draft or block it with a CollisionFlag."""
+    draft = next((d for d in drafts(client) if d["id"] == draft_id), None)
+    if draft is None:
+        raise ValueError(f"unknown draft {draft_id} for {client}")
+    if draft["status"] in {"blocked", "flagged", "vetoed", "retired"}:
+        flags = collision_flags(client, draft_id)
+        results = []
+        for flag in flags:
+            other = business(flag["with_business_id"])
+            results.append({
+                "business": flag["with_business"],
+                "business_id": flag["with_business_id"],
+                "status": other["status"],
+                "shared_rare": flag["shared"],
+                "shared_ids": flag["shared_ids"],
+                "similarity": flag["similarity"],
+                "overlap": flag["overlap"],
+                "risk": flag["risk"],
+                "flag": True,
+                "evidence": flag["evidence"],
+            })
+        return {"draft": draft_id, "status": draft["status"], "results": results, "flags": flags}
+
     results = double_take(client, draft_id)
     flagged = [r for r in results if r["flag"]]
     g = db.client(client)

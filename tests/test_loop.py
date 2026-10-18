@@ -81,6 +81,46 @@ def test_next_day_arrival_and_decision_day_stamps(demo):
     assert all(decision["day"] == 1 for decision in new_decisions)
 
 
+def test_saved_try_lead_does_not_create_client_graph_on_next_day(demo, monkeypatch):
+    import redstring.web.app as web
+
+    monkeypatch.setattr(web, "READONLY", False)
+    day = tools.sim_day()
+    c = TestClient(web.app)
+    lead = c.post("/api/try/lead", json={
+        "name": "Try Dance Studio",
+        "category": "Kids dance",
+        "targets": {"A1": 1},
+        "neighborhood": "n_flatiron",
+    })
+
+    assert lead.status_code == 200
+    assert lead.json()["saved"] is True
+    slug = lead.json()["lead"]
+    assert slug.startswith("try-")
+
+    response = c.post("/api/next-day")
+
+    assert response.status_code == 200
+    assert tools.sim_day() == day + 1
+    assert f"client:{slug}" not in db.list_graphs()
+
+
+def test_failed_next_day_does_not_advance_clock(demo, monkeypatch):
+    from redstring import loop
+
+    day = tools.sim_day()
+
+    def fail_arrival(*_args, **_kwargs):
+        raise RuntimeError("arrival failed")
+
+    monkeypatch.setattr(loop, "_arrive", fail_arrival)
+    with pytest.raises(RuntimeError, match="arrival failed"):
+        next_day()
+
+    assert tools.sim_day() == day
+
+
 def test_six_days_respect_capacity_and_human_gates(demo):
     feed_ids = {business["id"] for business in tools.world()["lead_feed"]}
     approved_before = {

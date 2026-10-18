@@ -56,10 +56,28 @@ RETURN c.id AS client_id, c.name AS client, c.category = lead.category AS same_c
        a.name AS via, la.name AS hop, tl.weight * tc.weight * o.share AS conflict
 """
 
+Q1_LEAD_CONFLICT_PREVIEW = """
+UNWIND $audiences AS target
+MATCH (a:Audience {id: target.id})<-[tc:TARGETS]-(c:Business {status: 'signed'})
+RETURN c.id AS client_id, c.name AS client, c.category = $category AS same_category,
+       a.name AS via, null AS hop, target.weight * tc.weight AS conflict
+UNION ALL
+UNWIND $audiences AS target
+MATCH (la:Audience {id: target.id})-[o:OVERLAPS]-(a:Audience)<-[tc:TARGETS]-(c:Business {status: 'signed'})
+RETURN c.id AS client_id, c.name AS client, c.category = $category AS same_category,
+       a.name AS via, la.name AS hop, target.weight * tc.weight * o.share AS conflict
+"""
+
 # Same category in the same neighborhood is an automatic decline.
 Q1_SAME_AREA_COMPETITOR = """
 MATCH (lead:Business {id: $lead})-[:LOCATED_IN]->(n:Neighborhood)<-[:LOCATED_IN]-(c:Business {status: 'signed'})
 WHERE c.category = lead.category
+RETURN c.id AS client_id, c.name AS client, n.name AS neighborhood
+"""
+
+Q1_SAME_AREA_COMPETITOR_PREVIEW = """
+MATCH (c:Business {status: 'signed'})-[:LOCATED_IN]->(n:Neighborhood {id: $neighborhood})
+WHERE c.category = $category
 RETURN c.id AS client_id, c.name AS client, n.name AS neighborhood
 """
 
@@ -84,6 +102,7 @@ MATCH (d)-[:USES]->(t:Technique)<-[:USES]-(of:Fingerprint)-[:OF]->(other)
 WHERE t.rarity >= $rare AND of.active
 WITH d, other, collect(DISTINCT t) AS shared
 MATCH (d)-[:USES]->(mine:Technique)
+WHERE mine.rarity >= $rare
 WITH other, shared, sum(mine.rarity) AS total
 RETURN other.id AS business_id, other.name AS business, other.status AS status,
        [t IN shared | t.id] AS shared_ids, [t IN shared | t.name] AS shared_rare,

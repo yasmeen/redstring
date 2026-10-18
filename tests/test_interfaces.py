@@ -1,11 +1,13 @@
 import asyncio
 import inspect
 import json
+import threading
+import time
 from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
 
-from redstring import db, registry, seed, tools
+from redstring import db, queries, registry, seed, tools
 
 
 def test_every_spec_query_is_a_named_tool():
@@ -90,6 +92,17 @@ def test_web_try_lead_readonly_saves_nothing(monkeypatch):
         )
 
     before = counts()
+    original_rows = db.rows
+    observed_business_counts = []
+
+    def observe_rows(graph, query, params=None):
+        if query in (queries.Q1_LEAD_CONFLICT, queries.Q1_LEAD_CONFLICT_PREVIEW):
+            observed_business_counts.append(
+                original_rows(db.agency(), "MATCH (b:Business) RETURN count(b) AS count")[0]["count"]
+            )
+        return original_rows(graph, query, params)
+
+    monkeypatch.setattr(db, "rows", observe_rows)
     r = c.post("/api/try/lead", json={"name": "Sprout Dance", "category": "Kids dance", "targets": {"A1": 1},
                                      "neighborhood": "n_flatiron"}).json()
     assert r["verdict"] == "pursue_differentiated"
@@ -98,6 +111,7 @@ def test_web_try_lead_readonly_saves_nothing(monkeypatch):
                                      "targets": {"A1": 0.6}, "neighborhood": "n_gramercy"}).json()
     assert r["verdict"] == "decline"
     assert r["saved"] is False
+    assert observed_business_counts == [before[0], before[0]]
     assert counts() == before
 
 
@@ -112,6 +126,60 @@ def test_step_api_enforces_order():
     assert r.status_code == 409
     assert "client_month" in r.json()["detail"]
     assert c.post("/api/step/screen").status_code == 200
+
+
+def test_completed_step_cannot_be_rerun(monkeypatch):
+    import redstring.web.app as web
+    monkeypatch.setattr(web, "READONLY", False)
+    web._done.clear()
+    web._log.clear()
+    c = TestClient(web.app)
+
+    try:
+        for step, _ in web.STEPS:
+            assert c.post(f"/api/step/{step}").status_code == 200
+        assert tools.business("tumble-town")["status"] == "signed"
+
+        response = c.post("/api/step/pitch")
+
+        assert response.status_code == 409
+        assert response.json()["detail"] == "already ran; reset first"
+        assert tools.business("tumble-town")["status"] == "signed"
+    finally:
+        web._done.clear()
+        web._log.clear()
+
+
+def test_step_returns_immediately_when_agents_are_busy(monkeypatch):
+    import redstring.web.app as web
+
+    monkeypatch.setattr(web, "READONLY", False)
+    monkeypatch.setattr(web, "run_step", lambda *_args: None)
+    monkeypatch.setattr(web.loop, "next_day", lambda **_kwargs: None)
+    client = TestClient(web.app)
+
+    for path in ("/api/step/reset", "/api/next-day"):
+        held = threading.Event()
+        release = threading.Event()
+
+        def hold_writer_lock():
+            with web._lock:
+                held.set()
+                release.wait(timeout=0.75)
+
+        holder = threading.Thread(target=hold_writer_lock)
+        holder.start()
+        assert held.wait(timeout=1)
+        started = time.monotonic()
+        try:
+            response = client.post(path)
+        finally:
+            release.set()
+            holder.join(timeout=1)
+
+        assert response.status_code == 409
+        assert response.json()["detail"] == "agents are busy"
+        assert time.monotonic() - started < 0.5
 
 
 def test_overview_groups_cleared_to_pitch_leads(monkeypatch):
@@ -269,6 +337,50 @@ def test_claude_agent_loop_uses_only_its_tools(monkeypatch):
     assert names == {t.name for t in registry.for_agent("scout")}
     assert fake.calls[0]["model"] == "claude-opus-5-5"
     assert tools.screening_card("crux")["verdict"] == "pursue"
+
+
+def test_claude_auditor_request_includes_loaded_top_post_ids(monkeypatch, tmp_path):
+    from redstring import config
+    from redstring.agents import claude
+    from redstring.pipeline import Pipeline
+
+    tools._world_cache = None
+    world = tools.world()
+    seed.seed_all(world)
+    seed.create_client_graph(world, "crux", include_posts=False)
+    monkeypatch.setattr(config, "RESEARCH_CACHE", tmp_path)
+
+    class MessageRecorder:
+        def __init__(self):
+            self.calls = []
+
+        def create(self, **kwargs):
+            self.calls.append(kwargs)
+            return SimpleNamespace(
+                stop_reason="end_turn",
+                content=[SimpleNamespace(type="text", text="Reviewed the supplied posts.")],
+            )
+
+    recorder = MessageRecorder()
+    monkeypatch.setattr(claude, "_client", SimpleNamespace(beta=SimpleNamespace(messages=recorder)))
+    pipeline = Pipeline("claude", log=None)
+    run_agent = pipeline.claude.run_agent
+
+    def offline_researcher_for_test(agent, task, offline_fn, *args, **kwargs):
+        if agent == "researcher":
+            return offline_fn(*args, **kwargs)
+        return run_agent(agent, task, log=None)
+
+    monkeypatch.setattr(pipeline, "_agent", offline_researcher_for_test)
+    pipeline.research("crux")
+
+    posts = sorted(tools.posts("crux"), key=lambda post: post["views"], reverse=True)
+    assert posts
+    first_request = recorder.calls[0]
+    prompt = first_request["messages"][0]["content"]
+    assert all(post["id"] in prompt for post in posts[:3])
+    assert "post IDs in descending view order" in prompt
+    assert any(tool["name"] == "posts" for tool in first_request["tools"])
 
 
 def test_overview_exposes_walkthrough_video(monkeypatch):
