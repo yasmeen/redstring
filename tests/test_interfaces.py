@@ -90,7 +90,7 @@ def test_goal_trace_includes_goal_context_and_serving_drafts():
     trace = tools.goal_trace("tumble-town", goal["id"])
 
     assert trace["id"] == goal["id"]
-    assert "created_by" in trace and "created_at" in trace
+    assert "created_by" in trace and "created_at" in trace and "created_day" in trace
     assert isinstance(trace["findings"], list)
     assert isinstance(trace["drafts"], list)
     response = TestClient(app).get(f"/api/goal/tumble-town/{goal['id']}")

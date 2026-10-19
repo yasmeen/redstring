@@ -175,7 +175,7 @@ def _lead_conflict_result(lead: str, paths: list[dict], competitors: list[dict])
         c["client_id"] = p["client_id"]
         c["conflict"] += p["conflict"]
         c["same_category"] |= bool(p["same_category"])
-        via = f"{p['hop']} -> {p['via']}" if p["hop"] else p["via"]
+        via = f"{p['hop']} → overlaps with {p['via']}" if p["hop"] else p["via"]
         c["paths"].append({"via": via, "conflict": round(p["conflict"], 3)})
     clients = sorted(({"client": k, **v, "conflict": round(v["conflict"], 3)} for k, v in per.items()),
                      key=lambda x: -x["conflict"])
@@ -325,7 +325,7 @@ def goals(client: str) -> list[dict]:
                                         OPTIONAL MATCH (draft:Draft)-[:INCLUDES]->(:Plan)-[:SERVES]->(g)
                                         RETURN g.id AS id, g.text AS text, g.metric AS metric, g.target AS target,
                                                g.due AS due, g.status AS status,
-                                               collect(DISTINCT {by: a.name, at: d.at}) AS decisions,
+                                               collect(DISTINCT {by: a.name, at: d.at, day: coalesce(d.day, 0)}) AS decisions,
                                                collect(DISTINCT {id: f.id, kind: f.kind, text: f.text,
                                                                  source_url: f.source_url}) AS findings,
                                                collect(DISTINCT {id: draft.id, hook: draft.hook}) AS drafts""")
@@ -334,6 +334,7 @@ def goals(client: str) -> list[dict]:
         decisions.sort(key=lambda item: item.get("at") or "")
         goal["created_by"] = decisions[0].get("by") if decisions else None
         goal["created_at"] = decisions[0].get("at") if decisions else None
+        goal["created_day"] = decisions[0].get("day", 0) if decisions else 0
         goal["findings"] = [item for item in goal.get("findings", []) if item.get("id")]
         goal["drafts"] = [item for item in goal.get("drafts", []) if item.get("id")]
     return rows
@@ -347,7 +348,7 @@ def goal_trace(client: str, goal_id: str) -> dict:
         return {}
     decisions = db.rows(graph, """MATCH (d:Decision)-[:AFFECTS]->(:Goal {id: $id})
                                  OPTIONAL MATCH (d)-[:DECIDED_BY]->(a:Agent)
-                                 RETURN d.text AS text, d.at AS at, a.name AS by ORDER BY d.at""", {"id": goal_id})
+                                 RETURN d.text AS text, d.at AS at, d.day AS day, a.name AS by ORDER BY d.at""", {"id": goal_id})
     findings = db.rows(graph, """MATCH (d:Decision)-[:AFFECTS]->(:Goal {id: $id})
                                  MATCH (d)-[:BASED_ON]->(f:Finding)
                                  RETURN DISTINCT f.id AS id, f.kind AS kind, f.text AS text,
@@ -356,6 +357,7 @@ def goal_trace(client: str, goal_id: str) -> dict:
                                RETURN DISTINCT d.id AS id, d.hook AS hook ORDER BY d.id""", {"id": goal_id})
     return {**goal[0], "created_by": decisions[0]["by"] if decisions else None,
             "created_at": decisions[0]["at"] if decisions else None,
+            "created_day": decisions[0].get("day", 0) if decisions else 0,
             "findings": findings, "drafts": drafts}
 
 

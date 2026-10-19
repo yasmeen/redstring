@@ -14,7 +14,7 @@ const STATUS_LABELS = { passed: "Passed", vetoed: "Vetoed" };
 const status = (kind, text) => `<span class="status s-${esc(kind)}"><i></i>${esc(text)}</span>`;
 const statusKind = (value) => {
   if (["flagged", "blocked", "vetoed"].includes(value)) return "red";
-  if (["borderline", "pursue_differentiated", "conditional"].includes(value)) return "amber";
+  if (["borderline", "pursue_differentiated", "conditional", "hypothesized"].includes(value)) return "amber";
   if (["pursue", "pitched", "signed", "cleared", "approved", "active", "ready"].includes(value)) return "green";
   return "ink";
 };
@@ -988,7 +988,7 @@ function renderDoubleTakeHistory() {
   const decisions = (detail.next || []).map((item) => {
     return `<li class="dt-history-row"><span class="dt-history-icon">${agentIcon(item.by || "")}</span><span><span class="label">${esc(item.by || "Agent")}</span><span class="dt-history-sentence">${esc(formatDecisionSentence(item, detail.business))}</span>${item.rationale ? `<small>${esc(displayStudioCopy(item.rationale))}</small>` : ""}</span><time datetime="${esc(item.at || "")}" title="${esc(fullDateTime(item.at))}">${runDayLabel(item.day)}</time></li>`;
   }).join("");
-  const later = (detail.later_blocks || []).map((item) => `<li><button type="button" class="dt-later-row" data-dt-slug="${esc(item.client_id)}" data-dt-draft="${esc(item.draft_id)}"><span class="label">LATER</span><span>Later: ${esc(item.client)}'s draft was blocked against ${esc(detail.business.name)}${item.shared?.length ? ` (shared ${esc(item.shared.join(", "))}` : ""}${item.shared?.length && typeof item.risk === "number" ? ", " : ""}${typeof item.risk === "number" ? `risk ${n(item.risk)}` : ""}${item.shared?.length ? ")" : ""}.</span><b class="mono">${typeof item.risk === "number" ? n(item.risk) : ""}</b></button></li>`).join("");
+  const later = (detail.later_blocks || []).map((item) => `<li><button type="button" class="dt-later-row" data-dt-slug="${esc(item.client_id)}" data-dt-draft="${esc(item.draft_id)}"><span class="label">Later</span><span>Later: ${esc(item.client)}'s draft was blocked against ${esc(detail.business.name)}${item.shared?.length ? ` (shared ${esc(item.shared.join(", "))}` : ""}${item.shared?.length && typeof item.risk === "number" ? ", " : ""}${typeof item.risk === "number" ? `risk ${n(item.risk)}` : ""}${item.shared?.length ? ")" : ""}.</span><b class="mono">${typeof item.risk === "number" ? n(item.risk) : ""}</b></button></li>`).join("");
   $("#dt-history").innerHTML = `<h2>What happened next</h2><ol class="dt-history-list">${decisions || `<li class="muted">No later decisions returned.</li>`}${later}</ol>`;
 }
 
@@ -1030,7 +1030,10 @@ function drawDoubleTakeEdges() {
     if (Math.max(...ys) > Math.min(...ys)) d += ` M${busX},${Math.min(...ys)} V${Math.max(...ys)}`;
     destinationRects.forEach((rect) => { d += ` M${busX},${rect.centerY} H${rect.left}`; });
     path(d);
-    if (caption) label(caption, busX, Math.min(...destinationRects.map((rect) => rect.top)) - 10 + captionOffset);
+    if (caption) {
+      const destinationY = destinationRects.reduce((sum, rect) => sum + rect.centerY, 0) / destinationRects.length;
+      label(caption, busX, (sourceRect.centerY + destinationY) / 2);
+    }
   };
   const fanIn = (sources, destination, caption = "", captionPosition = "top") => {
     const sourceRects = sources.map(rectOf).filter(Boolean);
@@ -1042,12 +1045,7 @@ function drawDoubleTakeEdges() {
     sourceRects.forEach((rect) => { d += ` M${rect.right},${rect.centerY} H${busX}`; });
     d += ` M${busX},${destinationRect.centerY} H${destinationRect.left}`;
     path(d);
-    if (caption) {
-      const captionY = captionPosition === "bottom"
-        ? Math.max(...sourceRects.map((rect) => rect.bottom)) + 18
-        : Math.min(...sourceRects.map((rect) => rect.top)) - 10;
-      label(caption, busX, captionY);
-    }
+    if (caption) label(caption, busX, (destinationRect.centerY + Math.min(...sourceRects.map((rect) => rect.centerY))) / 2);
   };
   if (draft && techniques.length && fingerprint) {
     fanOut(draft, techniques, "Uses");
@@ -1063,7 +1061,7 @@ function drawDoubleTakeEdges() {
     }
   }
   if (own && audiences.length && targets.length) {
-    fanOut(own, audiences, "Targets", -18);
+    fanOut(own, audiences, "Targets");
     fanIn(audiences, targets[0], "Overlap", "bottom");
   }
   svg.setAttribute("viewBox", `0 0 ${canvas.scrollWidth} ${canvas.scrollHeight}`);
@@ -1075,6 +1073,11 @@ const runDayLabel = (day) => Number(day || 0) === 0 ? "First run" : `Day ${Numbe
 const fullDateTime = (iso) => {
   const date = new Date(iso || "");
   return Number.isNaN(date.getTime()) ? "" : date.toLocaleString([], { dateStyle: "full", timeStyle: "long" });
+};
+const goalDueLabel = (value) => {
+  if (!value) return "not set";
+  const date = new Date(`${value}T12:00:00`);
+  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 };
 
 async function renderDays() {
@@ -1096,10 +1099,10 @@ async function renderDays() {
     <ul class="day-entries">${d.entries.slice().reverse().map((e) => {
       const blocked = /blocked/i.test(e.text || "");
       const board = e.agent === "Board";
-      const kind = blocked ? "DOUBLE TAKE" : (e.kind || "AGENT UPDATE").replace(/_/g, " ").toUpperCase();
+      const kind = blocked ? "Double Take" : "Agent update";
       return `<li class="feed-entry${blocked ? " is-blocked" : ""}${board ? " is-board" : ""}">
-        <time class="feed-time" datetime="${esc(e.at || "")}" title="${esc(fullDateTime(e.at))}">${runDayLabel(e.day)}</time><span class="feed-icon" title="${esc(e.agent)}" aria-label="${esc(e.agent)}">${agentIcon(e.agent)}</span>
-        <div class="feed-copy"><span class="label${blocked ? " blocked-kind" : ""}">${esc(e.agent)} · ${esc(kind)}</span>
+        <span class="feed-icon" title="${esc(e.agent)}" aria-label="${esc(e.agent)}">${agentIcon(e.agent)}</span>
+        <div class="feed-copy"><time class="feed-time" datetime="${esc(e.at || "")}" title="${esc(fullDateTime(e.at))}"></time><span class="label${blocked ? " blocked-kind" : ""}">${esc(e.agent)} · ${esc(kind)}</span>
           ${e.business_id ? `<span class="activity-business">${bizName(byId[e.business_id], { link: false })}</span>` : ""}
           <p>${esc(displayStudioCopy(e.text))}</p>${e.rationale ? `<small>${esc(displayStudioCopy(e.rationale))}</small>` : ""}
         </div>
@@ -1167,7 +1170,11 @@ function leadReadoutMarkup(result) {
   const conflicts = (result.clients || []).map((client) => client.conflict).filter((value) => typeof value === "number");
   const max = Math.max(1, ...conflicts, thresholds.borderline || 0, thresholds.differentiate || 0);
   const marker = (value) => typeof value === "number" ? `left:${(value / max) * 100}%` : "";
-  return `<div class="lead-verdict">${verdictStatus(verdict, verdictLabel)}<h3>${esc(verdictLabel)}</h3></div>
+  const tickLegend = [
+    typeof thresholds.borderline === "number" ? `<span><i class="client-bar-swatch borderline"></i>Board-call line <b class="mono">${n(thresholds.borderline)}</b></span>` : "",
+    typeof thresholds.differentiate === "number" ? `<span><i class="client-bar-swatch differentiate"></i>Distinct-angle line <b class="mono">${n(thresholds.differentiate)}</b></span>` : "",
+  ].filter(Boolean).join("");
+  return `<div class="lead-verdict"><h3><span class="status s-${statusKind(verdict)}" aria-hidden="true"><i></i></span>${esc(verdictLabel)}</h3></div>
     <p class="lead-reason">${esc(displayCopy(result.reason || ""))}</p>
     <div class="client-bars">${(result.clients || []).map((client) => `<div class="client-bar-row">
       <span>${esc(client.client)}</span><div class="client-bar" role="img" aria-label="${esc(client.client)} conflict ${n(client.conflict)}">
@@ -1175,7 +1182,7 @@ function leadReadoutMarkup(result) {
         ${typeof thresholds.borderline === "number" ? `<i class="client-bar-marker borderline" style="${marker(thresholds.borderline)}" title="Board-call line ${n(thresholds.borderline)}"></i>` : ""}
         ${typeof thresholds.differentiate === "number" ? `<i class="client-bar-marker differentiate" style="${marker(thresholds.differentiate)}" title="Differentiate line ${n(thresholds.differentiate)}"></i>` : ""}
       </div><b class="mono">${n(client.conflict)}</b></div>`).join("") || `<p class="muted">No client conflict returned.</p>`}
-      <p class="client-bar-legend mono">${typeof thresholds.borderline === "number" ? `Board call ${n(thresholds.borderline)}` : ""}${typeof thresholds.differentiate === "number" ? ` · Distinct angle ${n(thresholds.differentiate)}` : ""}</p>
+      <div class="client-bar-legend"><p>Each bar number is the conflict score with that client, using Scout's screening calculation.</p><div class="client-bar-legend-lines">${tickLegend}</div></div>
     </div>`;
 }
 
@@ -1326,8 +1333,8 @@ async function feed() {
       const rationale = [...new Set(entry.records.map((item) => item.rationale).filter(Boolean))][0];
       return `${newDay ? `<li class="feed-day-head${i >= 5 ? " feed-extra" : ""}"${i >= 5 ? " hidden" : ""}><span class="label">${runDayLabel(day)}</span></li>` : ""}
         <li class="feed-entry${i >= 5 ? " feed-extra" : ""}${blocked ? " is-blocked" : ""}${board ? " is-board" : ""}"${i >= 5 ? " hidden" : ""}>
-          <time class="feed-time" datetime="${esc(record.at || "")}" title="${esc(fullDateTime(record.at))}">${runDayLabel(day)}</time><span class="feed-icon">${agentIcon(entry.by || record.by || "")}</span>
-          <div class="feed-copy"><span class="label${blocked ? " blocked-kind" : ""}">${esc(entry.by || record.by || "Agent")} · ${esc(kind)}</span>
+          <span class="feed-icon">${agentIcon(entry.by || record.by || "")}</span>
+          <div class="feed-copy"><time class="feed-time" datetime="${esc(record.at || "")}" title="${esc(fullDateTime(record.at))}"></time><span class="label${blocked ? " blocked-kind" : ""}">${esc(entry.by || record.by || "Agent")} · ${esc(kind)}</span>
             <p>${esc(entry.sentence)}${entry.count > 1 ? ` <span class="feed-count">×${entry.count}</span>` : ""}</p>
             ${rationale ? `<small>${esc(displayStudioCopy(rationale))}</small>` : ""}
           </div>
@@ -1376,7 +1383,11 @@ async function loadAnalysisFromLocation() {
 
 // ---------------------------------------------------------------- analysis: a visual tour of the graph
 
-const pretty = (id) => String(id || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+const pretty = (id) => ({
+  scout: "Scout", researcher: "Researcher", producer: "Producer", standards: "Standards",
+  style_director: "Style director", strategist: "Strategist", account_manager: "Account manager",
+  board: "Board", auditor: "Auditor",
+}[String(id || "")] || String(id || "").replace(/_/g, " "));
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 const SVGNS = "http://www.w3.org/2000/svg";
 
@@ -1524,7 +1535,7 @@ function renderNet() {
   (row?.clients || []).forEach((c) => {
     clientScore[c.client_id] = c.conflict;
     (c.paths || []).forEach((p) => {
-      const parts = p.via.split(" -> ").map((x) => audName[x]);
+      const parts = p.via.split(/(?: -> | → overlaps with )/).map((x) => audName[x] || x);
       if (parts.some((x) => !x)) return;
       const [first, last] = [parts[0], parts[parts.length - 1]];
       add(`t:${row.id}:${first}`, p.conflict); onA.add(first); onA.add(last);
@@ -2138,12 +2149,13 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   }
   if (d.screening && d.screening.verdict) {
     const s = d.screening;
+    const screeningPathLabel = (path) => String(path || "").split(/\s*,\s*|\s*->\s*|\s*→ overlaps with\s*/).filter(Boolean).join(" → overlaps with ");
     screening = `<div class="thread"><div class="knot"><div class="who">${who(s.by || "Scout")} ${verdictStatus(s.verdict)}</div><p>${esc(displayStudioCopy(s.reason))}</p></div>
       ${(s.paths || []).map((c) => {
         const ps = [...(c.paths || [])].sort((a, z) => z.conflict - a.conflict);
-        const pill = (p) => `<li>${esc(p.via)} <span class="metric">· ${n(p.conflict)}</span></li>`;
+        const pill = (p) => `<li>${esc(screeningPathLabel(p.via))} <span class="metric">· ${n(p.conflict)}</span></li>`;
         return `<div class="knot minor"><div class="who">${avatar(bizByName(c.client), "xs")}${esc(c.client)} <span class="metric">· conflict ${n(c.conflict)}</span>${c.same_category ? " · same category" : ""}</div>
-          ${ps.length ? `<p class="muted">via ${ps.slice(0, 2).map((p) => esc(p.via)).join(", ")}</p><p class="muted mono metric">Path contributions: ${ps.slice(0, 2).map((p) => `${esc(p.via)} ${n(p.conflict, 3)}`).join(" · ")}</p>` : ""}
+          ${ps.length ? `<p class="muted">via ${ps.slice(0, 2).map((p) => esc(screeningPathLabel(p.via))).join(", ")}</p><p class="muted mono metric">Path contributions: ${ps.slice(0, 2).map((p) => `${esc(screeningPathLabel(p.via))} ${n(p.conflict, 3)}`).join(" · ")}</p>` : ""}
           ${ps.length > 2 ? `<details class="metric"><summary>All ${ps.length} audience paths</summary><ul class="paths">${ps.map(pill).join("")}</ul></details>` : ""}</div>`;
       }).join("")}</div>`;
     screening += `<p class="analysis-bridge-row"><a class="analysis-bridge" href="/analysis?lead=${encodeURIComponent(slug)}#ch-screening" data-analysis-link>How was this decided?</a></p>`;
@@ -2174,14 +2186,21 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
     <h3>Signature moves <span class="muted">rare elsewhere, common in its work</span></h3>${d.signatures.length ? `<ul class="sig-list">${d.signatures.map((s) => `<li>${esc(s.technique)}<span class="metric"> ${Math.round(s.share * 100)}%</span></li>`).join("")}</ul>` : "<p class='muted'>None yet.</p>"}`;
   if (d.has_graph) {
     if (d.stale.length) overview += `<div class="warnbox"><b><span class="metric">${d.stale.length} </span>stale drafts</b> serve a retired goal: ${d.stale.map((s) => esc(s.hook)).join("; ")}</div>`;
-    const goalStatus = { active: "Active — currently guiding the work.", hypothesized: "Hypothesized — proposed, not yet approved.", retired: "Retired — no longer guiding new work." };
-    goalsMarkup = `<ul class="list">${d.goals.map((g) => `<li class="business-goal"><div class="goal-line"><b>${esc(g.text)}</b> ${chip(g.status)}</div>
-      <p class="goal-status-explanation">${esc(goalStatus[g.status] || "Goal status recorded.")}</p>
-      <div class="goal-meta">${esc(g.metric || "Metric not set")} · target ${esc(g.target || "not set")} · due ${esc(g.due || "not set")}</div>
-      <p class="goal-meta">${g.created_by ? `Set by ${esc(g.created_by)}` : "Creator not recorded"}${g.created_at ? ` · <time datetime="${esc(g.created_at)}" title="${esc(fullDateTime(g.created_at))}">${esc(fullDateTime(g.created_at))}</time>` : ""}</p>
+    const goalStatus = {
+      active: { label: "Active", explanation: "Currently guiding the work." },
+      hypothesized: { label: "Hypothesized", explanation: "Proposed, not yet approved." },
+      retired: { label: "Retired", explanation: "No longer guiding new work." },
+    };
+    goalsMarkup = `<ul class="list">${d.goals.map((g) => {
+      const currentStatus = goalStatus[g.status] || { label: String(g.status || "Unknown"), explanation: "Goal status recorded." };
+      return `<li class="business-goal"><div class="goal-line"><b>${esc(g.text)}</b></div>
+      <p class="goal-status-line">${status(g.status, currentStatus.label)}<span class="goal-status-explanation">${esc(currentStatus.explanation)}</span></p>
+      <div class="goal-meta">Measure: ${esc(g.metric || "not set")} · Target: ${esc(g.target || "not set")} · Due ${esc(goalDueLabel(g.due))}</div>
+      <p class="goal-meta">${g.created_by ? `Set by ${esc(g.created_by)}` : "Creator not recorded"}${g.created_at ? ` · <time datetime="${esc(g.created_at)}" title="${esc(fullDateTime(g.created_at))}">${esc(runDayLabel(g.created_day))}</time>` : ""}</p>
       <div class="goal-support"><b>Findings behind it</b>${(g.findings || []).map((finding) => `<p>${esc(finding.text)}${finding.source_url ? ` · ${link(finding.source_url, `Read ${finding.kind || "finding"} source`)}` : ""}</p>`).join("") || "<p class='muted'>No linked findings.</p>"}</div>
       <div class="goal-support"><b>Drafts serving it</b>${(g.drafts || []).map((draft) => `<p><button type="button" class="row-btn" data-draft="${esc(draft.id)}" data-slug="${esc(slug)}">${esc(draft.hook)}</button></p>`).join("") || "<p class='muted'>No serving drafts.</p>"}</div>
-      ${g.status === "active" && !ro ? `<div class="btn-row"><button type="button" class="btn small" data-retire="${esc(g.id)}" data-slug="${esc(slug)}">Retire goal</button></div>` : ""}</li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
+      ${g.status === "active" && !ro ? `<div class="btn-row"><button type="button" class="btn small" data-retire="${esc(g.id)}" data-slug="${esc(slug)}">Retire goal</button></div>` : ""}</li>`;
+    }).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
     pitchMarkup = `<ul class="list">${d.pitches.map((p) =>
       `<li><button type="button" class="row-btn" data-pitch="${esc(p.id)}" data-slug="${esc(slug)}">${chip(p.status)} <b>${esc(p.angle)}</b></button></li>`).join("") || "<li class='muted'>No pitch yet.</li>"}</ul>`;
     draftsTab += `<ul class="list">${d.drafts.map((x) =>
@@ -2531,7 +2550,7 @@ async function showGoalPopover(button) {
   };
   card.innerHTML = `<div class="popover-head"><b>Goal</b><button type="button" class="popover-close" aria-label="Close goal details">×</button></div>
     <p class="goal-popover-text">${esc(goal.text)}</p><p class="goal-popover-status">${esc(statusCopy[goal.status] || goal.status)}</p>
-    <p class="goal-popover-meta">${goal.created_by ? `Set by ${esc(goal.created_by)}` : "Who set this goal was not recorded."}${goal.created_at ? ` · ${esc(String(goal.created_at).slice(0, 10))}` : ""}</p>
+    <p class="goal-popover-meta">${goal.created_by ? `Set by ${esc(goal.created_by)}` : "Who set this goal was not recorded."}${goal.created_at ? ` · <time datetime="${esc(goal.created_at)}" title="${esc(fullDateTime(goal.created_at))}">${esc(runDayLabel(goal.created_day))}</time>` : ""}</p>
     <h4>Findings behind it</h4><ul>${(goal.findings || []).map((finding) => `<li>${esc(finding.text)}${finding.source_url ? ` ${link(finding.source_url, `${finding.kind || "Finding"} source`)}` : ""}</li>`).join("") || "<li>No linked findings.</li>"}</ul>
     <h4>Drafts serving it</h4><ul>${(goal.drafts || []).map((draft) => `<li><button type="button" class="goal-draft-link" data-goal-draft="${esc(draft.id)}" data-slug="${esc(slug)}">${esc(draft.hook)}</button></li>`).join("") || "<li>No drafts serve this goal yet.</li>"}</ul>`;
   card.hidden = false;
@@ -2682,6 +2701,7 @@ async function openPitch(slug, id) {
   }).join("");
   const countWords = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"];
   const countText = countWords[assets.length] || String(assets.length);
+  const subjectCount = ({ one: "One", two: "Two", three: "Three", four: "Four", five: "Five" })[countText] || countText;
   const postLabel = `${countText} spec ${assets.length === 1 ? "post" : "posts"}`;
   const businessName = business?.name || slug;
   const emailStatus = c.status === "approved"
@@ -2690,7 +2710,7 @@ async function openPitch(slug, id) {
   const emailStatusClass = c.status === "approved" ? "approved" : c.status === "vetoed" ? "vetoed" : "pending";
   const h = sheetTop(`<span class="studio-only pitch-kicker">Pitch</span><span class="analysis-only">Pitch · client:${esc(slug)} · ${esc(id)}</span>`) +
     `<h2>${esc(c.angle)}</h2><p class="serves">${chip(c.status)} argues for ${chip(c.goal_status)} <button type="button" class="goal-link" data-goal-id="${esc(c.goal_id)}" data-slug="${esc(slug)}">${esc(c.goal)}</button></p>${decisionBar("Pitch", id, slug, c)}
-    <section class="pitch-email"><p class="email-status ${emailStatusClass}">${emailStatus}</p><dl><div><dt>To</dt><dd>${esc(businessName)}</dd></div><div><dt>Subject</dt><dd>${esc(`${postLabel[0].toUpperCase()}${postLabel.slice(1)} for ${businessName}`)}</dd></div></dl>
+    <section class="pitch-email"><p class="email-status ${emailStatusClass}">${emailStatus}</p><dl><div><dt>To</dt><dd>${esc(businessName)}</dd></div><div><dt>Subject</dt><dd>${esc(`${subjectCount} spec ${assets.length === 1 ? "post" : "posts"} for ${businessName}`)}</dd></div></dl>
       <p>Hi ${esc(businessName)},</p>
       <p>We put together ${esc(postLabel)} for ${esc(businessName)}, aimed at a goal we think fits you: <b>${esc(c.goal)}</b>.</p>
       <p>Here are the findings that informed the ideas:</p><ul>${claimRows || "<li>No sourced findings are attached to this pitch.</li>"}</ul>
@@ -2732,17 +2752,19 @@ $("#draft-form").addEventListener("submit", async (e) => {
     }).filter((item) => item.name);
     const sharedSet = new Set(shared.flatMap((item) => [item.id, item.name]));
     const selected = ids.map((id) => state.techniques.find((technique) => technique.id === id)).filter(Boolean);
-    const verdictLine = r.flagged ? "Would be blocked." : "Would clear.";
+    const verdictLabel = r.flagged ? "Would be blocked" : "Would clear";
     const ownMoves = selected.map((technique) => `<li class="${sharedSet.has(technique.name) || sharedSet.has(technique.id) ? "shared" : ""}">${esc(technique.name)}</li>`).join("");
     const commonMoves = shared.map((item) => `<li class="shared">${esc(item.name)}</li>`).join("");
-    const equation = closest ? `similarity ${n(closest.similarity)} × overlap ${n(closest.overlap)} = risk ${n(closest.risk)} · limit ${n(r.threshold)}` : `Flag limit ${n(r.threshold)}`;
+    const riskSummary = typeof closest?.risk === "number"
+      ? `risk ${n(closest.risk)}, blocked at ${n(r.threshold)}`
+      : `Blocked at ${n(r.threshold)} risk`;
     $("#draft-result").innerHTML = `<div class="post-result-box"><div class="post-compare">
         <section class="post-side"><p class="label">Your draft</p><h3>${esc($("#draft-client").selectedOptions[0]?.textContent || "")}</h3><ul class="post-moves">${ownMoves || `<li class="muted">No moves selected.</li>`}</ul></section>
         <section class="post-side closest-side"><p class="label">Closest match</p><h3>${esc(closest?.business || "No close match returned")}</h3>
           <ul class="post-moves">${commonMoves || `<li class="muted">No shared moves returned.</li>`}</ul>
           ${closest ? `<p class="muted">The endpoint does not return the full closest-match move list; only the shared moves above are shown.</p>` : ""}
         </section>
-      </div><div class="post-verdict">${verdictStatus(r.flagged ? "blocked" : "cleared", verdictLine)}<b class="mono">${esc(equation)}</b></div></div>`;
+      </div><div class="post-verdict"><span class="status s-${statusKind(r.flagged ? "blocked" : "cleared")}" aria-hidden="true"><i></i></span><b>${esc(verdictLabel)} · ${esc(riskSummary)}</b></div></div>`;
     if (window.matchMedia("(max-width: 760px)").matches) {
       state.mobileTryStep = 2;
       updateTryMobileFlow();

@@ -156,9 +156,9 @@
     <div class="try-mobile-progress" aria-hidden="true"><span id="try-mobile-progress-line"></span></div>
     <section class="try-tool" data-try-tool="lead" aria-labelledby="lead-h">
       <div class="try-inputs">
-      <h2 class="label" id="lead-h">SCOUT'S CLIENT CHECK</h2>
+      <h2 id="lead-h">Screen a lead</h2>
       <div class="lead-presets" id="lead-presets" role="radiogroup" aria-label="Example clients"></div>
-      <p class="panel-sub">Choose an example or describe your own. Your choices are checked live and never saved.</p>
+      <p class="panel-sub">Pick a business and the customer groups it reaches. Scout checks overlap with signed clients without saving your choices.</p>
       <form id="lead-form" class="form">
         <div class="row2 own-fields" hidden>
           <label class="field">Name <input name="name" maxlength="60" placeholder="Sprout Dance Studio" autocomplete="off"></label>
@@ -169,7 +169,7 @@
         <p class="try-form-warning" id="lead-mobile-warning" hidden></p>
       </form>
       </div>
-      <section class="try-readout" aria-labelledby="lead-readout-heading"><p class="label" id="lead-readout-heading">READOUT / SCOUT'S CALL</p><div id="lead-result" aria-live="polite"></div></section>
+      <section class="try-readout" aria-labelledby="lead-readout-heading"><p class="label" id="lead-readout-heading">Live result</p><div id="lead-result" aria-live="polite"></div></section>
     </section>
 
     <section class="try-tool" data-try-tool="draft" aria-labelledby="draft-h" hidden>
@@ -190,8 +190,8 @@
 
 <section class="studio-tab log-tab" id="tab-log" data-tab="log">
   <section class="log-activity" aria-labelledby="dayloop-h">
-    <p class="label">Today's activity</p>
-    <h2 class="log-section-title" id="dayloop-h">Agents at work</h2>
+      <p class="label">Today's activity</p>
+      <h2 class="log-section-title" id="dayloop-h">Agents at work</h2>
     <section class="dayloop" id="dayloop" aria-label="Studio activity">
       <p class="muted dayloop-note">First run is the agents' initial pass; each Next day adds a day.</p>
       <ol class="days" id="days" aria-live="polite"></ol>

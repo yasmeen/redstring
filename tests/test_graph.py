@@ -57,7 +57,7 @@ def test_same_category_same_neighborhood_requires_distinct_angle(seeded):
 def test_q1_multi_hop_paths(seeded):
     res = tools.lead_conflict("tumble-town")
     wet = next(c for c in res["clients"] if c["client"] == "Wet Paint Kids Studio")
-    assert any("->" in p["via"] for p in wet["paths"]), "includes lead -> audience -> overlapping audience -> client"
+    assert any("→ overlaps with" in p["via"] for p in wet["paths"]), "includes the named audience overlap path"
 
 
 def test_q0_planted_set_is_wet_paint_signature(seeded):
