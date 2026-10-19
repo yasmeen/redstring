@@ -75,7 +75,7 @@ const isAnalysisView = () => document.body.dataset.view === "analysis";
 function syncViewFromLocation() {
   const view = location.pathname === "/analysis" ? "analysis" : "studio";
   document.body.dataset.view = view;
-  $("#sidebar-view-label").textContent = view.toUpperCase();
+  $("#sidebar-view-label").textContent = view === "analysis" ? "Analysis" : "Studio";
   viewLinks.forEach((link) => {
     if (link.dataset.viewLink === view) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
@@ -606,7 +606,7 @@ function needsEntries(o) {
       q: `Approve ${plural(total, "post", "posts")}?`,
       what: `All cleared Double Take. Pick a client to review ${posts.length === 1 ? "its" : "their"} posts.`,
       actions: `<span class="focus-chips">${chips}</span>`,
-      row: `<div class="focus-row"><span class="focus-item-kind">${icon("circle-check")}Posts</span><button type="button" class="focus-row-text" data-draft="${esc(posts[0].draft_ids[0])}" data-slug="${esc(posts[0].business_id)}">Approve ${plural(total, "post", "posts")}<small>All cleared by Double Take</small></button><span class="focus-chips">${chips}</span></div>`,
+      row: `<div class="focus-row"><span class="focus-item-kind">${icon("circle-check")}Posts</span><div class="focus-row-middle"><button type="button" class="focus-row-text" data-draft="${esc(posts[0].draft_ids[0])}" data-slug="${esc(posts[0].business_id)}"><span class="focus-row-title">Approve ${plural(total, "post", "posts")}</span><small>All cleared by Double Take</small></button><span class="focus-chips">${chips}</span></div><span class="focus-row-right" aria-hidden="true"></span></div>`,
     });
   }
   const ready = items.find((i) => i.type === "ready");
@@ -684,14 +684,14 @@ function renderAbout(o) {
   const neighborhoods = [...new Set(clients.map(hoodOf).filter(Boolean))];
   const categories = [...new Set(clients.map((business) => business.category).filter(Boolean))];
   const meta = [
-    `${clients.length} ${plural(clients.length, "client", "clients")}`,
-    neighborhoods.length ? `${neighborhoods.length} ${plural(neighborhoods.length, "neighborhood", "neighborhoods")}` : "",
+    plural(clients.length, "client", "clients"),
+    neighborhoods.length ? plural(neighborhoods.length, "neighborhood", "neighborhoods") : "",
     categories.join(", "),
   ].filter(Boolean).join(" · ");
   $("#about-summary").textContent = `We make short-form video for local family businesses${meta ? ` · ${meta}` : ""}.`;
   const workflow = [
-    ["user-plus", "Leads"], ["search", "Research"], ["clipboard", "Spec posts"],
-    ["send", "Pitch"], ["circle-check", "Signed"], ["calendar", "Monthly posts"],
+    ["user-round", "Leads"], ["search", "Research"], ["clapperboard", "Spec posts"],
+    ["send", "Pitch"], ["circle-check", "Signed"], ["calendar-days", "Monthly posts"],
   ];
   $("#studio-workflow").innerHTML = workflow.map(([name, label]) =>
     `<li>${icon(name)}<span>${label}</span></li>`).join("");
@@ -740,7 +740,7 @@ function renderPipelineRegister(o) {
   $("#pipeline-stage-bar").innerHTML = stageRows.map((row) => `<button type="button" class="pipeline-stage${state.pipelineStage === row.title.toLowerCase() ? " selected" : ""}" data-pipeline-stage="${esc(row.title.toLowerCase())}" aria-pressed="${state.pipelineStage === row.title.toLowerCase()}"><span class="pipeline-stage-count">${row.items.length}</span><span>${esc(row.title)}</span></button>`).join("");
   const screening = state.analysis?.screening || [];
   const visible = o.businesses.filter((b) => !state.pipelineStage || (STAGES.find(([title, test]) => test(b))?.[0].toLowerCase() === state.pipelineStage));
-  $("#pipeline-register").innerHTML = `<div class="register-head label"><span>BUSINESS</span><span>STAGE</span><span>STATUS</span><span>OVERLAP</span></div>${visible.map((b) => {
+  $("#pipeline-register").innerHTML = `<div class="register-head label"><span>Business</span><span>Stage</span><span>Status</span><span>Overlap</span></div>${visible.map((b) => {
     const stage = STAGES.find(([title, test]) => test(b))?.[0] || b.status;
     const result = screening.find((row) => row.id === b.id);
     const overlap = b.max_conflict ?? result?.max_conflict;
@@ -878,12 +878,12 @@ function renderDoubleTakeGraph() {
   $("#dt-graph-box").dataset.version = v2 ? "2" : "1";
   $("#dt-graph-box").innerHTML = `<div class="dt-canvas">
     <svg class="dt-edge-svg" aria-hidden="true"></svg>
-    <p class="label dt-label-top">WHAT THE DRAFT REUSES</p>
+    <p class="label dt-label-top">What the draft reuses</p>
     <div class="dt-slot dt-slot-draft">${dtNodeMarkup(nodes[draftIndex], draftIndex)}</div>
     <div class="dt-slot dt-slot-tech">${techIndices.map((index) => dtNodeMarkup(nodes[index], index)).join("") || `<span class="muted">No techniques listed</span>`}</div>
     <div class="dt-slot dt-slot-proof">${dtNodeMarkup(nodes[fingerprintIndex], fingerprintIndex)}</div>
     <div class="dt-slot dt-slot-target">${businessIndices.map((index) => dtNodeMarkup(nodes[index], index)).join("")}</div>
-    <p class="label dt-label-bottom">WHO WILL SEE IT</p>
+    <p class="label dt-label-bottom">Who will see it</p>
     <div class="dt-slot dt-slot-own">${dtNodeMarkup(nodes[ownIndex], ownIndex)}</div>
     <div class="dt-slot dt-slot-audiences">${audienceIndices.map((index) => dtNodeMarkup(nodes[index], index)).join("") || `<span class="muted">No shared audiences returned</span>`}</div>
   </div>`;
@@ -974,7 +974,7 @@ function drawDoubleTakeEdges() {
   const label = (text, x, y, anchor = "middle") => {
     paths.push(`<text class="dt-edge-label" text-anchor="${anchor}" x="${x}" y="${y}">${esc(text)}</text>`);
   };
-  const fanOut = (source, destinations, caption = "") => {
+  const fanOut = (source, destinations, caption = "", captionOffset = 0) => {
     const sourceRect = rectOf(source);
     const destinationRects = destinations.map(rectOf).filter(Boolean);
     if (!sourceRect || !destinationRects.length) return;
@@ -984,7 +984,7 @@ function drawDoubleTakeEdges() {
     if (Math.max(...ys) > Math.min(...ys)) d += ` M${busX},${Math.min(...ys)} V${Math.max(...ys)}`;
     destinationRects.forEach((rect) => { d += ` M${busX},${rect.centerY} H${rect.left}`; });
     path(d);
-    if (caption) label(caption, busX, Math.min(...destinationRects.map((rect) => rect.top)) - 4);
+    if (caption) label(caption, busX, Math.min(...destinationRects.map((rect) => rect.top)) - 10 + captionOffset);
   };
   const fanIn = (sources, destination, caption = "", captionPosition = "top") => {
     const sourceRects = sources.map(rectOf).filter(Boolean);
@@ -998,14 +998,14 @@ function drawDoubleTakeEdges() {
     path(d);
     if (caption) {
       const captionY = captionPosition === "bottom"
-        ? Math.max(...sourceRects.map((rect) => rect.bottom)) + 16
-        : Math.min(...sourceRects.map((rect) => rect.top)) - 4;
+        ? Math.max(...sourceRects.map((rect) => rect.bottom)) + 18
+        : Math.min(...sourceRects.map((rect) => rect.top)) - 10;
       label(caption, busX, captionY);
     }
   };
   if (draft && techniques.length && fingerprint) {
-    fanOut(draft, techniques, "USES");
-    fanIn(techniques, fingerprint, "EVIDENCE");
+    fanOut(draft, techniques, "Uses");
+    fanIn(techniques, fingerprint, "Evidence");
   }
   if (fingerprint && targets.length && $("#dt-graph-box").dataset.version === "1") fanOut(fingerprint, targets);
   if (draft && own) {
@@ -1013,12 +1013,12 @@ function drawDoubleTakeEdges() {
     const destination = rectOf(own);
     if (source && destination) {
       path(`M${source.centerX},${source.bottom} V${destination.top}`);
-      label("OF", source.centerX - 8, (source.bottom + destination.top) / 2, "end");
+      label("Of", source.centerX + 12, (source.bottom + destination.top) / 2, "start");
     }
   }
   if (own && audiences.length && targets.length) {
-    fanOut(own, audiences, "TARGETS");
-    fanIn(audiences, targets[0], "OVERLAP", "bottom");
+    fanOut(own, audiences, "Targets", -18);
+    fanIn(audiences, targets[0], "Overlap", "bottom");
   }
   svg.setAttribute("viewBox", `0 0 ${canvas.scrollWidth} ${canvas.scrollHeight}`);
   svg.innerHTML = paths.join("");
@@ -1636,7 +1636,19 @@ function renderTerritory(analysis, overview) {
 
 // 5. agents and the named queries they are allowed to call
 function renderAccess(analysis) {
-  const qs = analysis.queries;
+  const byQuery = new Map();
+  analysis.queries.forEach((q) => {
+    let entry = byQuery.get(q.query);
+    if (!entry) {
+      entry = { ...q, tools: [], cypher: [] };
+      byQuery.set(q.query, entry);
+    }
+    if (!entry.tools.includes(q.tool)) entry.tools.push(q.tool);
+    q.cypher.forEach((c) => {
+      if (!entry.cypher.some((known) => known.constant === c.constant)) entry.cypher.push(c);
+    });
+  });
+  const qs = [...byQuery.values()];
   const agents = Object.entries(analysis.agents);
   const agentJobs = {
     scout: "Screens new leads against signed clients.",
@@ -1653,6 +1665,18 @@ function renderAccess(analysis) {
     Q0: "Signature check", Q1: "Same-area client check", Q2: "Double Take check",
     Q3: "Open territory", Q4: "Post history", Q5: "Stale drafts", P1: "Project techniques",
   };
+  const queryDescriptions = {
+    P1: "Records the techniques used by each draft.",
+    Q0: "Finds the techniques that define each business’s usual style.",
+    Q1: "Shows how a new lead’s audience overlaps with signed clients.",
+    Q2: "Checks whether a draft shares creative moves with businesses reaching the same audience.",
+    Q3: "Finds creative moves not already claimed by businesses reaching the same audience.",
+    Q4: "Explains what shaped a draft, including its goal, findings, sources, and decisions.",
+    Q5: "Finds drafts that still serve a goal the Board retired.",
+  };
+  const toolNames = {
+    check_draft: "Check and flag a draft (uses Q2)",
+  };
   let context = $("#analysis-context");
   if (!context) {
     context = document.createElement("div");
@@ -1660,20 +1684,18 @@ function renderAccess(analysis) {
     $("#analysis-agents").parentElement.before(context);
   }
   context.innerHTML = `<div class="agent-job-list">${agents.map(([agent]) =>
-    `<article>${agentIcon(agent)}<div><b>${esc(pretty(agent))}</b><p>${esc(agentJobs[agent] || "Runs the tools assigned to this role.")}</p></div></article>`).join("")}</div>
-    <div class="query-glossary"><h3>Query glossary</h3>${qs.map((q) => `<article><h4>${esc(queryNames[q.query] || q.tool)} <small>${esc(q.query)}</small></h4><p>${esc(q.description.replace(/^[PQ]\\d\\.\\s*/, ""))}</p></article>`).join("")}</div>`;
+    `<article><div class="agent-job-heading">${agentIcon(agent)}<b>${esc(pretty(agent))}</b></div><p>${esc(agentJobs[agent] || "Handles its assigned work for the studio.")}</p></article>`).join("")}</div>
+    <div class="query-glossary"><h3>Query glossary</h3>${qs.map((q) => `<article class="query-glossary-row">
+      <div class="query-glossary-name"><span class="qtag">${esc(q.query)}</span><b>${esc(queryNames[q.query] || q.tool)}</b></div>
+      <div class="query-glossary-detail"><p>${esc(queryDescriptions[q.query] || queryNames[q.query] || q.tool)}</p>
+        <details><summary>Show the query</summary><ul>${q.cypher.map((c) => `<li>${esc(c.constant)}</li>`).join("")}</ul></details>
+      </div></article>`).join("")}</div>`;
   $("#analysis-agents").innerHTML = `<caption class="sr-only">Which agent can call which named query</caption>
-    <thead><tr><td></td>${qs.map((q) => `<th scope="col">${esc(queryNames[q.query] || q.tool)}<small>${esc(q.query)}</small></th>`).join("")}<th scope="col">Other tools</th></tr></thead>
+    <thead><tr><td></td>${qs.map((q) => `<th scope="col"><span class="access-heading"><span>${esc(queryNames[q.query] || q.tool)}</span><small>${esc(q.query)}</small></span></th>`).join("")}<th scope="col">Other tools</th></tr></thead>
     <tbody>${agents.map(([agent, tools]) => {
-      const named = qs.filter((q) => tools.includes(q.tool)).length;
-      return `<tr><th scope="row"><span class="agent-name">${agentIcon(agent)}${esc(pretty(agent))}</span></th>${qs.map((q) => `<td>${tools.includes(q.tool) ? `<span class="yes" title="${esc(pretty(agent))} can call ${esc(q.tool)}"></span><span class="sr-only">yes</span>` : ""}</td>`).join("")}<td class="other">${tools.length - named}</td></tr>`;
+      const other = tools.filter((tool) => !qs.some((q) => q.tool === tool));
+      return `<tr><th scope="row"><span class="agent-name">${agentIcon(agent)}${esc(pretty(agent))}</span></th>${qs.map((q) => `<td>${q.tools.some((tool) => tools.includes(tool)) ? `<span class="yes" title="${esc(pretty(agent))} can call ${esc(queryNames[q.query] || q.tool)}"></span><span class="sr-only">yes</span>` : ""}</td>`).join("")}<td class="other">${other.map((tool) => `<span>${esc(toolNames[tool] || pretty(tool))}</span>`).join("") || `<span class="muted">—</span>`}</td></tr>`;
     }).join("")}</tbody>`;
-  $("#queries").innerHTML = qs.map((q) => `<article class="query-card">
-    <h3><span class="qtag">${esc(q.query)}</span>${esc(q.tool)}</h3>
-    <p>${esc(q.description.replace(/^[PQ]\d\.\s*/, ""))}</p>
-    <p class="muted">Called by ${q.agents.map((a) => esc(pretty(a))).join(", ") || "no agent"}</p>
-    ${q.cypher.map((c) => `<details><summary>${esc(c.constant)}</summary><pre>${esc(c.text.trim())}</pre></details>`).join("")}
-  </article>`).join("");
 }
 
 function redrawAnalysis() {
@@ -2056,7 +2078,7 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   }
   if (d.screening && d.screening.verdict) {
     const s = d.screening;
-    screening = `<h3>Scout's screening</h3><div class="thread"><div class="knot"><div class="who">${who(s.by || "Scout")} ${verdictStatus(s.verdict)}</div><p>${esc(displayStudioCopy(s.reason))}</p></div>
+    screening = `<div class="thread"><div class="knot"><div class="who">${who(s.by || "Scout")} ${verdictStatus(s.verdict)}</p></div>
       ${(s.paths || []).map((c) => {
         const ps = [...(c.paths || [])].sort((a, z) => z.conflict - a.conflict);
         const pill = (p) => `<li>${esc(p.via)} <span class="metric">· ${n(p.conflict)}</span></li>`;
@@ -2097,7 +2119,7 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
       ${g.status === "active" && !ro ? `<div class="btn-row"><button type="button" class="btn small" data-retire="${esc(g.id)}" data-slug="${esc(slug)}">Retire goal</button></div>` : ""}</li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
     if (d.pitches.length) overview += `<h3>Pitches</h3><ul class="list">${d.pitches.map((p) =>
       `<li><button type="button" class="row-btn" data-pitch="${esc(p.id)}" data-slug="${esc(slug)}">${chip(p.status)} <b>${esc(p.angle)}</b></button></li>`).join("")}</ul>`;
-    draftsTab += `<h3>Drafts</h3><ul class="list">${d.drafts.map((x) =>
+    draftsTab += `<ul class="list">${d.drafts.map((x) =>
       `<li><button type="button" class="row-btn" data-draft="${esc(x.id)}" data-slug="${esc(slug)}">${chip(x.status)}${chip("plain", x.kind)} <b><span class="metric">v${esc(x.version)} · </span>${esc(x.hook)}</b></button></li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
     if (d.taste_profile && d.taste_profile.id) draftsTab += `<h3>Taste profile <span class="muted metric">v${esc(d.taste_profile.version)}</span></h3><p>${esc(d.taste_profile.summary)}</p>
       <p class="muted" style="margin-top:6px">Prefers: ${d.taste_profile.prefers.map((p) => esc(p.name)).join(", ")}${d.taste_profile.avoids.length ? `<br>Avoids: ${d.taste_profile.avoids.map((p) => esc(p.name)).join(", ")}` : ""}</p>`;
@@ -2111,10 +2133,11 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
       <h4>${esc(findingGroupNames[kind] || kind)}</h4><ul class="finding-rows">${findings.map((finding) => {
         let source = "Source";
         try { source = `Source: ${new URL(finding.source_url).hostname.replace(/^www\\./i, "")}`; } catch { source = "Source" }
-        const confidence = finding.confidence == null ? "Confidence not recorded" : `Confidence ${esc(finding.confidence)}`;
+        const confidence = finding.confidence == null ? "" : `Confidence ${esc(finding.confidence)}`;
+        const sourceCopy = finding.kind === "audit" ? "From Auditor's post audit" : "From Researcher's research";
         return `<li class="finding-row"><p class="finding-claim">${esc(finding.text)}</p><div class="finding-meta">
-          ${finding.source_url ? link(finding.source_url, source) : `<span class="muted">No source URL</span>`}
-          <span class="finding-confidence">${confidence}</span></div></li>`;
+          ${finding.source_url ? link(finding.source_url, source) : `<span class="muted">${sourceCopy}</span>`}
+          ${confidence ? `<span class="finding-confidence">${confidence}</span>` : ""}</div></li>`;
       }).join("")}</ul></section>`).join("") || `<p class="muted">No findings yet.</p>`;
     research += `<h3>Findings</h3>${findingMarkup}`;
     research += `<h3>Past posts</h3><ul class="list">${d.posts.map((p) => `<li>${esc(p.hook)} <span class="muted metric">${(p.views ?? 0).toLocaleString()} views · ${(p.saves ?? 0).toLocaleString()} saves</span></li>`).join("") || "<li class='muted'>Not loaded.</li>"}</ul>`;
@@ -2501,7 +2524,11 @@ async function openPitch(slug, id) {
     Promise.resolve(bizById(slug)),
     Promise.all((c.spec_posts || []).map(async (post) => ({ post, detail: await api(`/api/route/${slug}/${post.id}`) }))),
   ]);
-  const claimRows = (c.claims || []).map((finding) => `<li>${esc(finding.text)}${finding.source_url ? ` <span class="email-source">${link(finding.source_url, "Read source")}</span>` : ""}</li>`).join("");
+  const claimRows = (c.claims || []).map((finding) => {
+    let source = "source";
+    try { source = new URL(finding.source_url).hostname.replace(/^www\./i, ""); } catch {}
+    return `<li>${esc(finding.text)}${finding.source_url ? ` <span class="email-source">${link(finding.source_url, `Source: ${source}`)}</span>` : ""}</li>`;
+  }).join("");
   const assetCards = assets.map(({ post, detail }) => {
     const lines = String(detail.spec || "").split(/\r?\n/).filter(Boolean);
     const format = lines.find((line) => /^Format:/i.test(line))?.replace(/^Format:\s*/i, "")
@@ -2510,13 +2537,22 @@ async function openPitch(slug, id) {
     const references = (detail.references || []).map((reference) => link(reference.url, `@${String(reference.creator || "").replace(/^@/, "")} · ${reference.category || "Reference"}`)).join("");
     return `<article class="pitch-asset"><p class="asset-kicker">Spec post</p><h4>${esc(post.hook)}</h4><p><b>Format</b> · ${esc(format)}</p><h5>Shot list</h5><ol>${shots.map((shot) => `<li>${esc(shot)}</li>`).join("")}</ol>${references ? `<div class="asset-references"><b>References</b>${references}</div>` : ""}</article>`;
   }).join("");
-  const h = sheetTop(`<span class="studio-only">Pitch</span><span class="analysis-only">Pitch · client:${esc(slug)} · ${esc(id)}</span>`) +
+  const countWords = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"];
+  const countText = countWords[assets.length] || String(assets.length);
+  const postLabel = `${countText} spec ${assets.length === 1 ? "post" : "posts"}`;
+  const businessName = business?.name || slug;
+  const emailStatus = c.status === "approved"
+    ? "Approved · ready to send"
+    : c.status === "vetoed" ? "Vetoed · won't be sent" : "Draft · not sent until you approve";
+  const emailStatusClass = c.status === "approved" ? "approved" : c.status === "vetoed" ? "vetoed" : "pending";
+  const h = sheetTop(`<span class="studio-only pitch-kicker">Pitch</span><span class="analysis-only">Pitch · client:${esc(slug)} · ${esc(id)}</span>`) +
     `<h2>${esc(c.angle)}</h2><p class="serves">${chip(c.status)} argues for ${chip(c.goal_status)} <button type="button" class="goal-link" data-goal-id="${esc(c.goal_id)}" data-slug="${esc(slug)}">${esc(c.goal)}</button></p>${decisionBar("Pitch", id, slug, c)}
-    <section class="pitch-email"><p class="email-status">Draft · not sent until you approve</p><dl><div><dt>To</dt><dd>${esc(business?.name || slug)}</dd></div><div><dt>Subject</dt><dd>${esc(c.angle)}</dd></div></dl>
-      <p>Hi ${esc(business?.name || "there")},</p><p>${esc(c.angle)} is a first idea for your next short-form video.</p>
-      <p>We shaped it around these findings:</p><ul>${claimRows || "<li>No sourced findings are attached to this pitch.</li>"}</ul>
-      <p>Our working hypothesis is that this work can support the goal: <b>${esc(c.goal)}</b>.</p>
-      <p>Attached are ${assets.length} spec ${assets.length === 1 ? "post" : "posts"} for your review.</p><p>Best,<br>Corkboard Studio</p></section>
+    <section class="pitch-email"><p class="email-status ${emailStatusClass}">${emailStatus}</p><dl><div><dt>To</dt><dd>${esc(businessName)}</dd></div><div><dt>Subject</dt><dd>${esc(`${postLabel[0].toUpperCase()}${postLabel.slice(1)} for ${businessName}`)}</dd></div></dl>
+      <p>Hi ${esc(businessName)},</p>
+      <p>We put together ${esc(postLabel)} for ${esc(businessName)}, aimed at a goal we think fits you: <b>${esc(c.goal)}</b>.</p>
+      <p>Here are the findings that informed the ideas:</p><ul>${claimRows || "<li>No sourced findings are attached to this pitch.</li>"}</ul>
+      <p>Attached are these spec posts:</p><ul>${assets.map(({ post }) => `<li>${esc(post.hook)}</li>`).join("") || "<li>No spec posts attached.</li>"}</ul>
+      <p>Best,<br>Corkboard Studio</p></section>
     <h3>Attached spec posts</h3><div class="pitch-assets">${assetCards || `<p class="muted">No spec posts attached.</p>`}</div>
     <h3>Decisions</h3><div class="thread">${knots(c.decisions)}</div>`;
   showSheet(h, `Pitch for ${slug}`);

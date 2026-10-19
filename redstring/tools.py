@@ -186,7 +186,7 @@ def _lead_conflict_result(lead: str, paths: list[dict], competitors: list[dict])
             "pitch only with a distinct content angle."
         )
     elif top >= config.DIFFERENTIATE_CONFLICT:
-        verdict, reason = "pursue_differentiated", f"Overlaps {clients[0]['client']} on the same parents (conflict {top:.2f}); pitch only with differentiated territory."
+        verdict, reason = "pursue_differentiated", f"Overlaps {clients[0]['client']} on the same parents (conflict {top:.2f}); pitch only with a distinct content angle."
     elif top >= config.BORDERLINE_CONFLICT:
         verdict, reason = "borderline", f"Partial overlap with {clients[0]['client']} (conflict {top:.2f}); board call."
     else:

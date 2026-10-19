@@ -25,7 +25,7 @@
     <a href="/" data-view-link="studio" aria-current="page"><b>Studio</b><span>What the agency sees</span></a>
     <a href="/analysis" data-view-link="analysis"><b>Analysis</b><span>How it uses the graph</span></a>
   </nav>
-  <p class="label sidebar-view-label" id="sidebar-view-label">STUDIO</p>
+  <p class="label sidebar-view-label" id="sidebar-view-label">Studio</p>
   <nav class="studio-tabs sidebar-tabs studio-only" id="studio-tabs" aria-label="Studio tabs">
     <a href="#today" data-studio-tab="today" aria-current="page">Today <span class="nav-badge red-badge" id="tab-count-today"></span></a>
     <a href="#pipeline" data-studio-tab="pipeline">Pipeline <span class="nav-badge" id="tab-count-pipeline"></span></a>
@@ -331,17 +331,9 @@
   <section class="chapter" id="ch-agents" aria-labelledby="agents-heading">
     <header class="ch-head">
       <div><p class="ch-kicker">Agents and queries</p><h2 class="ch-title" id="agents-heading">Each agent can run only the queries its job needs</h2>
-      <p class="ch-cap">Every query is a named MCP tool, and each agent only gets its slice. Every write also records a Decision with who made it and why.</p></div>
-    </header>
-    <div class="explain-guide">
-      <div class="legend agents-legend">
-        <span class="legend-item"><span class="legend-dot" aria-hidden="true"></span>Can call this query</span>
-        <span class="legend-item">Other tools: its non-graph tools</span>
       </div>
-      <p class="why">Each agent gets only the queries its job needs, and every write records who made it and why.</p>
-    </div>
+    </header>
     <div class="table-scroll"><table class="access" id="analysis-agents"></table></div>
-    <div class="query-list" id="queries"></div>
   </section>
 
   <section class="chapter" id="ch-raw" aria-labelledby="raw-logs-heading">
