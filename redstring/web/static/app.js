@@ -2078,7 +2078,7 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   }
   if (d.screening && d.screening.verdict) {
     const s = d.screening;
-    screening = `<div class="thread"><div class="knot"><div class="who">${who(s.by || "Scout")} ${verdictStatus(s.verdict)}</p></div>
+    screening = `<div class="thread"><div class="knot"><div class="who">${who(s.by || "Scout")} ${verdictStatus(s.verdict)}</div><p>${esc(displayStudioCopy(s.reason))}</p></div>
       ${(s.paths || []).map((c) => {
         const ps = [...(c.paths || [])].sort((a, z) => z.conflict - a.conflict);
         const pill = (p) => `<li>${esc(p.via)} <span class="metric">· ${n(p.conflict)}</span></li>`;
