@@ -1,13 +1,11 @@
 const $ = (s) => document.querySelector(s);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const VERDICT_LABELS = {
-  decline: "Decline: competes nearby",
   pursue: "Pitch",
   pursue_differentiated: "Pitch with a distinct angle",
   borderline: "Board call",
 };
 const VERDICT_HELP = {
-  decline: "Same category as a signed client in the same neighborhood.",
   pursue: "Little audience overlap with signed clients.",
   pursue_differentiated: "Reaches the same people as a client; pitch only with a different creative angle.",
   borderline: "Partial overlap; the board decides.",
@@ -15,7 +13,7 @@ const VERDICT_HELP = {
 const STATUS_LABELS = { passed: "Passed", vetoed: "Vetoed" };
 const status = (kind, text) => `<span class="status s-${esc(kind)}"><i></i>${esc(text)}</span>`;
 const statusKind = (value) => {
-  if (["decline", "flagged", "blocked", "vetoed"].includes(value)) return "red";
+  if (["flagged", "blocked", "vetoed"].includes(value)) return "red";
   if (["borderline", "pursue_differentiated", "conditional"].includes(value)) return "amber";
   if (["pursue", "pitched", "signed", "cleared", "approved", "active", "ready"].includes(value)) return "green";
   return "ink";
@@ -86,14 +84,23 @@ function syncViewFromLocation() {
 }
 
 const STUDIO_TABS = ["today", "pipeline", "double-take", "try", "log"];
+function businessRouteFromLocation() {
+  const parts = decodeURIComponent(location.hash.slice(1)).split("/");
+  return parts[0] === "business" && parts[1]
+    ? { slug: parts[1], section: parts[2] || "overview" }
+    : null;
+}
 function studioTabFromHash() {
   const hash = decodeURIComponent(location.hash.slice(1));
   if (hash.startsWith("double-take/")) return "double-take";
+  if (hash.startsWith("business/")) return "business";
   return STUDIO_TABS.includes(hash) ? hash : "today";
 }
 function syncStudioTab() {
   const tab = studioTabFromHash();
   document.body.dataset.tab = tab;
+  const businessPage = $("#business-page");
+  if (businessPage) businessPage.hidden = tab !== "business";
   document.querySelectorAll("[data-tab]").forEach((section) => {
     section.dataset.active = String(section.dataset.tab === tab);
   });
@@ -113,7 +120,16 @@ async function viewChanged() {
   if (view === "studio") syncStudioTab();
   if (!state.overview) await refresh();
   if (view === "analysis") await loadAnalysisFromLocation();
-  else if (state.selected) await openBusiness(state.selected, { quiet: true });
+  else {
+    const route = businessRouteFromLocation();
+    if (route) {
+      state.selected = route.slug;
+      await openBusiness(route.slug, { quiet: true });
+      scrollBusinessSection(route.section);
+    } else if (state.selected && $("#drawer").classList.contains("open")) {
+      await openBusiness(state.selected, { quiet: true });
+    }
+  }
 }
 
 syncViewFromLocation();
@@ -131,12 +147,21 @@ document.querySelectorAll("[data-studio-tab]").forEach((link) => link.addEventLi
   syncStudioTab();
   window.scrollTo({ top: 0, behavior: reduceMotion.matches ? "auto" : "smooth" });
 }));
-window.addEventListener("hashchange", () => {
+window.addEventListener("hashchange", async () => {
   if (isAnalysisView()) loadAnalysisFromLocation();
   else {
     const tab = syncStudioTab();
     if (tab === "double-take") loadDoubleTakeFromLocation();
-    window.scrollTo({ top: 0, behavior: reduceMotion.matches ? "auto" : "smooth" });
+    if (tab === "business") {
+      const route = businessRouteFromLocation();
+      if (route) {
+        state.selected = route.slug;
+        await openBusiness(route.slug, { quiet: true });
+        scrollBusinessSection(route.section);
+      }
+    } else {
+      window.scrollTo({ top: 0, behavior: reduceMotion.matches ? "auto" : "smooth" });
+    }
   }
 });
 const icon = (name, cls = "") => ICON_PATHS[name]
@@ -168,7 +193,7 @@ function bizName(b, { link = true } = {}) {
     ? `<button type="button" class="biz-link" data-pick="${esc(b.id)}"${id}>${content}</button>`
     : `<span class="biz-name-inline"${id}>${content}</span>`;
 }
-const techChip = (name, kinds = {}) => `<span class="chip plain tech"${kinds[name] ? ` title="${esc(kinds[name])}"` : ""}>${icon(TECHNIQUE_ICONS[kinds[name]] || "")}${esc(name)}</span>`;
+const techChip = (name, kinds = {}) => `<button type="button" class="chip plain tech" data-tech-name="${esc(name)}" aria-haspopup="dialog"${kinds[name] ? ` title="${esc(kinds[name])}"` : ""}>${icon(TECHNIQUE_ICONS[kinds[name]] || "")}${esc(name)}</button>`;
 
 let bizCardTimer = 0;
 function hideBizCard() {
@@ -214,6 +239,90 @@ document.addEventListener("focusout", (e) => {
 });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideBizCard(); });
 window.addEventListener("scroll", hideBizCard, true);
+
+let activeTechTrigger = null;
+let pinnedTechTrigger = null;
+let techHideTimer = 0;
+function techniquePopoverFor(target) {
+  return target.closest("#card-body") ? $("#tech-card-sheet") : $("#tech-card");
+}
+function hideTechCard() {
+  clearTimeout(techHideTimer);
+  $("#tech-card").hidden = true;
+  $("#tech-card-sheet").hidden = true;
+  activeTechTrigger = null;
+  pinnedTechTrigger = null;
+}
+async function showTechCard(target) {
+  let technique = state.techniques.find((item) => item.name === target.dataset.techName || item.id === target.dataset.techName);
+  if (!technique) {
+    state.techniques = await api("/api/techniques");
+    technique = state.techniques.find((item) => item.name === target.dataset.techName || item.id === target.dataset.techName);
+  }
+  if (!technique) return;
+  const card = techniquePopoverFor(target);
+  const examples = technique.examples || [];
+  const exampleHtml = examples.length
+    ? examples.map((reference) => {
+      const creator = String(reference.creator || "").replace(/^@/, "");
+      return `<li><a href="${esc(reference.url)}" target="_blank" rel="noopener">${esc(`${creator ? `@${creator}` : "Reference"}${reference.category ? ` · ${reference.category}` : ""}`)}</a></li>`;
+    }).join("")
+    : `<li><a href="https://www.youtube.com/results?search_query=${encodeURIComponent(`${technique.name} video technique`)}" target="_blank" rel="noopener">Search examples on YouTube</a></li>`;
+  card.innerHTML = `<div class="popover-head"><b>${esc(technique.name)}</b><button type="button" class="popover-close" aria-label="Close technique details">×</button></div>
+    <p>${esc(technique.category)} · ${esc(technique.style)}</p><p>Rarity ${n(technique.rarity, 2)}</p>
+    <p>${esc(technique.description || "No description available.")}</p><h4>Examples</h4><ul>${exampleHtml}</ul>`;
+  card.hidden = false;
+  activeTechTrigger = target;
+  const rect = target.getBoundingClientRect();
+  card.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - card.offsetWidth - 8))}px`;
+  card.style.top = `${Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - card.offsetHeight - 8))}px`;
+}
+document.addEventListener("mouseover", (e) => {
+  const target = e.target.closest("[data-tech-name]");
+  if (target && !target.contains(e.relatedTarget)) {
+    clearTimeout(techHideTimer);
+    if (window.matchMedia("(hover: hover)").matches) showTechCard(target);
+  }
+  if (e.target.closest(".detail-popover")) clearTimeout(techHideTimer);
+});
+document.addEventListener("mouseout", (e) => {
+  if (pinnedTechTrigger) return;
+  if (e.target.closest("[data-tech-name]") && !e.relatedTarget?.closest(".detail-popover")) {
+    techHideTimer = window.setTimeout(hideTechCard, 220);
+  }
+  const card = e.target.closest(".detail-popover");
+  if (card && !card.contains(e.relatedTarget) && !e.relatedTarget?.closest("[data-tech-name]")) {
+    techHideTimer = window.setTimeout(hideTechCard, 220);
+  }
+});
+document.addEventListener("focusin", (e) => {
+  const target = e.target.closest("[data-tech-name]");
+  if (target) showTechCard(target);
+});
+document.addEventListener("focusout", (e) => {
+  if (e.target.closest("[data-tech-name]") && !pinnedTechTrigger) {
+    techHideTimer = window.setTimeout(hideTechCard, 220);
+  }
+});
+document.addEventListener("click", (e) => {
+  if (e.target.closest("#tech-card .popover-close, #tech-card-sheet .popover-close")) {
+    hideTechCard();
+    return;
+  }
+  const target = e.target.closest("[data-tech-name]");
+  if (target) {
+    e.preventDefault();
+    if (pinnedTechTrigger === target) hideTechCard();
+    else {
+      pinnedTechTrigger = target;
+      showTechCard(target);
+    }
+    return;
+  }
+  if (!e.target.closest(".detail-popover")) hideTechCard();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideTechCard(); });
+window.addEventListener("scroll", hideTechCard, true);
 
 function mediaOf(r) {
   const u = r.url || "";
@@ -293,9 +402,20 @@ $("#intro-got-it").addEventListener("click", () => {
 $("#intro-see-draft").addEventListener("click", async () => {
   const hit = firstBlocked();
   if (!hit) return;
-  await select(hit.business_id);
+  selectDoubleTakePair(hit.business_id, hit.draft_id);
   dismissIntro();
-  $("#dossier-h")?.focus();
+});
+$("#intro-see-pitch").addEventListener("click", async (e) => {
+  const candidates = (state.overview?.businesses || [])
+    .filter((business) => business.status === "pitched" || business.status === "signed");
+  for (const business of candidates) {
+    const dossier = await api(`/api/business/${business.id}`);
+    const pitch = dossier.pitches?.[0];
+    if (pitch) {
+      await openPitch(business.id, pitch.id);
+      return;
+    }
+  }
 });
 
 // Short names for the step knots. The full label from the server stays in the title, aria-label and "Next" line.
@@ -327,6 +447,7 @@ async function refresh() {
   renderLog(o.log);
   renderBoard(o);
   renderAttention(o);
+  renderAbout(o);
   renderPipelineRegister(o);
   renderDoubleTakePairs(o);
   $("#intro-see-draft").hidden = !firstBlocked();
@@ -348,7 +469,14 @@ async function refresh() {
   if (studioTabFromHash() === "double-take") await loadDoubleTakeFromLocation();
 
   $("#follow").hidden = true;
-  if (state.selected && $("#drawer").classList.contains("open")) await openBusiness(state.selected, { quiet: true });
+  const businessRoute = businessRouteFromLocation();
+  if (businessRoute) {
+    state.selected = businessRoute.slug;
+    await openBusiness(businessRoute.slug, { quiet: true });
+    scrollBusinessSection(businessRoute.section);
+  } else if (state.selected && $("#drawer").classList.contains("open")) {
+    await openBusiness(state.selected, { quiet: true });
+  }
   else drawString(false);
 }
 
@@ -452,10 +580,10 @@ function needsEntries(o) {
       n: 1, kind: "Board call", icon: "gavel", biz: b,
       q: "Pursue this lead?",
       what: `${evidence} Pursue opens its research; Pass takes it off the pipeline for 90 days.`,
-      actions: ro ? `<span class="focus-wait">Waiting on the board</span><button type="button" class="btn ghost big" data-pick="${esc(i.business_id)}">See the screening</button>`
+      actions: ro ? `<span class="focus-wait">Waiting on the board</span><button type="button" class="btn ghost big" data-pick="${esc(i.business_id)}" data-business-section="screening">See the screening</button>`
         : `<button type="button" class="btn primary big" data-lead-decision="pursue" data-slug="${esc(i.business_id)}">Pursue lead</button><button type="button" class="btn ghost big" data-lead-decision="pass" data-slug="${esc(i.business_id)}">Pass</button>`,
-      more: ro ? "" : `<button type="button" class="text-button" data-pick="${esc(i.business_id)}">See the screening first →</button>`,
-      row: `<button type="button" class="focus-row" data-pick="${esc(i.business_id)}"><span class="label">ROW_NUM — New lead</span><span class="focus-row-text"><span class="focus-row-title">Pursue ${bizName(b, { link: false })}?</span><small>Partial overlap with a signed client · board call</small></span>${cta("Review")}</button>`,
+      more: ro ? "" : `<button type="button" class="text-button" data-pick="${esc(i.business_id)}" data-business-section="screening">See the screening first →</button>`,
+      row: `<button type="button" class="focus-row" data-pick="${esc(i.business_id)}" data-business-section="screening"><span class="focus-item-kind">${icon("gavel")}New lead</span><span class="focus-row-text"><span class="focus-row-title">Pursue ${bizName(b, { link: false })}?</span><small>Partial overlap with a signed client · board call</small></span>${cta("Review")}</button>`,
     });
   });
   items.filter((i) => i.type === "pitch").forEach((i) => {
@@ -466,7 +594,7 @@ function needsEntries(o) {
       q: "Approve this pitch?",
       what: "Account Manager assembled it from spec posts that cleared Double Take. Nothing is sent until you approve.",
       actions: `<button type="button" class="btn primary big" ${attrs}>Review and decide</button>`,
-      row: `<button type="button" class="focus-row" ${attrs}><span class="label">ROW_NUM — Pitch</span><span class="focus-row-text"><span class="focus-row-title">Approve ${bizName(b, { link: false })}'s pitch</span><small>Assembled from spec posts that cleared Double Take</small></span>${cta("Review")}</button>`,
+      row: `<button type="button" class="focus-row" ${attrs}><span class="focus-item-kind">${icon("send")}Pitch</span><span class="focus-row-text"><span class="focus-row-title">Approve ${bizName(b, { link: false })}'s pitch</span><small>Assembled from spec posts that cleared Double Take</small></span>${cta("Review")}</button>`,
     });
   });
   const posts = items.filter((i) => i.type === "approve_posts");
@@ -478,7 +606,7 @@ function needsEntries(o) {
       q: `Approve ${plural(total, "post", "posts")}?`,
       what: `All cleared Double Take. Pick a client to review ${posts.length === 1 ? "its" : "their"} posts.`,
       actions: `<span class="focus-chips">${chips}</span>`,
-      row: `<div class="focus-row multi"><span class="label">ROW_NUM — Posts</span><button type="button" class="focus-row-text" data-draft="${esc(posts[0].draft_ids[0])}" data-slug="${esc(posts[0].business_id)}">Approve ${plural(total, "post", "posts")}<small>All cleared by Double Take</small></button><span class="focus-chips">${chips}</span></div>`,
+      row: `<div class="focus-row"><span class="focus-item-kind">${icon("circle-check")}Posts</span><button type="button" class="focus-row-text" data-draft="${esc(posts[0].draft_ids[0])}" data-slug="${esc(posts[0].business_id)}">Approve ${plural(total, "post", "posts")}<small>All cleared by Double Take</small></button><span class="focus-chips">${chips}</span></div>`,
     });
   }
   const ready = items.find((i) => i.type === "ready");
@@ -489,7 +617,7 @@ function needsEntries(o) {
       q: `${plural(k, "screened lead is", "screened leads are")} cleared to pitch`,
       what: "Scout found no clash with a signed client. Open one in the pipeline to pursue it.",
       actions: `<button type="button" class="btn primary big" data-reveal-lane="screened">See them in the pipeline</button>`,
-      row: `<button type="button" class="focus-row" data-reveal-lane="screened"><span class="label">ROW_NUM — Leads</span><span class="focus-row-text">${plural(k, "lead is", "leads are")} cleared to pitch<small>Scout found no clash with a signed client</small></span>${cta("Review")}</button>`,
+      row: `<button type="button" class="focus-row" data-reveal-lane="screened"><span class="focus-item-kind">${icon("sparkles")}Leads</span><span class="focus-row-text">${plural(k, "lead is", "leads are")} cleared to pitch<small>Scout found no clash with a signed client</small></span>${cta("Review")}</button>`,
     });
   }
   const unscreened = items.filter((i) => i.type === "unscreened");
@@ -500,7 +628,7 @@ function needsEntries(o) {
       q: `${plural(k, "new lead is", "new leads are")} waiting for Scout`,
       what: "Run the next step and Scout screens them against every signed client.",
       actions: `<button type="button" class="btn primary big" data-reveal-lane="lead">See them in the pipeline</button>`,
-      row: `<button type="button" class="focus-row" data-reveal-lane="lead"><span class="label">ROW_NUM — Leads</span><span class="focus-row-text">${plural(k, "new lead is", "new leads are")} waiting for Scout<small>Run the next step to screen them</small></span>${cta("Review")}</button>`,
+      row: `<button type="button" class="focus-row" data-reveal-lane="lead"><span class="focus-item-kind">${icon("users")}Leads</span><span class="focus-row-text">${plural(k, "new lead is", "new leads are")} waiting for Scout<small>Run the next step to screen them</small></span>${cta("Review")}</button>`,
     });
   }
   return entries;
@@ -513,7 +641,7 @@ function renderAttention(o) {
   const count = entries.length;
   const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
   const countWord = count < words.length ? words[count] : String(count);
-  $("#today-kicker").textContent = `TODAY / ${String(count).padStart(2, "0")} DECISIONS`;
+  $("#today-kicker").textContent = `${count} ${count === 1 ? "decision" : "decisions"} today`;
   $("#today-title").textContent = count ? "Your call." : "All clear.";
   $("#today-summary").textContent = count === 0
     ? "The agents ran overnight. Nothing needs you right now."
@@ -522,7 +650,7 @@ function renderAttention(o) {
       : `The agents ran overnight. These ${countWord} need your judgment before anything moves.`;
   $("#needs-you-heading").textContent = count ? `${plural(count, "decision", "decisions")} waiting` : "All clear";
   const kindLabel = {
-    "Board call": "New lead · board call",
+    "Board call": "New lead",
     "Pitch to approve": "Pitch",
     "Posts to approve": "Posts",
     "Cleared to pitch": "Leads",
@@ -530,15 +658,14 @@ function renderAttention(o) {
   };
   $("#needs-you").innerHTML = first
     ? `<div class="focus-item">
-        <p class="focus-item-kind label">01 — ${esc(kindLabel[first.kind] || first.kind)}</p>
+        <p class="focus-item-kind">${icon(first.icon)}${esc(kindLabel[first.kind] || first.kind)}</p>
         ${first.biz ? `<div class="focus-biz">${bizName(first.biz)}<span>${esc([first.biz.category, hoodOf(first.biz)].filter(Boolean).join(" · "))}</span></div>` : ""}
         <h3 class="focus-q">${esc(first.q)}</h3><p class="focus-what">${first.what}</p>
         <div class="focus-actions">${first.actions}</div>${first.more || ""}
-      </div>${rest.length ? `<div class="focus-rows">${rest.map((entry, index) => entry.row.replaceAll("ROW_NUM", String(index + 2).padStart(2, "0"))).join("")}</div>` : ""}`
+      </div>${rest.length ? `<div class="focus-rows">${rest.map((entry) => entry.row).join("")}</div>` : ""}`
     : `<div class="needs-empty"><img class="needs-empty-image" src="/static/img/empty-all-clear.webp" width="720" height="720" alt="A tidy corkboard beside a cup of coffee." loading="lazy" decoding="async"><p>All clear: nothing needs you right now.</p></div>`;
   const blocked = (o.needs_you || []).filter((i) => i.type === "blocked").sort((a, z) => (z.risk || 0) - (a.risk || 0));
-  const caughtCount = String(blocked.length).padStart(2, "0");
-  $("#caught-count").textContent = caughtCount;
+  $("#caught-count").textContent = String(blocked.length);
   const caughtRows = blocked.map((i) => `<button type="button" class="caught-row" data-draft="${esc(i.draft_id)}" data-slug="${esc(i.business_id)}">
       <span class="caught-who"><b>${bizName(byId[i.business_id] || { id: i.business_id, name: i.business }, { link: false })}</b>
         <span class="caught-lookalikes"><span>looked like</span>${[i.with_business, ...(i.also_like || [])].map((name, index) => `${index ? "<span>and</span>" : ""}<span class="caught-name">${bizName(bizByName(name), { link: false })}</span>`).join("")}</span>
@@ -550,6 +677,28 @@ function renderAttention(o) {
   $("#caught").innerHTML = caughtRows;
   $("#tab-count-today").textContent = String(count);
   $("#tab-count-double-take").textContent = String(new Set(blocked.map((i) => i.draft_id)).size);
+}
+
+function renderAbout(o) {
+  const clients = (o.businesses || []).filter((business) => business.status === "signed");
+  const neighborhoods = [...new Set(clients.map(hoodOf).filter(Boolean))];
+  const categories = [...new Set(clients.map((business) => business.category).filter(Boolean))];
+  const meta = [
+    `${clients.length} ${plural(clients.length, "client", "clients")}`,
+    neighborhoods.length ? `${neighborhoods.length} ${plural(neighborhoods.length, "neighborhood", "neighborhoods")}` : "",
+    categories.join(", "),
+  ].filter(Boolean).join(" · ");
+  $("#about-summary").textContent = `We make short-form video for local family businesses${meta ? ` · ${meta}` : ""}.`;
+  const workflow = [
+    ["user-plus", "Leads"], ["search", "Research"], ["clipboard", "Spec posts"],
+    ["send", "Pitch"], ["circle-check", "Signed"], ["calendar", "Monthly posts"],
+  ];
+  $("#studio-workflow").innerHTML = workflow.map(([name, label]) =>
+    `<li>${icon(name)}<span>${label}</span></li>`).join("");
+  const pitchClient = (o.businesses || []).find((business) => business.status === "pitched" || business.status === "signed");
+  const pitchButton = $("#intro-see-pitch");
+  pitchButton.hidden = !pitchClient;
+  pitchButton.dataset.slug = pitchClient?.id || "";
 }
 
 document.addEventListener("click", (e) => {
@@ -568,7 +717,7 @@ function renderBoard(o) {
     if ((title === "Passed" || title === "Lead") && !items.length) return "";
     let extra = 0;
     if (title === "Screened") {
-      const order = { pursue: 0, pursue_differentiated: 1, borderline: 2, decline: 3 };
+      const order = { pursue: 0, pursue_differentiated: 1, borderline: 2 };
       items.sort((a, z) => (order[a.verdict] ?? 4) - (order[z.verdict] ?? 4) || a.name.localeCompare(z.name));
       const sel = items.findIndex((b) => b.id === state.selected);
       if (!state.showAllScreened && items.length > 5 && sel < 5) extra = items.length - 4;
@@ -586,7 +735,7 @@ function renderBoard(o) {
 
 function renderPipelineRegister(o) {
   const stageRows = STAGES.map(([title, test]) => ({ title, items: o.businesses.filter(test) })).filter((row) => row.items.length);
-  $("#pipeline-kicker").textContent = `PIPELINE / ${String(o.businesses.length).padStart(2, "0")} BUSINESSES`;
+  $("#pipeline-kicker").textContent = `Pipeline · ${o.businesses.length} businesses`;
   $("#pipeline-stage-bar").style.gridTemplateColumns = stageRows.map((row) => `${row.items.length}fr`).join(" ") || "1fr";
   $("#pipeline-stage-bar").innerHTML = stageRows.map((row) => `<button type="button" class="pipeline-stage${state.pipelineStage === row.title.toLowerCase() ? " selected" : ""}" data-pipeline-stage="${esc(row.title.toLowerCase())}" aria-pressed="${state.pipelineStage === row.title.toLowerCase()}"><span class="pipeline-stage-count">${row.items.length}</span><span>${esc(row.title)}</span></button>`).join("");
   const screening = state.analysis?.screening || [];
@@ -625,13 +774,13 @@ function doubleTakeRoute() {
 function renderDoubleTakePairs(o = state.overview) {
   if (!o || !$("#dt-pairs")) return;
   const pairs = blockedPairs(o);
-  $("#doubletake-kicker").textContent = `DOUBLE TAKE / ${String(pairs.length).padStart(2, "0")} BLOCKED DRAFTS`;
+  $("#doubletake-kicker").textContent = `${pairs.length} blocked drafts`;
   $("#tab-count-double-take").textContent = String(pairs.length);
   const route = doubleTakeRoute();
   $("#dt-pairs").innerHTML = pairs.map((pair, index) => {
     const selected = pair.business_id === route.slug && pair.draft_id === route.draft;
     return `<button type="button" class="dt-pair${selected ? " selected" : ""}" data-dt-slug="${esc(pair.business_id)}" data-dt-draft="${esc(pair.draft_id)}" aria-pressed="${selected}">
-      <span class="label">${String(index + 1).padStart(2, "0")} / ${esc(pair.business || pair.business_id)} draft ≈ ${esc(pair.with_business || "another client")}</span>
+      <span class="label">${esc(pair.business || pair.business_id)} draft versus ${esc(pair.with_business || "another client")}</span>
       <span class="dt-pair-risk">${n(pair.risk)}</span>
     </button>`;
   }).join("") || `<p class="empty-row">No blocked drafts in this run.</p>`;
@@ -680,7 +829,7 @@ function selectDoubleTakePair(slug, draft) {
 function dtNodeMarkup(node, index, suffix = "") {
   const sub = node.hook ? `<span class="dt-node-hook">${esc(node.hook)}</span>` : "";
   const flagged = node.data?.flag ? " dt-node-flagged" : "";
-  return `<button type="button" class="dt-node dt-node-${esc(node.type)}${flagged}" id="dt-node-${index}${suffix}" data-dt-node-index="${index}" aria-pressed="${state.doubleTake.node?.id === node.id}">
+  return `<button type="button" class="dt-node dt-node-${esc(node.type)}${flagged}" id="dt-node-${index}${suffix}" data-dt-node-index="${index}"${node.type === "technique" ? ` data-tech-name="${esc(node.name)}"` : ""} aria-pressed="${state.doubleTake.node?.id === node.id}">
     <span class="dt-node-type">${esc(node.label)}</span><b>${esc(node.name)}</b>${sub}
   </button>`;
 }
@@ -769,7 +918,7 @@ function renderDoubleTakeInspector() {
     facts = `<div class="dt-fact"><span>Version</span><b class="mono">${esc(draft.version)}</b></div><div class="dt-fact"><span>Status</span><b>${esc(draft.status)}</b></div><div class="dt-fact dt-draft-hook"><span>Hook</span><b>${esc(draft.hook)}</b></div>`;
   }
   $("#dt-inspector").innerHTML = `<p class="label">${esc(node.label)}</p><h2>${esc(node.name)}</h2><div class="dt-facts">${facts}</div>
-    <section class="dt-query"><p class="label">FOUND BY Q2 · double_take</p><pre>${esc(detail.query?.cypher || "")}</pre></section>`;
+    <section class="dt-query"><p class="label">Found by the Double Take query</p><pre>${esc(detail.query?.cypher || "")}</pre></section>`;
 }
 
 function formatDecisionSentence(decision, business) {
@@ -883,8 +1032,11 @@ async function renderDays() {
   $("#next-day").hidden = !a.can_advance;
   $("#day-label").textContent = a.day ? `Day ${a.day} · ${dayDate(a.date)}` : "Agent run";
   const today = a.days.find((d) => d.day === a.day);
-  const did = (today?.entries || []).filter((e) => e.agent !== "Yaz").length;
-  $("#day-summary").textContent = a.day ? `Agents did ${plural(did, "thing", "things")} today on their own.` : "Press Next day and the agents start working.";
+  const did = (today?.entries || []).filter((e) => e.agent !== "Board").length;
+  const runActivityCount = (a.days || []).reduce((count, day) => count + day.entries.length, 0);
+  $("#day-summary").textContent = !a.can_advance
+    ? `Read-only copy: this is what the agents did in this run. ${plural(runActivityCount, "action", "actions")} recorded.`
+    : a.day ? `Agents did ${plural(did, "thing", "things")} today on their own.` : "Press Next day and the agents start working.";
   const left = a.feed_left.length;
   $("#day-feed").textContent = left ? `${left} new ${left === 1 ? "lead" : "leads"} still to arrive.` : "";
   const byId = Object.fromEntries((state.overview?.businesses || []).map((b) => [b.id, b]));
@@ -894,7 +1046,7 @@ async function renderDays() {
       const date = new Date(e.at || 0);
       const time = Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
       const blocked = /blocked/i.test(e.text || "");
-      const board = e.agent === "Yaz";
+      const board = e.agent === "Board";
       const kind = blocked ? "DOUBLE TAKE" : (e.kind || "AGENT UPDATE").replace(/_/g, " ").toUpperCase();
       return `<li class="feed-entry${blocked ? " is-blocked" : ""}${board ? " is-board" : ""}">
         <time class="feed-time mono">${esc(time)}</time><span class="feed-icon" title="${esc(e.agent)}" aria-label="${esc(e.agent)}">${agentIcon(e.agent)}</span>
@@ -904,7 +1056,7 @@ async function renderDays() {
         </div>
       </li>`;
     }).join("")}</ul></li>`).join("")
-    || `<li class="day empty muted">Day 0. Press Next day and the agents start working.</li>`;
+    || `<li class="day empty muted">No agent activity yet.</li>`;
 }
 
 const LEAD_PRESETS = [
@@ -1066,18 +1218,18 @@ async function feed() {
     const name = b?.name || b?.id || "this business";
     let m;
     if ((m = text.match(/^Screened ([\w-]+): (.+)$/i))) {
-      const verdict = ({ borderline: "board call", pursue_differentiated: "pursue with a distinct angle", decline: "declined", pursue: "cleared to pursue" })[m[2]] || m[2];
+      const verdict = ({ borderline: "board call", pursue_differentiated: "pursue with a distinct angle", pursue: "cleared to pursue" })[m[2]] || m[2];
       return `Scout screened ${name}: ${verdict}.`;
     }
     if ((m = text.match(/^Draft v\d+: (.+)$/))) return `Producer wrote '${cleanHook(m[1])}'.`;
     if ((m = text.match(/^Double Take: blocked, resembles (.+)$/i))) return `Double Take blocked a draft: it looked like ${m[1]}'s work.`;
     if (/^Double Take: cleared$/i.test(text)) return "Double Take cleared the draft.";
-    if (/^Board approve: Pitch$/i.test(text)) return "Yaz approved the pitch.";
-    if (/^Status: signed$/i.test(text) || new RegExp(`\\b${b?.id || "____"} is now signed\\b`, "i").test(text)) return `Yaz signed ${name}.`;
+    if (/^Board approve: Pitch$/i.test(text)) return "The board approved the pitch.";
+    if (/^Status: signed$/i.test(text) || new RegExp(`\\b${b?.id || "____"} is now signed\\b`, "i").test(text)) return `The board signed ${name}.`;
     if (/^Status: pitched$/i.test(text) || new RegExp(`\\b${b?.id || "____"} is now pitched\\b`, "i").test(text)) return `Account Manager pitched ${name}.`;
     if (/^Status: pursued$/i.test(text) || new RegExp(`\\b${b?.id || "____"} is now pursued\\b`, "i").test(text)) return `Scout pursued ${name}.`;
     if (/^Pitch angle:/i.test(text)) return `Account Manager prepared a pitch for ${name}.`;
-    if (/^Retired goal$/i.test(text)) return "Yaz retired a goal.";
+    if (/^Retired goal$/i.test(text)) return "The board retired a goal.";
     if (/^Goal \(hypothesized\):/i.test(text)) return "Researcher recorded a goal hypothesis.";
     if (/^Recorded (channel|competitor|audience) finding$/i.test(text)) return `Researcher recorded a ${text.match(/^Recorded (\w+)/i)[1]} finding.`;
     if (/^Audited \d+ posts$/i.test(text)) return `Auditor ${text.toLowerCase()}.`;
@@ -1288,7 +1440,7 @@ function renderScreening(analysis, overview) {
   }
   $("#lead-picker").innerHTML = [...leads].sort((a, z) => (z.max_conflict || 0) - (a.max_conflict || 0))
     .map((row) => `<button type="button" class="lead-chip" data-lead="${esc(row.id)}" aria-pressed="${row.id === state.netLead}"><span class="lead-chip-name">${bizName(bizById(row.id) || { id: row.id, name: row.name }, { link: false })}</span>${verdictStatus(row.verdict)}</button>`).join("");
-  $("#screening-legend").textContent = `Conflict is the sum of path weights to one client. At ${n(t.borderline)} or more it is a board call; at ${n(t.differentiate)} or more Scout only pitches with a distinct angle. Same category in the same neighborhood is an automatic decline.`;
+  $("#screening-legend").textContent = `Conflict is the sum of path weights to one client. At ${n(t.borderline)} or more it is a board call; at ${n(t.differentiate)} or more Scout recommends a distinct content angle.`;
   $("#screening-table").innerHTML = `<caption class="sr-only">Conflict between each lead and each signed client</caption>
     <thead><tr><th scope="col">Lead</th>${clients.map((c) => `<th scope="col">${esc(c.name)}</th>`).join("")}<th scope="col">Verdict</th></tr></thead>
     <tbody>${leads.map((row) => {
@@ -1424,7 +1576,7 @@ function renderDoubleTake(analysis) {
       <div class="dt-graph">
         <svg class="dt-svg" aria-hidden="true"></svg>
         <div class="dt-col"><div class="dt-node draft"><span class="k">Blocked draft</span><b>${bizName(bizByName(g.client), { link: false })}</b><span class="hook">“${esc(g.draft_hook || g.draft)}”</span></div></div>
-        <div class="dt-col dt-techs">${techs.map((x) => `<span class="dt-tech" data-tech="${esc(x)}">${esc(x)}</span>`).join("")}</div>
+        <div class="dt-col dt-techs">${techs.map((x) => `<span class="dt-tech" data-tech="${esc(x)}">${techChip(x)}</span>`).join("")}</div>
         <div class="dt-col">${g.flags.map((f) => `<div class="dt-node other" data-shared="${esc((f.shared || []).join("|"))}"><span class="k">Looks like</span><b>${bizName(bizByName(f.with_business), { link: false })}</b><span class="hook">${plural((f.evidence || []).length, "piece", "pieces")} of its work already use${(f.evidence || []).length === 1 ? "s" : ""} these</span></div>`).join("")}</div>
       </div>
       <ul class="dt-risk">${g.flags.map((f) => `<li>
@@ -1474,11 +1626,11 @@ function renderTerritory(analysis, overview) {
   $("#territory-all").hidden = cols.length <= defaultCount;
   $("#territory-all").textContent = state.territoryAll ? `Show the top ${defaultCount}` : `Show all ${cols.length} techniques`;
   $("#signatures-table").innerHTML = `<caption class="sr-only">Signature techniques by business</caption>
-    <thead><tr><td></td>${visibleCols.map((c) => `<th scope="col" class="col${hotCols.has(c.name) ? " contested" : ""}" title="rarity ${n(c.rarity)}, claimed by ${c.by.size}"><span>${esc(c.name)}</span></th>`).join("")}</tr></thead>
+    <thead><tr><td></td>${visibleCols.map((c) => `<th scope="col" class="col${hotCols.has(c.name) ? " contested" : ""}" title="rarity ${n(c.rarity)}, claimed by ${c.by.size}">${techChip(c.name)}</th>`).join("")}</tr></thead>
     <tbody>${visibleRows.map(([id, name]) => `<tr class="${status[id] === "signed" ? "signed" : ""}"><th scope="row">${esc(name)}<small>${label[status[id]] || ""}</small></th>${visibleCols.map((c) => {
       const v = share[`${id}|${c.name}`];
       const d = v ? Math.round(8 + v * 16) : 0;
-      return `<td class="${hotCols.has(c.name) ? "contested" : ""}">${v ? `<span class="dot${hotCells.has(`${id}|${c.name}`) ? " hot" : ""}" style="width:${d}px;height:${d}px" title="${esc(name)}: ${esc(c.name)} in ${Math.round(v * 100)}% of its work"></span><span class="sr-only">${Math.round(v * 100)}%</span>` : ""}</td>`;
+      return `<td class="${hotCols.has(c.name) ? "contested" : ""}">${v ? `<button type="button" class="dot-button" data-tech-name="${esc(c.name)}" aria-label="${esc(name)} uses ${esc(c.name)} in ${Math.round(v * 100)}% of its work"><span class="dot${hotCells.has(`${id}|${c.name}`) ? " hot" : ""}" style="width:${d}px;height:${d}px"></span></button><span class="sr-only">${Math.round(v * 100)}%</span>` : ""}</td>`;
     }).join("")}</tr>`).join("") || `<tr><td class="muted" colspan="${visibleCols.length + 1}">No signatures in these techniques.</td></tr>`}</tbody>`;
 }
 
@@ -1486,8 +1638,32 @@ function renderTerritory(analysis, overview) {
 function renderAccess(analysis) {
   const qs = analysis.queries;
   const agents = Object.entries(analysis.agents);
+  const agentJobs = {
+    scout: "Screens new leads against signed clients.",
+    researcher: "Finds evidence and proposes measurable goals.",
+    producer: "Turns research into spec posts and revisions.",
+    standards: "Checks each draft for risky overlap before it can ship.",
+    style_director: "Finds open creative territory to guide revisions.",
+    strategist: "Shapes measurable campaign goals from the research.",
+    account_manager: "Prepares pitches and monthly client work.",
+    board: "Board = you. Approves, vetoes, and retires goals.",
+    auditor: "Reviews existing posts for strengths and opportunities.",
+  };
+  const queryNames = {
+    Q0: "Signature check", Q1: "Same-area client check", Q2: "Double Take check",
+    Q3: "Open territory", Q4: "Post history", Q5: "Stale drafts", P1: "Project techniques",
+  };
+  let context = $("#analysis-context");
+  if (!context) {
+    context = document.createElement("div");
+    context.id = "analysis-context";
+    $("#analysis-agents").parentElement.before(context);
+  }
+  context.innerHTML = `<div class="agent-job-list">${agents.map(([agent]) =>
+    `<article>${agentIcon(agent)}<div><b>${esc(pretty(agent))}</b><p>${esc(agentJobs[agent] || "Runs the tools assigned to this role.")}</p></div></article>`).join("")}</div>
+    <div class="query-glossary"><h3>Query glossary</h3>${qs.map((q) => `<article><h4>${esc(queryNames[q.query] || q.tool)} <small>${esc(q.query)}</small></h4><p>${esc(q.description.replace(/^[PQ]\\d\\.\\s*/, ""))}</p></article>`).join("")}</div>`;
   $("#analysis-agents").innerHTML = `<caption class="sr-only">Which agent can call which named query</caption>
-    <thead><tr><td></td>${qs.map((q) => `<th scope="col"><span class="qtag">${esc(q.query)}</span>${esc(q.tool)}</th>`).join("")}<th scope="col">Other tools</th></tr></thead>
+    <thead><tr><td></td>${qs.map((q) => `<th scope="col">${esc(queryNames[q.query] || q.tool)}<small>${esc(q.query)}</small></th>`).join("")}<th scope="col">Other tools</th></tr></thead>
     <tbody>${agents.map(([agent, tools]) => {
       const named = qs.filter((q) => tools.includes(q.tool)).length;
       return `<tr><th scope="row"><span class="agent-name">${agentIcon(agent)}${esc(pretty(agent))}</span></th>${qs.map((q) => `<td>${tools.includes(q.tool) ? `<span class="yes" title="${esc(pretty(agent))} can call ${esc(q.tool)}"></span><span class="sr-only">yes</span>` : ""}</td>`).join("")}<td class="other">${tools.length - named}</td></tr>`;
@@ -1561,7 +1737,7 @@ function renderIntroProof(analysis, overview) {
         <div class="vs-side"><span class="vs-names">${lookalikes.map((name, i) => `${i ? " and " : ""}${bizName(bizByName(name), { link: false })}`).join("")}</span><span>already ${lookalikes.length === 1 ? "does" : "do"} this</span></div>
       </div>
       <q class="vs-hook">${esc(top.draft_hook || "Draft without a hook")}</q>
-      <p class="vs-chips" aria-label="Shared techniques">${top.techs.map((tech) => `<span>${esc(tech)}</span>`).join("")}</p>
+      <p class="vs-chips" aria-label="Shared techniques">${top.techs.map((tech) => techChip(tech)).join("")}</p>
       <div class="vs-meter"><b>risk ${n(risk)}</b>
         <span class="vs-track" role="img" aria-label="Risk ${n(risk)}; blocked at ${n(cutoff)}"><span class="vs-fill" style="width:${pct(risk)}%"></span><span class="vs-tick" style="left:${pct(cutoff)}%"></span></span>
         <span>limit ${n(cutoff)}</span></div>`;
@@ -1591,7 +1767,7 @@ function renderIntroProof(analysis, overview) {
 // Each chapter leads with what this run found; the static heading stays as the fallback.
 function renderFindings(analysis) {
   const rows = (analysis.screening || []).map((r) => ({ r, top: [...(r.clients || [])].sort((x, z) => z.conflict - x.conflict)[0] }))
-    .filter((x) => x.top && x.r.verdict !== "decline").sort((x, z) => z.top.conflict - x.top.conflict);
+    .filter((x) => x.top).sort((x, z) => z.top.conflict - x.top.conflict);
   if (rows[0]) $("#screening-heading").innerHTML = `<em>${esc(rows[0].r.name)}</em> competes with ${esc(rows[0].top.client)} for the same people`;
   const list = blockedDrafts(analysis);
   $("#double-take-heading").innerHTML = list.length
@@ -1640,7 +1816,7 @@ const TOUR = [
     body: (a) => {
       const t = a.thresholds || {};
       const rows = (a.screening || []).map((r) => ({ r, top: [...(r.clients || [])].sort((x, z) => z.conflict - x.conflict)[0] }))
-        .filter((x) => x.top && x.r.verdict !== "decline").sort((x, z) => z.top.conflict - x.top.conflict);
+        .filter((x) => x.top).sort((x, z) => z.top.conflict - x.top.conflict);
       const ex = rows[0];
       return `Each button is a new lead, scored against each client the agency already has. Higher numbers mean they compete for the same people.${ex ? ` ${ex.r.name} scores ${n(ex.top.conflict)} against ${ex.top.client}, past the ${n(t.differentiate)} cutoff, so it can only be pitched with a distinct angle.` : ""}`;
     },
@@ -1819,6 +1995,21 @@ function revealStage(name) {
   });
 }
 
+async function openBusinessPage(slug, section = "overview") {
+  state.selected = slug;
+  history.pushState({}, "", `/#business/${encodeURIComponent(slug)}/${encodeURIComponent(section)}`);
+  syncStudioTab();
+  await openBusiness(slug, { quiet: true });
+  scrollBusinessSection(section);
+}
+
+function scrollBusinessSection(section = "overview") {
+  requestAnimationFrame(() => {
+    const target = document.getElementById(`business-section-${section}`) || $("#business-page");
+    target?.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "start" });
+  });
+}
+
 async function select(slug) {
   const changed = slug !== state.selected;
   state.selected = slug;
@@ -1829,6 +2020,8 @@ async function select(slug) {
 
 async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   const panel = $("#drawer");
+  const page = $("#business-page");
+  const fullPage = studioTabFromHash() === "business";
   if (panel.dataset.slug !== slug) state.dossierTab = "overview";
   let d;
   try { d = await api(`/api/business/${slug}`); }
@@ -1840,16 +2033,17 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   const ro = state.overview?.readonly;
   const hood = hoodOf(b);
   let h = `<div class="dossier-meta"><span class="dossier-cat">${categoryIcon(b.category)}${esc(b.category)}${hood ? ` · ${esc(hood)}` : ""}</span>
-      <button type="button" class="btn small dossier-close" data-dossier-close>Close</button></div>
+      ${fullPage ? `<a class="back-link" href="/#pipeline">Back to Pipeline</a>` : `<a class="text-button" href="/#business/${encodeURIComponent(slug)}/overview">Open full page</a><button type="button" class="btn small dossier-close" data-dossier-close>Close</button>`}</div>
     <div class="dossier-title"><h2 class="name" id="dossier-h" tabindex="-1">${bizName(b, { link: false })}</h2></div>
     <div class="status-row">${verdictStatus(b.status)}${b.voice ? `<span class="muted">Voice: ${esc(b.voice)}</span>` : ""}</div>`;
 
   let overview = "";
+  let screening = `<p class="muted">Scout has not screened this business yet.</p>`;
   if (b.status === "lead" && d.screening?.verdict === "borderline") {
     overview += ro
       ? `<section class="decide waiting" aria-label="Waiting on the board">
           <p class="decide-kicker">Waiting on the board</p>
-          <p class="decide-what">The board will decide whether to pursue ${esc(b.name)}.</p></section>`
+          <p class="decide-what">You decide whether to pursue ${esc(b.name)}.</p></section>`
       : `<section class="decide" aria-labelledby="lead-decide-q">
           <p class="decide-kicker">Needs your decision</p>
           <p class="decide-q" id="lead-decide-q">Pursue ${esc(b.name)}?</p>
@@ -1862,7 +2056,7 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   }
   if (d.screening && d.screening.verdict) {
     const s = d.screening;
-    overview += `<h3>Scout's screening</h3><div class="thread"><div class="knot"><div class="who">${who(s.by || "Scout")} ${verdictStatus(s.verdict)}</div><p>${esc(displayStudioCopy(s.reason))}</p></div>
+    screening = `<h3>Scout's screening</h3><div class="thread"><div class="knot"><div class="who">${who(s.by || "Scout")} ${verdictStatus(s.verdict)}</div><p>${esc(displayStudioCopy(s.reason))}</p></div>
       ${(s.paths || []).map((c) => {
         const ps = [...(c.paths || [])].sort((a, z) => z.conflict - a.conflict);
         const pill = (p) => `<li>${esc(p.via)} <span class="metric">· ${n(p.conflict)}</span></li>`;
@@ -1870,7 +2064,7 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
           ${ps.length ? `<p class="muted">via ${ps.slice(0, 2).map((p) => esc(p.via)).join(", ")}</p><p class="muted mono metric">Path contributions: ${ps.slice(0, 2).map((p) => `${esc(p.via)} ${n(p.conflict, 3)}`).join(" · ")}</p>` : ""}
           ${ps.length > 2 ? `<details class="metric"><summary>All ${ps.length} audience paths</summary><ul class="paths">${ps.map(pill).join("")}</ul></details>` : ""}</div>`;
       }).join("")}</div>`;
-    overview += `<p class="analysis-bridge-row"><a class="analysis-bridge" href="/analysis?lead=${encodeURIComponent(slug)}#ch-screening" data-analysis-link>How was this decided?</a></p>`;
+    screening += `<p class="analysis-bridge-row"><a class="analysis-bridge" href="/analysis?lead=${encodeURIComponent(slug)}#ch-screening" data-analysis-link>How was this decided?</a></p>`;
   }
 
   if (d.has_graph && d.flags && d.flags.length) {
@@ -1907,13 +2101,31 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
       `<li><button type="button" class="row-btn" data-draft="${esc(x.id)}" data-slug="${esc(slug)}">${chip(x.status)}${chip("plain", x.kind)} <b><span class="metric">v${esc(x.version)} · </span>${esc(x.hook)}</b></button></li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
     if (d.taste_profile && d.taste_profile.id) draftsTab += `<h3>Taste profile <span class="muted metric">v${esc(d.taste_profile.version)}</span></h3><p>${esc(d.taste_profile.summary)}</p>
       <p class="muted" style="margin-top:6px">Prefers: ${d.taste_profile.prefers.map((p) => esc(p.name)).join(", ")}${d.taste_profile.avoids.length ? `<br>Avoids: ${d.taste_profile.avoids.map((p) => esc(p.name)).join(", ")}` : ""}</p>`;
-    research += `<h3>Findings <span class="muted">each with its source</span></h3><ul class="list">${d.findings.map((f) => `<li>${chip("plain", f.kind)} ${f.kind === "audit" ? `${esc(f.text)} <span class="muted">From the audit of past posts.</span>` : f.source_url ? link(f.source_url, f.text) : `${esc(f.text)} ${link(f.source_url)}`}</li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
+    const findingGroups = new Map();
+    (d.findings || []).forEach((finding) => {
+      if (!findingGroups.has(finding.kind)) findingGroups.set(finding.kind, []);
+      findingGroups.get(finding.kind).push(finding);
+    });
+    const findingGroupNames = { audience: "Audience", competitor: "Competitors", channel: "Channels", audit: "Post audit" };
+    const findingMarkup = [...findingGroups].map(([kind, findings]) => `<section class="finding-group">
+      <h4>${esc(findingGroupNames[kind] || kind)}</h4><ul class="finding-rows">${findings.map((finding) => {
+        let source = "Source";
+        try { source = `Source: ${new URL(finding.source_url).hostname.replace(/^www\\./i, "")}`; } catch { source = "Source" }
+        const confidence = finding.confidence == null ? "Confidence not recorded" : `Confidence ${esc(finding.confidence)}`;
+        return `<li class="finding-row"><p class="finding-claim">${esc(finding.text)}</p><div class="finding-meta">
+          ${finding.source_url ? link(finding.source_url, source) : `<span class="muted">No source URL</span>`}
+          <span class="finding-confidence">${confidence}</span></div></li>`;
+      }).join("")}</ul></section>`).join("") || `<p class="muted">No findings yet.</p>`;
+    research += `<h3>Findings</h3>${findingMarkup}`;
     research += `<h3>Past posts</h3><ul class="list">${d.posts.map((p) => `<li>${esc(p.hook)} <span class="muted metric">${(p.views ?? 0).toLocaleString()} views · ${(p.saves ?? 0).toLocaleString()} saves</span></li>`).join("") || "<li class='muted'>Not loaded.</li>"}</ul>`;
   } else {
     overview += `<div class="warnbox"><b>No private graph yet.</b> Scout creates one when it pursues this lead.</div>`;
   }
 
-  const tabs = [{ id: "overview", label: "Overview", content: overview }];
+  const tabs = [
+    { id: "overview", label: "Overview", content: overview },
+    { id: "screening", label: "Screening", content: screening },
+  ];
   if (d.has_graph) tabs.push({ id: "drafts", label: "Drafts", content: draftsTab });
   tabs.push({ id: "research", label: "Research", content: research });
   if (d.has_graph && d.decisions && d.decisions.length) {
@@ -1926,27 +2138,37 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   }
   if (!tabs.some((tab) => tab.id === state.dossierTab)) state.dossierTab = "overview";
   tabs[0].content = tabs[0].content.replace('class="thread"', 'class="thread lead"');
-  h += `<div class="dossier-tabs" role="tablist" aria-label="${esc(b.name)} dossier">`;
-  h += tabs.map((tab) => {
-    const selected = tab.id === state.dossierTab;
-    const tabId = `dossier-${slug}-${tab.id}-tab`;
-    const panelId = `dossier-${slug}-${tab.id}-panel`;
-    return `<button type="button" role="tab" id="${esc(tabId)}" aria-controls="${esc(panelId)}" aria-selected="${selected}" tabindex="${selected ? "0" : "-1"}" data-dossier-tab="${esc(tab.id)}">${esc(tab.label)}</button>`;
-  }).join("");
-  h += `</div>`;
-  h += tabs.map((tab) => {
-    const selected = tab.id === state.dossierTab;
-    const tabId = `dossier-${slug}-${tab.id}-tab`;
-    const panelId = `dossier-${slug}-${tab.id}-panel`;
-    return `<section class="dossier-panel" role="tabpanel" id="${esc(panelId)}" aria-labelledby="${esc(tabId)}" tabindex="0"${selected ? "" : " hidden"}>${tab.content}</section>`;
-  }).join("");
+  if (fullPage) {
+    page.innerHTML = `<div class="business-page-shell">${h}${tabs.map((tab) =>
+      `<section class="business-section" id="business-section-${esc(tab.id)}"><h2>${esc(tab.label)}</h2>${tab.content}</section>`
+    ).join("")}</div>`;
+    page.hidden = false;
+    $("#drawer-body").innerHTML = "";
+    closeOverlay();
+  } else {
+    page.hidden = true;
+    h += `<div class="dossier-tabs" role="tablist" aria-label="${esc(b.name)} dossier">`;
+    h += tabs.map((tab) => {
+      const selected = tab.id === state.dossierTab;
+      const tabId = `dossier-${slug}-${tab.id}-tab`;
+      const panelId = `dossier-${slug}-${tab.id}-panel`;
+      return `<button type="button" role="tab" id="${esc(tabId)}" aria-controls="${esc(panelId)}" aria-selected="${selected}" tabindex="${selected ? "0" : "-1"}" data-dossier-tab="${esc(tab.id)}">${esc(tab.label)}</button>`;
+    }).join("");
+    h += `</div>`;
+    h += tabs.map((tab) => {
+      const selected = tab.id === state.dossierTab;
+      const tabId = `dossier-${slug}-${tab.id}-tab`;
+      const panelId = `dossier-${slug}-${tab.id}-panel`;
+      return `<section class="dossier-panel" role="tabpanel" id="${esc(panelId)}" aria-labelledby="${esc(tabId)}" tabindex="0"${selected ? "" : " hidden"}>${tab.content}</section>`;
+    }).join("");
 
-  const keepScroll = !animate && panel.dataset.slug === slug ? panel.scrollTop : 0;
-  $("#drawer-body").innerHTML = h;
-  panel.dataset.slug = slug;
-  panel.scrollTop = keepScroll;
+    const keepScroll = !animate && panel.dataset.slug === slug ? panel.scrollTop : 0;
+    $("#drawer-body").innerHTML = h;
+    panel.dataset.slug = slug;
+    panel.scrollTop = keepScroll;
+  }
   if (!quiet) $("#sr-status").textContent = `Showing ${b.name}`;
-  if (!isSplit() && !quiet) openOverlay();
+  if (!fullPage && !isSplit() && !quiet) openOverlay();
   drawString(animate);
 }
 
@@ -2091,8 +2313,6 @@ document.addEventListener("click", async (e) => {
   }
   const lane = e.target.closest("[data-reveal-lane]");
   if (lane) { revealStage(lane.dataset.revealLane); return; }
-  const pick = e.target.closest("[data-pick]");
-  if (pick) { select(pick.dataset.pick); return; }
   const dr = e.target.closest("[data-draft][data-slug]");
   if (dr) openRoute(dr.dataset.slug, dr.dataset.draft);
   const pi = e.target.closest("[data-pitch]");
@@ -2112,6 +2332,21 @@ document.addEventListener("click", async (e) => {
     bd.dataset.label === "Pitch" ? openPitch(bd.dataset.slug, bd.dataset.id) : openRoute(bd.dataset.slug, bd.dataset.id);
     refresh();
   }
+});
+
+document.addEventListener("click", async (e) => {
+  const pick = e.target.closest("[data-pick]");
+  if (!pick || isAnalysisView()) return;
+  const slug = pick.dataset.pick;
+  if (document.body.dataset.tab === "pipeline") {
+    if (pick.closest("#board, #pipeline-register")) return;
+    e.preventDefault();
+    await select(slug);
+    return;
+  }
+  e.preventDefault();
+  const section = pick.dataset.businessSection || (pick.closest(".focus-row") ? "screening" : "overview");
+  await openBusinessPage(slug, section);
 });
 
 // ---------------------------------------------------------------- route cards (threads) and pitch cards
@@ -2171,13 +2406,59 @@ function decisionBar(label, id, slug, c) {
 function showSheet(h, title) {
   $("#card-body").innerHTML = `<div class="sheet">${h}</div>`;
   $("#card").setAttribute("aria-label", title);
+  $("#goal-card").hidden = true;
+  $("#tech-card-sheet").hidden = true;
   if (!$("#card").open) $("#card").showModal();
 }
+
+async function showGoalPopover(button) {
+  const card = $("#goal-card");
+  const slug = button.dataset.slug;
+  const goalId = button.dataset.goalId;
+  const goal = await api(`/api/goal/${encodeURIComponent(slug)}/${encodeURIComponent(goalId)}`);
+  const statusCopy = {
+    active: "Active · tracked as a current client goal.",
+    hypothesized: "Hypothesized · an evidence-based guess, not yet confirmed with the business.",
+    retired: "Retired · no longer guides current work.",
+  };
+  card.innerHTML = `<div class="popover-head"><b>Goal</b><button type="button" class="popover-close" aria-label="Close goal details">×</button></div>
+    <p class="goal-popover-text">${esc(goal.text)}</p><p class="goal-popover-status">${esc(statusCopy[goal.status] || goal.status)}</p>
+    <p class="goal-popover-meta">${goal.created_by ? `Set by ${esc(goal.created_by)}` : "Who set this goal was not recorded."}${goal.created_at ? ` · ${esc(String(goal.created_at).slice(0, 10))}` : ""}</p>
+    <h4>Findings behind it</h4><ul>${(goal.findings || []).map((finding) => `<li>${esc(finding.text)}${finding.source_url ? ` ${link(finding.source_url, `${finding.kind || "Finding"} source`)}` : ""}</li>`).join("") || "<li>No linked findings.</li>"}</ul>
+    <h4>Drafts serving it</h4><ul>${(goal.drafts || []).map((draft) => `<li><button type="button" class="goal-draft-link" data-goal-draft="${esc(draft.id)}" data-slug="${esc(slug)}">${esc(draft.hook)}</button></li>`).join("") || "<li>No drafts serve this goal yet.</li>"}</ul>`;
+  card.hidden = false;
+  const rect = button.getBoundingClientRect();
+  card.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - card.offsetWidth - 8))}px`;
+  card.style.top = `${Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - card.offsetHeight - 8))}px`;
+}
+
+document.addEventListener("click", async (e) => {
+  const close = e.target.closest(".popover-close");
+  if (close) { close.closest(".detail-popover").hidden = true; return; }
+  const goalButton = e.target.closest("[data-goal-id]");
+  if (goalButton) {
+    e.preventDefault();
+    if ($("#goal-card").dataset.goalId === goalButton.dataset.goalId && !$("#goal-card").hidden) {
+      $("#goal-card").hidden = true;
+    } else {
+      $("#goal-card").dataset.goalId = goalButton.dataset.goalId;
+      await showGoalPopover(goalButton);
+    }
+    return;
+  }
+  const draftButton = e.target.closest("[data-goal-draft]");
+  if (draftButton) {
+    $("#goal-card").hidden = true;
+    await openRoute(draftButton.dataset.slug, draftButton.dataset.goalDraft);
+    return;
+  }
+  if (!e.target.closest("#goal-card")) $("#goal-card").hidden = true;
+});
 
 async function openRoute(slug, id) {
   const c = await api(`/api/route/${slug}/${id}`);
   let h = sheetTop(`<span class="studio-only">Thread</span><span class="analysis-only">Thread · client:${esc(slug)} · ${esc(id)}</span>`) +
-    `<h2>${esc(c.draft)}</h2><p class="serves">${chip(c.status)} ${c.goal ? `serves ${chip(c.goal_status)} <b>${esc(c.goal)}</b>` : ""}</p>` + decisionBar("Draft", id, slug, c);
+    `<h2>${esc(c.draft)}</h2><p class="serves">${chip(c.status)} ${c.goal ? `serves ${chip(c.goal_status)} <button type="button" class="goal-link" data-goal-id="${esc(c.goal_id)}" data-slug="${esc(slug)}">${esc(c.goal)}</button>` : ""}</p>` + decisionBar("Draft", id, slug, c);
   const kinds = c.technique_kinds || {};
   const me = state.overview?.businesses.find((b) => b.id === slug);
   if (c.status === "flagged" && c.flags.length) h += c.flags.map((f) => `<div class="flagbox"><b>Double Take blocked this draft.</b> It resembles ${esc(f.with_business)}'s work too closely.
@@ -2216,11 +2497,27 @@ async function openRoute(slug, id) {
 
 async function openPitch(slug, id) {
   const c = await api(`/api/pitch/${slug}/${id}`);
+  const [business, assets] = await Promise.all([
+    Promise.resolve(bizById(slug)),
+    Promise.all((c.spec_posts || []).map(async (post) => ({ post, detail: await api(`/api/route/${slug}/${post.id}`) }))),
+  ]);
+  const claimRows = (c.claims || []).map((finding) => `<li>${esc(finding.text)}${finding.source_url ? ` <span class="email-source">${link(finding.source_url, "Read source")}</span>` : ""}</li>`).join("");
+  const assetCards = assets.map(({ post, detail }) => {
+    const lines = String(detail.spec || "").split(/\r?\n/).filter(Boolean);
+    const format = lines.find((line) => /^Format:/i.test(line))?.replace(/^Format:\s*/i, "")
+      || (detail.format === "reel" ? "Vertical short-form video (reel)" : detail.format || "Short-form video");
+    const shots = lines.filter((line) => /^\d+ · /.test(line)).map((line) => line.replace(/^\d+ · [^·]+ · /, ""));
+    const references = (detail.references || []).map((reference) => link(reference.url, `@${String(reference.creator || "").replace(/^@/, "")} · ${reference.category || "Reference"}`)).join("");
+    return `<article class="pitch-asset"><p class="asset-kicker">Spec post</p><h4>${esc(post.hook)}</h4><p><b>Format</b> · ${esc(format)}</p><h5>Shot list</h5><ol>${shots.map((shot) => `<li>${esc(shot)}</li>`).join("")}</ol>${references ? `<div class="asset-references"><b>References</b>${references}</div>` : ""}</article>`;
+  }).join("");
   const h = sheetTop(`<span class="studio-only">Pitch</span><span class="analysis-only">Pitch · client:${esc(slug)} · ${esc(id)}</span>`) +
-    `<h2>${esc(c.angle)}</h2><p class="serves">${chip(c.status)} argues for ${chip(c.goal_status)} <b>${esc(c.goal)}</b></p>${decisionBar("Pitch", id, slug, c)}
-    ${c.goal_status === "hypothesized" ? `<div class="warnbox"><b>The goal is a hypothesis.</b> It is the Researcher's inference, shown to the prospect as one.</div>` : ""}
-    <h3>Every claim, with its source</h3><ul class="list">${c.claims.map((f) => `<li>${chip("plain", f.kind)} ${f.kind === "audit" ? `${esc(f.text)} <span class="muted">From our audit of their posts.</span>` : f.source_url ? link(f.source_url, f.text) : `${esc(f.text)} ${link(f.source_url)}`}</li>`).join("")}</ul>
-    <h3>Spec posts</h3><ul class="list">${c.spec_posts.map((d) => `<li><button type="button" class="row-btn" data-draft="${esc(d.id)}" data-slug="${esc(slug)}">${chip(d.status)} <b>${esc(d.hook)}</b></button></li>`).join("")}</ul>
+    `<h2>${esc(c.angle)}</h2><p class="serves">${chip(c.status)} argues for ${chip(c.goal_status)} <button type="button" class="goal-link" data-goal-id="${esc(c.goal_id)}" data-slug="${esc(slug)}">${esc(c.goal)}</button></p>${decisionBar("Pitch", id, slug, c)}
+    <section class="pitch-email"><p class="email-status">Draft · not sent until you approve</p><dl><div><dt>To</dt><dd>${esc(business?.name || slug)}</dd></div><div><dt>Subject</dt><dd>${esc(c.angle)}</dd></div></dl>
+      <p>Hi ${esc(business?.name || "there")},</p><p>${esc(c.angle)} is a first idea for your next short-form video.</p>
+      <p>We shaped it around these findings:</p><ul>${claimRows || "<li>No sourced findings are attached to this pitch.</li>"}</ul>
+      <p>Our working hypothesis is that this work can support the goal: <b>${esc(c.goal)}</b>.</p>
+      <p>Attached are ${assets.length} spec ${assets.length === 1 ? "post" : "posts"} for your review.</p><p>Best,<br>Corkboard Studio</p></section>
+    <h3>Attached spec posts</h3><div class="pitch-assets">${assetCards || `<p class="muted">No spec posts attached.</p>`}</div>
     <h3>Decisions</h3><div class="thread">${knots(c.decisions)}</div>`;
   showSheet(h, `Pitch for ${slug}`);
 }
@@ -2261,8 +2558,8 @@ $("#draft-form").addEventListener("submit", async (e) => {
     const commonMoves = shared.map((item) => `<li class="shared">${esc(item.name)}</li>`).join("");
     const equation = closest ? `similarity ${n(closest.similarity)} × overlap ${n(closest.overlap)} = risk ${n(closest.risk)} · limit ${n(r.threshold)}` : `Flag limit ${n(r.threshold)}`;
     $("#draft-result").innerHTML = `<div class="post-result-box"><div class="post-compare">
-        <section class="post-side"><p class="label">YOUR DRAFT</p><h3>${esc($("#draft-client").selectedOptions[0]?.textContent || "")}</h3><ul class="post-moves">${ownMoves || `<li class="muted">No moves selected.</li>`}</ul></section>
-        <section class="post-side closest-side"><p class="label">CLOSEST MATCH</p><h3>${esc(closest?.business || "No close match returned")}</h3>
+        <section class="post-side"><p class="label">Your draft</p><h3>${esc($("#draft-client").selectedOptions[0]?.textContent || "")}</h3><ul class="post-moves">${ownMoves || `<li class="muted">No moves selected.</li>`}</ul></section>
+        <section class="post-side closest-side"><p class="label">Closest match</p><h3>${esc(closest?.business || "No close match returned")}</h3>
           <ul class="post-moves">${commonMoves || `<li class="muted">No shared moves returned.</li>`}</ul>
           ${closest ? `<p class="muted">The endpoint does not return the full closest-match move list; only the shared moves above are shown.</p>` : ""}
         </section>

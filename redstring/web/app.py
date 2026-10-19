@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import json
 import os
 import re
 import threading
@@ -613,6 +614,14 @@ def pitch_card(slug: str, pitch_id: str):
     return card
 
 
+@app.get("/api/goal/{slug}/{goal_id}")
+def goal_card(slug: str, goal_id: str):
+    detail = tools.goal_trace(_client_or_404(slug), goal_id)
+    if not detail:
+        raise HTTPException(404, goal_id)
+    return detail
+
+
 @app.get("/api/decisions")
 def decisions():
     rows = [dict(r, graph="agency") for r in tools.decisions(None, 40)]
@@ -737,9 +746,20 @@ def try_draft(body: DraftIn):
 
 @app.get("/api/techniques")
 def all_techniques():
-    return db.rows(db.agency(), """MATCH (t:Technique)-[:PART_OF]->(s:Style)
-                                   RETURN t.id AS id, t.name AS name, t.category AS category, t.rarity AS rarity,
-                                          t.ref_count AS ref_count, s.name AS style ORDER BY style, rarity DESC""")
+    techniques = db.rows(db.agency(), """MATCH (t:Technique)-[:PART_OF]->(s:Style)
+                                         RETURN t.id AS id, t.name AS name, t.category AS category, t.rarity AS rarity,
+                                                t.ref_count AS ref_count, s.name AS style ORDER BY style, rarity DESC""")
+    data_dir = Path(__file__).resolve().parents[2] / "data"
+    looks = json.loads((data_dir / "technique_looks.json").read_text())
+    references = json.loads((data_dir / "references.json").read_text())
+    for technique in techniques:
+        technique["description"] = looks.get(technique["id"], "")
+        technique["examples"] = [
+            {"creator": reference.get("creator"), "category": reference.get("category"), "url": reference.get("url")}
+            for reference in references
+            if technique["id"] in reference.get("techniques", []) and reference.get("url")
+        ][:2]
+    return techniques
 
 
 @app.get("/api/territory")

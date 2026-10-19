@@ -3,6 +3,7 @@ import inspect
 import json
 import threading
 import time
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -61,6 +62,40 @@ def test_record_screening_paths_schema_matches_every_demo_lead():
     for business in tools.world()["businesses"]:
         if business["status"] == "lead":
             validate(instance=tools.lead_conflict(business["id"])["clients"], schema=schema)
+
+
+def test_every_served_technique_has_a_visual_description():
+    from redstring.web.app import app
+
+    tools._world_cache = None
+    seed.seed_all()
+    response = TestClient(app).get("/api/techniques")
+    assert response.status_code == 200
+    techniques = response.json()
+    looks = json.loads((Path(__file__).resolve().parents[1] / "data" / "technique_looks.json").read_text())
+    ids = {technique["id"] for technique in techniques}
+
+    assert len(ids) == 80
+    assert set(looks) == ids
+    assert all(technique["description"].strip() for technique in techniques)
+    assert all(len(technique["examples"]) <= 2 for technique in techniques)
+
+
+def test_goal_trace_includes_goal_context_and_serving_drafts():
+    from redstring.web.app import app
+
+    tools._world_cache = None
+    Pipeline("offline", log=None).run_demo()
+    goal = tools.goals("tumble-town")[0]
+    trace = tools.goal_trace("tumble-town", goal["id"])
+
+    assert trace["id"] == goal["id"]
+    assert "created_by" in trace and "created_at" in trace
+    assert isinstance(trace["findings"], list)
+    assert isinstance(trace["drafts"], list)
+    response = TestClient(app).get(f"/api/goal/tumble-town/{goal['id']}")
+    assert response.status_code == 200
+    assert response.json()["id"] == goal["id"]
 
 
 def test_audiences_of_tool_accepts_client_argument():
@@ -127,7 +162,7 @@ def test_mcp_server_lists_and_calls_tools():
 
     listed, out = asyncio.run(go())
     assert len(listed) == len([tool for tool in registry.TOOLS if not tool.writable])
-    assert '"verdict": "decline"' in str(out)
+    assert '"verdict": "pursue_differentiated"' in str(out)
 
 
 def test_mcp_writes_are_opt_in_and_identity_is_server_set():
@@ -481,7 +516,7 @@ def test_web_try_inputs(monkeypatch):
     assert r["verdict"] == "pursue"
     r = c.post("/api/try/lead", json={"name": "Swim Prospect", "category": "Swim lessons",
                                      "targets": {"A1": 0.6}, "neighborhood": "n_gramercy"}).json()
-    assert r["verdict"] == "decline"
+    assert r["verdict"] == "pursue_differentiated"
     before_preview = db.rows(db.agency(), "MATCH (b:Business) RETURN count(b) AS count")[0]["count"]
     preview = c.post("/api/try/lead", json={"name": "Preview Client", "category": "Cafe",
                                            "targets": {"A6": 0.5}, "neighborhood": "n_nomad", "preview": True}).json()
@@ -528,7 +563,7 @@ def test_web_try_lead_readonly_saves_nothing(monkeypatch):
     assert r["saved"] is False
     r = c.post("/api/try/lead", json={"name": "Swim Prospect", "category": "Swim lessons",
                                      "targets": {"A1": 0.6}, "neighborhood": "n_gramercy"}).json()
-    assert r["verdict"] == "decline"
+    assert r["verdict"] == "pursue_differentiated"
     assert r["saved"] is False
     assert observed_business_counts == [before[0], before[0]]
     assert counts() == before

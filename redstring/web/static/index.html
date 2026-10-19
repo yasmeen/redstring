@@ -63,7 +63,7 @@
 </section>
 
 <header class="today-heading">
-  <p class="label" id="today-kicker">TODAY / 00 DECISIONS</p>
+  <p class="label" id="today-kicker">0 decisions today</p>
   <h1 id="today-title">Your call.</h1>
   <p class="today-summary" id="today-summary">The agents ran overnight. These decisions need your judgment before anything moves.</p>
   <button type="button" class="text-button" id="intro-open" aria-controls="intro" aria-expanded="false" hidden>New here? How it works</button>
@@ -89,17 +89,25 @@
     <div class="needs-you" id="needs-you" aria-live="polite" aria-labelledby="needs-you-heading"></div>
   </div>
   <div class="caught-panel">
-    <p class="label caught-kicker">CAUGHT BY DOUBLE TAKE / <span id="caught-count">00</span></p>
+    <p class="label caught-kicker"><span>Caught by Double Take</span><span class="count-pill" id="caught-count">0</span></p>
     <h2 class="caught-title" id="caught-heading">Lookalikes stopped</h2>
     <p class="muted caught-sub">Drafts blocked for looking like another business's work to the same people, then revised.</p>
     <div class="caught" id="caught" aria-labelledby="caught-heading"></div>
     <a class="caught-more" href="/analysis#ch-double-take">How Double Take decides <span aria-hidden="true">→</span></a>
   </div>
 </section>
+<section class="about-studio" id="about-studio" aria-labelledby="about-studio-title">
+  <div class="about-studio-copy">
+    <h2 id="about-studio-title">About Corkboard Studio</h2>
+    <p id="about-summary">Short-form video for local family businesses.</p>
+  </div>
+  <ol class="studio-workflow" id="studio-workflow" aria-label="Studio workflow"></ol>
+  <button type="button" class="text-button" id="intro-see-pitch" hidden>See a real pitch</button>
+</section>
 </section>
 
 <section class="studio-tab pipeline-tab" id="tab-pipeline" data-tab="pipeline">
-<header class="tab-heading"><p class="label" id="pipeline-kicker">PIPELINE / 00 BUSINESSES</p><h1>Pipeline</h1></header>
+<header class="tab-heading"><p class="label" id="pipeline-kicker">Pipeline · 0 businesses</p><h1>Pipeline</h1></header>
 <div class="pipeline-bar-head"><div id="pipeline-stage-bar" class="pipeline-stage-bar" aria-label="Filter businesses by stage"></div><button type="button" class="text-button" id="pipeline-show-all">Show all stages</button></div>
 <div class="pipeline-register" id="pipeline-register"></div>
 <div class="desk" id="desk">
@@ -126,7 +134,7 @@
 </section>
 
 <section class="studio-tab doubletake-tab" id="tab-double-take" data-tab="double-take">
-  <header class="tab-heading"><p class="label" id="doubletake-kicker">DOUBLE TAKE</p><h1>Lookalikes stopped.</h1></header>
+  <header class="tab-heading"><p class="label" id="doubletake-kicker">0 blocked drafts</p><h1>Lookalikes stopped.</h1></header>
   <div class="dt-pairs" id="dt-pairs" aria-label="Flagged draft pairs"></div>
   <div class="dt-workspace">
     <div class="dt-graph-column">
@@ -139,7 +147,7 @@
 </section>
 
 <section class="studio-tab try-tab" id="tab-try" data-tab="try">
-  <header class="tab-heading"><p class="label">WORKBENCH / LIVE CHECKS</p><h1>Try it</h1></header>
+  <header class="tab-heading"><p class="label">Live checks</p><h1>Try it</h1></header>
   <nav class="try-tabs" aria-label="Try it tools">
     <button type="button" data-try-tab="lead" aria-selected="true">Would we take this client?</button>
     <button type="button" data-try-tab="draft" aria-selected="false">Would this post look like someone else's?</button>
@@ -183,7 +191,7 @@
 
 <section class="studio-tab log-tab" id="tab-log" data-tab="log">
   <section class="log-activity" aria-labelledby="dayloop-h">
-    <p class="label">TODAY'S ACTIVITY</p>
+    <p class="label">Today's activity</p>
     <h2 class="log-section-title" id="dayloop-h">Agents at work</h2>
     <section class="dayloop" id="dayloop" aria-label="Studio activity">
       <p class="muted dayloop-note">Agents do the routine work each day on their own and stop at anything that needs you.</p>
@@ -191,7 +199,7 @@
     </section>
   </section>
   <section class="log-decisions" aria-labelledby="feed-h">
-    <p class="label">DECISIONS</p>
+    <p class="label">Decisions</p>
     <h2 class="log-section-title" id="feed-h">Decision log</h2>
     <ul class="feed" id="feed" tabindex="0" aria-label="Decision log, newest first"></ul>
   </section>
@@ -233,7 +241,7 @@
 
   <section class="chapter" id="ch-architecture" aria-labelledby="graph-architecture-heading">
     <header class="ch-head">
-      <div><p class="ch-kicker">1 · Architecture</p><h2 class="ch-title" id="graph-architecture-heading">Client work stays private. Only technique lists are shared.</h2>
+      <div><p class="ch-kicker">Architecture</p><h2 class="ch-title" id="graph-architecture-heading">Client work stays private. Only technique lists are shared.</h2>
       <p class="ch-cap">Each prospect or client keeps its own graph. Only a Fingerprint, the technique IDs a draft uses, is projected into the shared <code>agency</code> graph. Cross-client checks run there; copy, posts and goals never leave the client.</p></div>
       <p class="ch-tags"><span class="qtag">P1</span><span class="qtag">Q0</span><span class="qtag">Q1</span><span class="qtag">Q2</span></p>
     </header>
@@ -251,7 +259,7 @@
 
   <section class="chapter" id="ch-screening" aria-labelledby="screening-heading">
     <header class="ch-head">
-      <div><p class="ch-kicker">2 · Screening</p><h2 class="ch-title" id="screening-heading">Every lead is scored against every signed client</h2>
+      <div><p class="ch-kicker">Screening</p><h2 class="ch-title" id="screening-heading">Every lead is scored against every signed client</h2>
       <p class="ch-cap">Scout follows each lead's audiences, and the audiences they overlap, to every signed client. The path weights add up to a conflict score per client, and the highest one sets the verdict. Pick a lead to trace it.</p></div>
       <p class="ch-tags"><span class="qtag">Q1</span><span class="qtag-tool">lead_conflict</span></p>
     </header>
@@ -287,8 +295,8 @@
 
   <section class="chapter" id="ch-double-take" aria-labelledby="double-take-heading">
     <header class="ch-head">
-      <div><p class="ch-kicker">3 · Double Take</p><h2 class="ch-title" id="double-take-heading">Lookalike drafts are blocked before they reach the same people</h2>
-      <p class="ch-cap">A draft is blocked when it shares rare techniques with a business that reaches the same people. Risk is similarity times audience overlap, which is 1.00 only when two businesses reach exactly the same people; anything at the threshold or above is caught before it ships.</p></div>
+      <div><p class="ch-kicker">Double Take</p><h2 class="ch-title" id="double-take-heading">Lookalike drafts are blocked before they reach the same people</h2>
+      <p class="ch-cap">A draft is blocked when it shares rare techniques with a business that reaches the same people. Risk is similarity times cosine audience overlap; 1.00 means the businesses have the same audience mix. Anything at the threshold or above is caught before it ships.</p></div>
       <p class="ch-tags"><span class="qtag">Q2</span><span class="qtag-tool">double_take</span></p>
     </header>
     <div class="explain-guide">
@@ -304,7 +312,7 @@
 
   <section class="chapter" id="ch-territory" aria-labelledby="signatures-heading">
     <header class="ch-head">
-      <div><p class="ch-kicker">4 · Creative territory</p><h2 class="ch-title" id="signatures-heading">Rare techniques already in use by businesses on the same audience</h2>
+      <div><p class="ch-kicker">Creative territory</p><h2 class="ch-title" id="signatures-heading">Rare techniques already in use by businesses on the same audience</h2>
       <p class="ch-cap">A signature is a rare technique in 30% or more of a business's work. Red marks the territory behind this run's blocked drafts: the same rare techniques, used by businesses that reach the same people.</p></div>
       <p class="ch-tags"><span class="qtag">Q0</span><span class="qtag-tool">derive_signatures</span></p>
     </header>
@@ -322,7 +330,7 @@
 
   <section class="chapter" id="ch-agents" aria-labelledby="agents-heading">
     <header class="ch-head">
-      <div><p class="ch-kicker">5 · Agents and queries</p><h2 class="ch-title" id="agents-heading">Each agent can run only the queries its job needs</h2>
+      <div><p class="ch-kicker">Agents and queries</p><h2 class="ch-title" id="agents-heading">Each agent can run only the queries its job needs</h2>
       <p class="ch-cap">Every query is a named MCP tool, and each agent only gets its slice. Every write also records a Decision with who made it and why.</p></div>
     </header>
     <div class="explain-guide">
@@ -355,6 +363,7 @@
     </details>
 </section>
 </main>
+<main class="business-page studio-only" id="business-page" hidden></main>
 </div>
 
 <div class="tour analysis-only" id="tour" role="dialog" aria-modal="false" aria-labelledby="tour-title" hidden>
@@ -372,9 +381,14 @@
 
 <p class="sr-only" id="sr-status" aria-live="polite"></p>
 
-<dialog id="card" aria-label="Thread"><div class="card-body" id="card-body"></div></dialog>
+<dialog id="card" aria-label="Thread">
+  <div class="card-body" id="card-body"></div>
+  <div id="goal-card" class="detail-popover" role="dialog" aria-label="Client goal" hidden></div>
+  <div id="tech-card-sheet" class="detail-popover" role="tooltip" aria-label="Technique details" hidden></div>
+</dialog>
 
 <div id="biz-card" role="tooltip" hidden></div>
+<div id="tech-card" class="detail-popover" role="tooltip" aria-label="Technique details" hidden></div>
 
 <script src="/static/icons.js"></script>
 <script src="/static/app.js"></script>
