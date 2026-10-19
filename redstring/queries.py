@@ -73,7 +73,7 @@ RETURN c.id AS client_id, c.name AS client, c.category = $category AS same_categ
        a.name AS via, la.name AS hop, target.weight * tc.weight * o.share AS conflict
 """
 
-# Same category in the same neighborhood is an automatic decline.
+# Same category in the same neighborhood requires a distinct content angle.
 Q1_SAME_AREA_COMPETITOR = """
 MATCH (lead:Business {id: $lead})-[:LOCATED_IN]->(n:Neighborhood)<-[:LOCATED_IN]-(c:Business {status: 'signed'})
 WHERE c.category = lead.category
@@ -239,7 +239,7 @@ OPTIONAL MATCH (dec:Decision)-[:AFFECTS]->(d)
 OPTIONAL MATCH (dec)-[:DECIDED_BY]->(a:Agent)
 OPTIONAL MATCH (dec)-[:BASED_ON]->(src)
 OPTIONAL MATCH (d)-[:INSPIRED_BY]->(r:Reference)
-RETURN d.hook AS draft, d.status AS status, g.text AS goal, g.status AS goal_status,
+RETURN d.hook AS draft, d.status AS status, d.kind AS format, g.id AS goal_id, g.text AS goal, g.status AS goal_status,
        collect(DISTINCT {decision: dec.text, by: a.name, at: dec.at, rationale: dec.rationale}) AS decisions,
        collect(DISTINCT {kind: labels(src)[0], text: coalesce(src.text, src.url, src.summary, src.hook, src.with_business), source_url: src.source_url}) AS sources,
        d.spec AS spec,
@@ -273,7 +273,7 @@ OPTIONAL MATCH (p)-[:SHOWS]->(d:Draft)
 OPTIONAL MATCH (dec:Decision)-[:AFFECTS]->(p)
 OPTIONAL MATCH (dec)-[:DECIDED_BY]->(a:Agent)
 RETURN p.id AS pitch, p.angle AS angle, p.status AS status,
-       g.text AS goal, g.status AS goal_status,
+       g.id AS goal_id, g.text AS goal, g.status AS goal_status,
        collect(DISTINCT {id: f.id, kind: f.kind, text: f.text, source_url: f.source_url}) AS claims,
        collect(DISTINCT {id: d.id, hook: d.hook, status: d.status}) AS spec_posts,
        collect(DISTINCT {decision: dec.text, by: a.name, at: dec.at}) AS decisions

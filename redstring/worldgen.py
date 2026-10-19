@@ -45,7 +45,7 @@ AGENTS = [
     {"id": "producer", "name": "Producer", "desk": "Creative", "model": config.MODEL},
     {"id": "standards", "name": "Standards", "desk": "Standards", "model": config.MODEL},
     {"id": "account_manager", "name": "Account Manager", "desk": "Accounts", "model": config.MODEL},
-    {"id": "board", "name": "Yaz", "desk": "Board", "model": "human"},
+    {"id": "board", "name": "Board", "desk": "Board", "model": "human"},
 ]
 
 # Every name is a placeholder: search each before use and swap any that match a real business.

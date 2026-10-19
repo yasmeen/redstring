@@ -27,7 +27,7 @@ class BoardConflict(ValueError):
 AGENT_NAMES = {
     "scout": "Scout", "researcher": "Researcher", "auditor": "Auditor", "style_director": "Style Director",
     "strategist": "Strategist", "producer": "Producer", "standards": "Standards",
-    "account_manager": "Account Manager", "board": "Yaz", "mcp": "MCP",
+    "account_manager": "Account Manager", "board": "Board", "mcp": "MCP",
 }
 
 
@@ -181,7 +181,10 @@ def _lead_conflict_result(lead: str, paths: list[dict], competitors: list[dict])
                      key=lambda x: -x["conflict"])
     top = clients[0]["conflict"] if clients else 0.0
     if competitors:
-        verdict, reason = "decline", f"Same category as {competitors[0]['client']} in {competitors[0]['neighborhood']}: a direct competitor of a client."
+        verdict, reason = "pursue_differentiated", (
+            f"Same category as {competitors[0]['client']} in {competitors[0]['neighborhood']}: "
+            "pitch only with a distinct content angle."
+        )
     elif top >= config.DIFFERENTIATE_CONFLICT:
         verdict, reason = "pursue_differentiated", f"Overlaps {clients[0]['client']} on the same parents (conflict {top:.2f}); pitch only with differentiated territory."
     elif top >= config.BORDERLINE_CONFLICT:
@@ -310,13 +313,33 @@ def retire_goal(client: str, goal_id: str, agent: str = "board", rationale: str 
 def findings(client: str, kind: str | None = None) -> list[dict]:
     return db.rows(db.client(client), """MATCH (f:Finding) WHERE $kind IS NULL OR f.kind = $kind
                                          RETURN f.id AS id, f.kind AS kind, f.text AS text, f.source_url AS source_url,
-                                                f.fetched_at AS fetched_at
+                                                f.fetched_at AS fetched_at, f.confidence AS confidence
                                          ORDER BY f.at""", {"kind": kind})
 
 
 def goals(client: str) -> list[dict]:
     return db.rows(db.client(client), """MATCH (g:Goal) RETURN g.id AS id, g.text AS text, g.metric AS metric,
                                          g.target AS target, g.due AS due, g.status AS status""")
+
+
+def goal_trace(client: str, goal_id: str) -> dict:
+    graph = db.client(client)
+    goal = db.rows(graph, """MATCH (g:Goal {id: $id})
+                             RETURN g.id AS id, g.text AS text, g.status AS status""", {"id": goal_id})
+    if not goal:
+        return {}
+    decisions = db.rows(graph, """MATCH (d:Decision)-[:AFFECTS]->(:Goal {id: $id})
+                                 OPTIONAL MATCH (d)-[:DECIDED_BY]->(a:Agent)
+                                 RETURN d.text AS text, d.at AS at, a.name AS by ORDER BY d.at""", {"id": goal_id})
+    findings = db.rows(graph, """MATCH (d:Decision)-[:AFFECTS]->(:Goal {id: $id})
+                                 MATCH (d)-[:BASED_ON]->(f:Finding)
+                                 RETURN DISTINCT f.id AS id, f.kind AS kind, f.text AS text,
+                                        f.source_url AS source_url""", {"id": goal_id})
+    drafts = db.rows(graph, """MATCH (d:Draft)-[:INCLUDES]->(:Plan)-[:SERVES]->(:Goal {id: $id})
+                               RETURN DISTINCT d.id AS id, d.hook AS hook ORDER BY d.id""", {"id": goal_id})
+    return {**goal[0], "created_by": decisions[0]["by"] if decisions else None,
+            "created_at": decisions[0]["at"] if decisions else None,
+            "findings": findings, "drafts": drafts}
 
 
 def activate_goal(client: str, goal_id: str, agent: str = "account_manager",
@@ -697,7 +720,7 @@ def _board_target_state(client: str, target_label: str, target_id: str) -> dict:
 
 def board_decide(client: str, target_label: str, target_id: str, verdict: str, note: str,
                  source: str | None = None) -> dict:
-    """The board (Yaz). An approve or veto becomes a Decision DECIDED_BY Yaz; agents treat it as a rule."""
+    """The board. An approve or veto becomes a Decision DECIDED_BY the Board; agents treat it as a rule."""
     assert verdict in ("approve", "veto")
     g = db.client(client)
     state = _board_target_state(client, target_label, target_id)
