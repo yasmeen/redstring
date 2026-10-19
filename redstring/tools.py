@@ -318,8 +318,25 @@ def findings(client: str, kind: str | None = None) -> list[dict]:
 
 
 def goals(client: str) -> list[dict]:
-    return db.rows(db.client(client), """MATCH (g:Goal) RETURN g.id AS id, g.text AS text, g.metric AS metric,
-                                         g.target AS target, g.due AS due, g.status AS status""")
+    rows = db.rows(db.client(client), """MATCH (g:Goal)
+                                        OPTIONAL MATCH (d:Decision)-[:AFFECTS]->(g)
+                                        OPTIONAL MATCH (d)-[:DECIDED_BY]->(a:Agent)
+                                        OPTIONAL MATCH (d)-[:BASED_ON]->(f:Finding)
+                                        OPTIONAL MATCH (draft:Draft)-[:INCLUDES]->(:Plan)-[:SERVES]->(g)
+                                        RETURN g.id AS id, g.text AS text, g.metric AS metric, g.target AS target,
+                                               g.due AS due, g.status AS status,
+                                               collect(DISTINCT {by: a.name, at: d.at}) AS decisions,
+                                               collect(DISTINCT {id: f.id, kind: f.kind, text: f.text,
+                                                                 source_url: f.source_url}) AS findings,
+                                               collect(DISTINCT {id: draft.id, hook: draft.hook}) AS drafts""")
+    for goal in rows:
+        decisions = [item for item in goal.pop("decisions", []) if item.get("by") or item.get("at")]
+        decisions.sort(key=lambda item: item.get("at") or "")
+        goal["created_by"] = decisions[0].get("by") if decisions else None
+        goal["created_at"] = decisions[0].get("at") if decisions else None
+        goal["findings"] = [item for item in goal.get("findings", []) if item.get("id")]
+        goal["drafts"] = [item for item in goal.get("drafts", []) if item.get("id")]
+    return rows
 
 
 def goal_trace(client: str, goal_id: str) -> dict:

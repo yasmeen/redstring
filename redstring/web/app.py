@@ -497,7 +497,7 @@ def doubletake_detail(slug: str, draft_id: str):
     decisions = []
     for trace in (tools.decision_trace(slug, draft_id), revision_trace):
         decisions.extend(
-            {"by": item.get("by"), "text": item["decision"], "rationale": item.get("rationale"), "at": item.get("at")}
+            {"by": item.get("by"), "text": item["decision"], "rationale": item.get("rationale"), "at": item.get("at"), "day": item.get("day", 0)}
             for item in trace.get("decisions", [])
             if item.get("decision")
         )
@@ -599,6 +599,10 @@ def doubletake_detail(slug: str, draft_id: str):
         "business": {"id": slug, "name": business["name"], "status": business["status"]},
         "flags": flag_details,
         "revision": revision,
+        "audience_names": {
+            item["id"]: item["name"]
+            for item in db.rows(db.agency(), "MATCH (a:Audience) RETURN a.id AS id, a.name AS name")
+        },
         "query": {"name": "double_take", "cypher": queries.Q2_DOUBLE_TAKE},
         "reference_total": tools.reference_total(),
         "next": decisions,

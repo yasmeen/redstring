@@ -196,46 +196,69 @@ function bizName(b, { link = true } = {}) {
 const techChip = (name, kinds = {}) => `<button type="button" class="chip plain tech" data-tech-name="${esc(name)}" aria-haspopup="dialog"${kinds[name] ? ` title="${esc(kinds[name])}"` : ""}>${icon(TECHNIQUE_ICONS[kinds[name]] || "")}${esc(name)}</button>`;
 
 let bizCardTimer = 0;
+let activeBizTrigger = null;
+let pinnedBizTrigger = null;
 function hideBizCard() {
   clearTimeout(bizCardTimer);
   $("#biz-card").hidden = true;
+  activeBizTrigger = null;
+  pinnedBizTrigger = null;
 }
-function scheduleBizCard(target) {
+function showBizCard(target) {
   clearTimeout(bizCardTimer);
-  if (!window.matchMedia("(hover: hover)").matches || isAnalysisView()) return;
-  bizCardTimer = window.setTimeout(() => {
-    const b = bizById(target.dataset.bizCard);
-    if (!b) return;
-    const client = state.overview?.clients?.find((c) => c.id === b.id);
-    const meta = [b.category, hoodOf(b) || client?.neighborhood].filter(Boolean).join(" · ");
-    const detail = b.status === "signed"
-      ? client?.goals?.[0]?.text || ""
-      : displayStudioCopy(b.reason || "").replace(/\s*\(conflict [^)]*\)/gi, "").trim();
-    const stateTag = verdictStatus(b.verdict || b.status, b.status === "signed" ? "Signed" : undefined);
-    const tip = $("#biz-card");
-    tip.innerHTML = `<div class="biz-card-head">${avatar(b, "lg")}<span><b>${esc(b.name)}</b><span>${esc(meta)}</span>${stateTag}</span></div>${detail ? `<p>${esc(detail)}</p>` : ""}`;
-    tip.hidden = false;
-    const rect = target.getBoundingClientRect();
-    const left = Math.max(8, Math.min(rect.left, window.innerWidth - tip.offsetWidth - 8));
-    const top = Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - tip.offsetHeight - 8));
-    tip.style.left = `${left}px`;
-    tip.style.top = `${top}px`;
-  }, 250);
+  if (isAnalysisView()) return;
+  const b = bizById(target.dataset.bizCard);
+  if (!b) return;
+  const client = state.overview?.clients?.find((c) => c.id === b.id);
+  const meta = [b.category, hoodOf(b) || client?.neighborhood].filter(Boolean).join(" · ");
+  const detail = b.status === "signed"
+    ? client?.goals?.[0]?.text || ""
+    : displayStudioCopy(b.reason || "").replace(/\s*\(conflict [^)]*\)/gi, "").trim();
+  const stateTag = verdictStatus(b.verdict || b.status, b.status === "signed" ? "Signed" : undefined);
+  const tip = $("#biz-card");
+  tip.innerHTML = `<div class="biz-card-head">${avatar(b, "lg")}<span><div class="popover-head"><b>${esc(b.name)}</b><button type="button" class="popover-close" aria-label="Close business details">×</button></div>
+    <span>${esc(meta)}</span>${stateTag}</span></div>${detail ? `<p>${esc(detail)}</p>` : ""}`;
+  tip.hidden = false;
+  activeBizTrigger = target;
+  const rect = target.getBoundingClientRect();
+  const left = Math.max(8, Math.min(rect.left, window.innerWidth - tip.offsetWidth - 8));
+  const top = Math.max(8, Math.min(rect.bottom, window.innerHeight - tip.offsetHeight - 8));
+  tip.style.left = `${left}px`;
+  tip.style.top = `${top}px`;
 }
 document.addEventListener("mouseover", (e) => {
   const target = e.target.closest("[data-biz-card]");
-  if (target && !target.contains(e.relatedTarget)) scheduleBizCard(target);
+  if (target && !target.contains(e.relatedTarget) && window.matchMedia("(hover: hover)").matches) showBizCard(target);
+  if (e.target.closest("#biz-card")) clearTimeout(bizCardTimer);
 });
 document.addEventListener("mouseout", (e) => {
   const target = e.target.closest("[data-biz-card]");
-  if (target && !target.contains(e.relatedTarget)) hideBizCard();
+  if (target && !target.contains(e.relatedTarget) && !e.relatedTarget?.closest("#biz-card") && target !== pinnedBizTrigger) {
+    bizCardTimer = window.setTimeout(hideBizCard, 250);
+  }
+  if (e.target.closest("#biz-card") && !e.relatedTarget?.closest("#biz-card") && !e.relatedTarget?.closest("[data-biz-card]") && !pinnedBizTrigger) {
+    bizCardTimer = window.setTimeout(hideBizCard, 250);
+  }
 });
 document.addEventListener("focusin", (e) => {
   const target = e.target.closest("[data-biz-card]") || e.target.closest("button, summary")?.querySelector("[data-biz-card]");
-  if (target) scheduleBizCard(target);
+  if (target) showBizCard(target);
+  if (e.target.closest("#biz-card")) clearTimeout(bizCardTimer);
 });
 document.addEventListener("focusout", (e) => {
-  if (e.target.closest("[data-biz-card]") || e.target.closest("button, summary")?.querySelector("[data-biz-card]")) hideBizCard();
+  if ((e.target.closest("[data-biz-card]") || e.target.closest("button, summary")?.querySelector("[data-biz-card]"))
+    && !e.relatedTarget?.closest("#biz-card") && !e.relatedTarget?.closest("[data-biz-card]") && !pinnedBizTrigger) {
+    bizCardTimer = window.setTimeout(hideBizCard, 250);
+  }
+});
+document.addEventListener("click", (e) => {
+  const target = e.target.closest("[data-biz-card]");
+  if (e.target.closest("#biz-card .popover-close")) { hideBizCard(); return; }
+  if (target) {
+    pinnedBizTrigger = pinnedBizTrigger === target ? null : target;
+    if (pinnedBizTrigger) showBizCard(target);
+    else hideBizCard();
+  } else if (!e.target.closest("#biz-card")) hideBizCard();
 });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideBizCard(); });
 window.addEventListener("scroll", hideBizCard, true);
@@ -254,12 +277,13 @@ function hideTechCard() {
   pinnedTechTrigger = null;
 }
 async function showTechCard(target) {
+  activeTechTrigger = target;
   let technique = state.techniques.find((item) => item.name === target.dataset.techName || item.id === target.dataset.techName);
   if (!technique) {
     state.techniques = await api("/api/techniques");
     technique = state.techniques.find((item) => item.name === target.dataset.techName || item.id === target.dataset.techName);
   }
-  if (!technique) return;
+  if (!technique || activeTechTrigger !== target) return;
   const card = techniquePopoverFor(target);
   const examples = technique.examples || [];
   const exampleHtml = examples.length
@@ -275,7 +299,7 @@ async function showTechCard(target) {
   activeTechTrigger = target;
   const rect = target.getBoundingClientRect();
   card.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - card.offsetWidth - 8))}px`;
-  card.style.top = `${Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - card.offsetHeight - 8))}px`;
+  card.style.top = `${Math.max(8, Math.min(rect.bottom, window.innerHeight - card.offsetHeight - 8))}px`;
 }
 document.addEventListener("mouseover", (e) => {
   const target = e.target.closest("[data-tech-name]");
@@ -287,21 +311,22 @@ document.addEventListener("mouseover", (e) => {
 });
 document.addEventListener("mouseout", (e) => {
   if (pinnedTechTrigger) return;
-  if (e.target.closest("[data-tech-name]") && !e.relatedTarget?.closest(".detail-popover")) {
-    techHideTimer = window.setTimeout(hideTechCard, 220);
+  if (e.target.closest("[data-tech-name]") && !e.relatedTarget?.closest(".detail-popover") && !e.relatedTarget?.closest("[data-tech-name]")) {
+    techHideTimer = window.setTimeout(hideTechCard, 250);
   }
   const card = e.target.closest(".detail-popover");
   if (card && !card.contains(e.relatedTarget) && !e.relatedTarget?.closest("[data-tech-name]")) {
-    techHideTimer = window.setTimeout(hideTechCard, 220);
+    techHideTimer = window.setTimeout(hideTechCard, 250);
   }
 });
 document.addEventListener("focusin", (e) => {
   const target = e.target.closest("[data-tech-name]");
   if (target) showTechCard(target);
+  if (e.target.closest(".detail-popover")) clearTimeout(techHideTimer);
 });
 document.addEventListener("focusout", (e) => {
-  if (e.target.closest("[data-tech-name]") && !pinnedTechTrigger) {
-    techHideTimer = window.setTimeout(hideTechCard, 220);
+  if (!pinnedTechTrigger && !e.relatedTarget?.closest(".detail-popover") && !e.relatedTarget?.closest("[data-tech-name]")) {
+    if (e.target.closest("[data-tech-name], .detail-popover")) techHideTimer = window.setTimeout(hideTechCard, 250);
   }
 });
 document.addEventListener("click", (e) => {
@@ -892,6 +917,10 @@ function renderDoubleTakeGraph() {
   requestAnimationFrame(drawDoubleTakeEdges);
 }
 
+function dtFact(label, value, hint, className = "") {
+  return `<div class="dt-fact${className ? ` ${className}` : ""}"><div class="dt-fact-copy"><span>${esc(label)}</span><small>${esc(hint)}</small></div><b class="mono">${esc(value)}</b></div>`;
+}
+
 function renderDoubleTakeInspector() {
   const node = state.doubleTake.nodes?.find((item) => item.id === state.doubleTake.node?.id);
   const detail = state.doubleTake.detail;
@@ -900,22 +929,40 @@ function renderDoubleTakeInspector() {
   if (node.type === "technique") {
     const { technique, shared } = node.data;
     facts = [
-      ["Rarity", n(technique.rarity)],
-      ...(shared ? [["Used in references", `${shared.ref_count} / ${state.doubleTake.referenceCount ?? "—"}`], ["Business signature share", shared.signature_share == null ? "—" : n(shared.signature_share)]] : []),
-    ].map(([key, value]) => `<div class="dt-fact"><span>${esc(key)}</span><b class="mono">${esc(value)}</b></div>`).join("");
+      dtFact("Rarity", n(technique.rarity), "How strongly Double Take weighs this move as uncommon."),
+      ...(shared ? [
+        dtFact("Used in references", `${shared.ref_count} of ${state.doubleTake.referenceCount ?? "—"}`, "How many reference videos in the library show this move."),
+        dtFact("Business signature share", shared.signature_share == null ? "—" : n(shared.signature_share), `How much of ${detail.business.name}'s signature uses this move.`),
+      ] : []),
+    ].join("");
   } else if (node.type === "fingerprint") {
     const items = node.data.version === 2 ? [] : node.data.flag?.evidence || [];
-    facts = items.length ? `<ul class="dt-evidence">${items.map((item) => `<li><span>${esc(item.hook)}</span>${item.views == null ? "" : `<b class="mono">${esc(item.views)} views</b>`}</li>`).join("")}</ul>` : `<p class="muted">${node.data.version === 2 ? "No matching business post uses the revision's techniques." : "No evidence posts returned."}</p>`;
+    const total = Math.max(items.length, Number(node.data.flag?.evidence_total_posts) || 0);
+    facts = dtFact("Fingerprint evidence", `${items.length} of ${total} posts`, "Posts Double Take found that use these techniques.")
+      + (items.length ? `<ul class="dt-evidence">${items.map((item) => `<li><span>${esc(item.hook)}</span>${item.views == null ? "" : `<small>Views: <b class="mono">${esc(item.views)}</b></small>`}</li>`).join("")}</ul>`
+        : `<p class="muted">${node.data.version === 2 ? "No matching business post uses the revision's techniques." : "No evidence posts returned."}</p>`);
   } else if (node.type === "audience") {
     const audience = node.data.audience;
     const paths = audience.paths || [audience.path || []];
-    facts = `<div class="dt-fact"><span>Draft business · max</span><b class="mono">${n(audience.mine)}</b></div><div class="dt-fact"><span>${esc(node.data.flag.business.name)} · max</span><b class="mono">${n(audience.theirs)}</b></div><div class="dt-fact dt-audience-paths"><span>Paths</span><b class="mono">${paths.map((path) => esc(path.join(" → "))).join("<br>")}</b></div>`;
+    const weight = (value) => value == null ? "—" : Number(value).toFixed(2);
+    const names = detail.audience_names || {};
+    const pathLabel = (path) => path.map((id, index) => `${index ? "overlaps with " : ""}${names[id] || "Audience"}`).join(" → ");
+    facts = dtFact("Draft audience share", weight(audience.mine), `How much of ${detail.business.name}'s audience is this group: ${weight(audience.mine)} (0 = none, 1 = all).`)
+      + dtFact("Other business audience share", weight(audience.theirs), `How much of ${node.data.flag.business.name}'s audience is this group: ${weight(audience.theirs)} (0 = none, 1 = all).`)
+      + `<div class="dt-fact dt-audience-paths"><div class="dt-fact-copy"><span>Audience paths</span><small>How the two businesses' audience groups connect.</small></div><b>${paths.map((path) => `<span>${esc(pathLabel(path))}</span>`).join("")}</b></div>`;
   } else if (node.type === "business") {
     const { business, flag } = node.data;
-    facts = `<div class="dt-fact"><span>Status</span><b>${esc(business.status)}</b></div>${flag ? `<div class="dt-fact dt-risk-equation"><span>Risk math</span><b class="mono">similarity ${n(flag.similarity)} × overlap ${n(flag.overlap)} = risk ${n(flag.risk)} · limit ${n(flag.limit)}</b></div>` : ""}`;
+    facts = dtFact("Status", business.status, "This business's current place in the agency pipeline.", "dt-fact-no-mono");
+    if (flag) {
+      facts += `<div class="dt-fact dt-risk-equation"><div class="dt-fact-copy"><span>Risk math</span><small>How Double Take combines the draft match and audience connection.</small></div>
+        <div class="dt-risk-terms"><span><b>Similarity</b><b>${n(flag.similarity)}</b></span><span><b>Audience overlap</b><b>${n(flag.overlap)}</b></span>
+        <span><b>Risk</b><b>${n(flag.risk)}</b></span><span><b>Block limit</b><b>${n(flag.limit)}</b></span></div></div>`;
+    }
   } else {
     const draft = node.data;
-    facts = `<div class="dt-fact"><span>Version</span><b class="mono">${esc(draft.version)}</b></div><div class="dt-fact"><span>Status</span><b>${esc(draft.status)}</b></div><div class="dt-fact dt-draft-hook"><span>Hook</span><b>${esc(draft.hook)}</b></div>`;
+    facts = dtFact("Version", draft.version, "Which version of the draft is shown.")
+      + dtFact("Status", draft.status, "Whether Double Take blocked or cleared this version.", "dt-fact-no-mono")
+      + `<div class="dt-fact dt-draft-hook"><div class="dt-fact-copy"><span>Hook</span><small>The opening line that frames this post.</small></div><b>${esc(draft.hook)}</b></div>`;
   }
   $("#dt-inspector").innerHTML = `<p class="label">${esc(node.label)}</p><h2>${esc(node.name)}</h2><div class="dt-facts">${facts}</div>
     <section class="dt-query"><p class="label">Found by the Double Take query</p><pre>${esc(detail.query?.cypher || "")}</pre></section>`;
@@ -939,8 +986,7 @@ function renderDoubleTakeHistory() {
   const detail = state.doubleTake.detail;
   if (!detail) return;
   const decisions = (detail.next || []).map((item) => {
-    const at = item.at ? new Date(item.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }) : "";
-    return `<li class="dt-history-row"><span class="dt-history-icon">${agentIcon(item.by || "")}</span><span><span class="label">${esc(item.by || "Agent")}</span><span class="dt-history-sentence">${esc(formatDecisionSentence(item, detail.business))}</span>${item.rationale ? `<small>${esc(displayStudioCopy(item.rationale))}</small>` : ""}</span><time class="mono">${esc(at)}</time></li>`;
+    return `<li class="dt-history-row"><span class="dt-history-icon">${agentIcon(item.by || "")}</span><span><span class="label">${esc(item.by || "Agent")}</span><span class="dt-history-sentence">${esc(formatDecisionSentence(item, detail.business))}</span>${item.rationale ? `<small>${esc(displayStudioCopy(item.rationale))}</small>` : ""}</span><time datetime="${esc(item.at || "")}" title="${esc(fullDateTime(item.at))}">${runDayLabel(item.day)}</time></li>`;
   }).join("");
   const later = (detail.later_blocks || []).map((item) => `<li><button type="button" class="dt-later-row" data-dt-slug="${esc(item.client_id)}" data-dt-draft="${esc(item.draft_id)}"><span class="label">LATER</span><span>Later: ${esc(item.client)}'s draft was blocked against ${esc(detail.business.name)}${item.shared?.length ? ` (shared ${esc(item.shared.join(", "))}` : ""}${item.shared?.length && typeof item.risk === "number" ? ", " : ""}${typeof item.risk === "number" ? `risk ${n(item.risk)}` : ""}${item.shared?.length ? ")" : ""}.</span><b class="mono">${typeof item.risk === "number" ? n(item.risk) : ""}</b></button></li>`).join("");
   $("#dt-history").innerHTML = `<h2>What happened next</h2><ol class="dt-history-list">${decisions || `<li class="muted">No later decisions returned.</li>`}${later}</ol>`;
@@ -1025,12 +1071,17 @@ function drawDoubleTakeEdges() {
 }
 
 const dayDate = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+const runDayLabel = (day) => Number(day || 0) === 0 ? "First run" : `Day ${Number(day)}`;
+const fullDateTime = (iso) => {
+  const date = new Date(iso || "");
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleString([], { dateStyle: "full", timeStyle: "long" });
+};
 
 async function renderDays() {
   const a = await api("/api/activity");
   $("#dayloop").hidden = false;
   $("#next-day").hidden = !a.can_advance;
-  $("#day-label").textContent = a.day ? `Day ${a.day} · ${dayDate(a.date)}` : "Agent run";
+  $("#day-label").textContent = `${runDayLabel(a.day)} · ${dayDate(a.date)}`;
   const today = a.days.find((d) => d.day === a.day);
   const did = (today?.entries || []).filter((e) => e.agent !== "Board").length;
   const runActivityCount = (a.days || []).reduce((count, day) => count + day.entries.length, 0);
@@ -1040,16 +1091,14 @@ async function renderDays() {
   const left = a.feed_left.length;
   $("#day-feed").textContent = left ? `${left} new ${left === 1 ? "lead" : "leads"} still to arrive.` : "";
   const byId = Object.fromEntries((state.overview?.businesses || []).map((b) => [b.id, b]));
-  const days = a.days.filter((d) => d.day > 0);
-  $("#days").innerHTML = days.map((d) => `<li class="day"><h3 class="day-h">Day ${d.day} <span class="muted">· ${esc(dayDate(d.date))}</span><span class="day-count">${d.entries.length} ${d.entries.length === 1 ? "action" : "actions"}</span></h3>
+  const days = a.days;
+  $("#days").innerHTML = days.map((d) => `<li class="day"><h3 class="day-h">${runDayLabel(d.day)} <span class="muted">· ${esc(dayDate(d.date))}</span><span class="day-count">${d.entries.length} ${d.entries.length === 1 ? "action" : "actions"}</span></h3>
     <ul class="day-entries">${d.entries.slice().reverse().map((e) => {
-      const date = new Date(e.at || 0);
-      const time = Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
       const blocked = /blocked/i.test(e.text || "");
       const board = e.agent === "Board";
       const kind = blocked ? "DOUBLE TAKE" : (e.kind || "AGENT UPDATE").replace(/_/g, " ").toUpperCase();
       return `<li class="feed-entry${blocked ? " is-blocked" : ""}${board ? " is-board" : ""}">
-        <time class="feed-time mono">${esc(time)}</time><span class="feed-icon" title="${esc(e.agent)}" aria-label="${esc(e.agent)}">${agentIcon(e.agent)}</span>
+        <time class="feed-time" datetime="${esc(e.at || "")}" title="${esc(fullDateTime(e.at))}">${runDayLabel(e.day)}</time><span class="feed-icon" title="${esc(e.agent)}" aria-label="${esc(e.agent)}">${agentIcon(e.agent)}</span>
         <div class="feed-copy"><span class="label${blocked ? " blocked-kind" : ""}">${esc(e.agent)} · ${esc(kind)}</span>
           ${e.business_id ? `<span class="activity-business">${bizName(byId[e.business_id], { link: false })}</span>` : ""}
           <p>${esc(displayStudioCopy(e.text))}</p>${e.rationale ? `<small>${esc(displayStudioCopy(e.rationale))}</small>` : ""}
@@ -1265,22 +1314,19 @@ async function feed() {
       } else collapsed.push({ ...entry, count: 1 });
     });
     const title = group.biz ? bizName(group.biz) : `<h3>Across the agency</h3>`;
-    let previousDay = "";
+    let previousDay = null;
     const list = collapsed.map((entry, i) => {
       const record = entry.records[0];
-      const date = new Date(record.at || 0);
-      const day = Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
-      const dayLabel = Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
-      const newDay = day && day !== previousDay;
-      previousDay = day || previousDay;
-      const time = Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+      const day = Number(record.day || 0);
+      const newDay = day !== previousDay;
+      previousDay = day;
       const blocked = entry.records.some((item) => /blocked/i.test(item.text || ""));
-      const board = ["yaz", "board"].includes(String(entry.by).toLowerCase());
+      const board = String(entry.by).toLowerCase() === "board";
       const kind = blocked ? "Double Take" : record.affects?.[0] || "Update";
       const rationale = [...new Set(entry.records.map((item) => item.rationale).filter(Boolean))][0];
-      return `${newDay ? `<li class="feed-day-head${i >= 5 ? " feed-extra" : ""}"${i >= 5 ? " hidden" : ""}><span class="label">${esc(dayLabel)}</span></li>` : ""}
+      return `${newDay ? `<li class="feed-day-head${i >= 5 ? " feed-extra" : ""}"${i >= 5 ? " hidden" : ""}><span class="label">${runDayLabel(day)}</span></li>` : ""}
         <li class="feed-entry${i >= 5 ? " feed-extra" : ""}${blocked ? " is-blocked" : ""}${board ? " is-board" : ""}"${i >= 5 ? " hidden" : ""}>
-          <time class="feed-time mono">${esc(time)}</time><span class="feed-icon">${agentIcon(entry.by || record.by || "")}</span>
+          <time class="feed-time" datetime="${esc(record.at || "")}" title="${esc(fullDateTime(record.at))}">${runDayLabel(day)}</time><span class="feed-icon">${agentIcon(entry.by || record.by || "")}</span>
           <div class="feed-copy"><span class="label${blocked ? " blocked-kind" : ""}">${esc(entry.by || record.by || "Agent")} · ${esc(kind)}</span>
             <p>${esc(entry.sentence)}${entry.count > 1 ? ` <span class="feed-count">×${entry.count}</span>` : ""}</p>
             ${rationale ? `<small>${esc(displayStudioCopy(rationale))}</small>` : ""}
@@ -1982,14 +2028,21 @@ $("#dt-version-toggle").addEventListener("click", (e) => {
   state.doubleTake.node = { type: "business", id: "business-0" };
   renderDoubleTakeGraph();
 });
-$("#dt-graph-box").addEventListener("click", (e) => {
-  const button = e.target.closest("[data-dt-node-index]");
+function inspectDoubleTakeNode(button) {
   if (!button) return;
   const index = Number(button.dataset.dtNodeIndex);
   state.doubleTake.node = state.doubleTake.nodes?.[index];
   $("#dt-graph-box").querySelectorAll(".dt-node").forEach((node) => node.setAttribute("aria-pressed", String(Number(node.dataset.dtNodeIndex) === index)));
   renderDoubleTakeInspector();
+}
+$("#dt-graph-box").addEventListener("click", (e) => {
+  inspectDoubleTakeNode(e.target.closest("[data-dt-node-index]"));
 });
+$("#dt-graph-box").addEventListener("mouseover", (e) => {
+  const button = e.target.closest("[data-dt-node-index]");
+  if (button && !button.contains(e.relatedTarget)) inspectDoubleTakeNode(button);
+});
+$("#dt-graph-box").addEventListener("focusin", (e) => inspectDoubleTakeNode(e.target.closest("[data-dt-node-index]")));
 window.addEventListener("resize", () => requestAnimationFrame(drawDoubleTakeEdges));
 
 const pulseTimers = new WeakMap();
@@ -2054,12 +2107,19 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   const b = d.business;
   const ro = state.overview?.readonly;
   const hood = hoodOf(b);
-  let h = `<div class="dossier-meta"><span class="dossier-cat">${categoryIcon(b.category)}${esc(b.category)}${hood ? ` · ${esc(hood)}` : ""}</span>
-      ${fullPage ? `<a class="back-link" href="/#pipeline">Back to Pipeline</a>` : `<a class="text-button" href="/#business/${encodeURIComponent(slug)}/overview">Open full page</a><button type="button" class="btn small dossier-close" data-dossier-close>Close</button>`}</div>
+  let h = fullPage
+    ? `<header class="business-page-header"><a class="back-link" href="/#pipeline">← Pipeline</a><div class="business-head-row"><div>
+        <div class="business-name-row">${avatar(b, "lg")}<h1>${esc(b.name)}</h1></div>
+        <p class="business-meta-line"><span>${esc(b.category)}</span>${hood ? ` · <span>${esc(hood)}</span>` : ""} · <span class="business-status ${statusKind(b.status)}"><i aria-hidden="true"></i>${esc(b.status)}</span>${b.voice ? ` · <span>Voice: ${esc(b.voice)}</span>` : ""}</p>
+      </div>${b.status === "lead" && d.screening?.verdict === "borderline" && !ro ? `<div class="business-primary-actions"><button type="button" class="btn primary" data-lead-decision="pursue" data-slug="${esc(slug)}">Pursue lead</button><button type="button" class="btn" data-lead-decision="pass" data-slug="${esc(slug)}">Pass</button></div>` : ""}</div></header>`
+    : `<div class="dossier-meta"><span class="dossier-cat">${categoryIcon(b.category)}${esc(b.category)}${hood ? ` · ${esc(hood)}` : ""}</span>
+      <a class="text-button" href="/#business/${encodeURIComponent(slug)}/overview">Open full page</a><button type="button" class="btn small dossier-close" data-dossier-close>Close</button></div>
     <div class="dossier-title"><h2 class="name" id="dossier-h" tabindex="-1">${bizName(b, { link: false })}</h2></div>
     <div class="status-row">${verdictStatus(b.status)}${b.voice ? `<span class="muted">Voice: ${esc(b.voice)}</span>` : ""}</div>`;
 
   let overview = "";
+  let goalsMarkup = "";
+  let pitchMarkup = "";
   let screening = `<p class="muted">Scout has not screened this business yet.</p>`;
   if (b.status === "lead" && d.screening?.verdict === "borderline") {
     overview += ro
@@ -2114,11 +2174,16 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
     <h3>Signature moves <span class="muted">rare elsewhere, common in its work</span></h3>${d.signatures.length ? `<ul class="sig-list">${d.signatures.map((s) => `<li>${esc(s.technique)}<span class="metric"> ${Math.round(s.share * 100)}%</span></li>`).join("")}</ul>` : "<p class='muted'>None yet.</p>"}`;
   if (d.has_graph) {
     if (d.stale.length) overview += `<div class="warnbox"><b><span class="metric">${d.stale.length} </span>stale drafts</b> serve a retired goal: ${d.stale.map((s) => esc(s.hook)).join("; ")}</div>`;
-    overview += `<h3>Goals</h3><ul class="list">${d.goals.map((g) => `<li><div class="goal-line">${chip(g.status)} <b>${esc(g.text)}</b></div>
-      <div class="goal-meta metric">${esc(g.metric)} → ${esc(g.target)} by ${esc(g.due)}</div>
+    const goalStatus = { active: "Active — currently guiding the work.", hypothesized: "Hypothesized — proposed, not yet approved.", retired: "Retired — no longer guiding new work." };
+    goalsMarkup = `<ul class="list">${d.goals.map((g) => `<li class="business-goal"><div class="goal-line"><b>${esc(g.text)}</b> ${chip(g.status)}</div>
+      <p class="goal-status-explanation">${esc(goalStatus[g.status] || "Goal status recorded.")}</p>
+      <div class="goal-meta">${esc(g.metric || "Metric not set")} · target ${esc(g.target || "not set")} · due ${esc(g.due || "not set")}</div>
+      <p class="goal-meta">${g.created_by ? `Set by ${esc(g.created_by)}` : "Creator not recorded"}${g.created_at ? ` · <time datetime="${esc(g.created_at)}" title="${esc(fullDateTime(g.created_at))}">${esc(fullDateTime(g.created_at))}</time>` : ""}</p>
+      <div class="goal-support"><b>Findings behind it</b>${(g.findings || []).map((finding) => `<p>${esc(finding.text)}${finding.source_url ? ` · ${link(finding.source_url, `Read ${finding.kind || "finding"} source`)}` : ""}</p>`).join("") || "<p class='muted'>No linked findings.</p>"}</div>
+      <div class="goal-support"><b>Drafts serving it</b>${(g.drafts || []).map((draft) => `<p><button type="button" class="row-btn" data-draft="${esc(draft.id)}" data-slug="${esc(slug)}">${esc(draft.hook)}</button></p>`).join("") || "<p class='muted'>No serving drafts.</p>"}</div>
       ${g.status === "active" && !ro ? `<div class="btn-row"><button type="button" class="btn small" data-retire="${esc(g.id)}" data-slug="${esc(slug)}">Retire goal</button></div>` : ""}</li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
-    if (d.pitches.length) overview += `<h3>Pitches</h3><ul class="list">${d.pitches.map((p) =>
-      `<li><button type="button" class="row-btn" data-pitch="${esc(p.id)}" data-slug="${esc(slug)}">${chip(p.status)} <b>${esc(p.angle)}</b></button></li>`).join("")}</ul>`;
+    pitchMarkup = `<ul class="list">${d.pitches.map((p) =>
+      `<li><button type="button" class="row-btn" data-pitch="${esc(p.id)}" data-slug="${esc(slug)}">${chip(p.status)} <b>${esc(p.angle)}</b></button></li>`).join("") || "<li class='muted'>No pitch yet.</li>"}</ul>`;
     draftsTab += `<ul class="list">${d.drafts.map((x) =>
       `<li><button type="button" class="row-btn" data-draft="${esc(x.id)}" data-slug="${esc(slug)}">${chip(x.status)}${chip("plain", x.kind)} <b><span class="metric">v${esc(x.version)} · </span>${esc(x.hook)}</b></button></li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
     if (d.taste_profile && d.taste_profile.id) draftsTab += `<h3>Taste profile <span class="muted metric">v${esc(d.taste_profile.version)}</span></h3><p>${esc(d.taste_profile.summary)}</p>
@@ -2149,8 +2214,10 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
     { id: "overview", label: "Overview", content: overview },
     { id: "screening", label: "Screening", content: screening },
   ];
+  if (d.has_graph) tabs.push({ id: "goals", label: "Goals", content: goalsMarkup });
   if (d.has_graph) tabs.push({ id: "drafts", label: "Drafts", content: draftsTab });
   tabs.push({ id: "research", label: "Research", content: research });
+  if (d.has_graph && d.pitches?.length) tabs.push({ id: "pitch", label: "Pitch", content: pitchMarkup });
   if (d.has_graph && d.decisions && d.decisions.length) {
     tabs.push({
       id: "activity",
@@ -2162,9 +2229,25 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   if (!tabs.some((tab) => tab.id === state.dossierTab)) state.dossierTab = "overview";
   tabs[0].content = tabs[0].content.replace('class="thread"', 'class="thread lead"');
   if (fullPage) {
-    page.innerHTML = `<div class="business-page-shell">${h}${tabs.map((tab) =>
+    const sectionNav = `<nav class="business-section-nav" aria-label="Business sections">${tabs.map((tab) =>
+      `<a href="#business-section-${esc(tab.id)}" data-business-nav="${esc(tab.id)}">${esc(tab.label)}</a>`).join("")}</nav>`;
+    page.innerHTML = `<div class="business-page-shell">${h}${sectionNav}${tabs.map((tab) =>
       `<section class="business-section" id="business-section-${esc(tab.id)}"><h2>${esc(tab.label)}</h2>${tab.content}</section>`
     ).join("")}</div>`;
+    page.querySelectorAll("[data-business-nav]").forEach((item) => item.addEventListener("click", (event) => {
+      event.preventDefault();
+      document.getElementById(`business-section-${item.dataset.businessNav}`)?.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "start" });
+    }));
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        page.querySelectorAll("[data-business-nav]").forEach((item) => {
+          if (item.dataset.businessNav === entry.target.id.replace("business-section-", "")) item.setAttribute("aria-current", "location");
+          else item.removeAttribute("aria-current");
+        });
+      }), { rootMargin: "-20% 0px -65% 0px" });
+      page.querySelectorAll(".business-section").forEach((section) => observer.observe(section));
+    }
     page.hidden = false;
     $("#drawer-body").innerHTML = "";
     closeOverlay();
@@ -2435,10 +2518,12 @@ function showSheet(h, title) {
 }
 
 async function showGoalPopover(button) {
+  activeGoalTrigger = button;
   const card = $("#goal-card");
   const slug = button.dataset.slug;
   const goalId = button.dataset.goalId;
   const goal = await api(`/api/goal/${encodeURIComponent(slug)}/${encodeURIComponent(goalId)}`);
+  if (activeGoalTrigger !== button) return;
   const statusCopy = {
     active: "Active · tracked as a current client goal.",
     hypothesized: "Hypothesized · an evidence-based guess, not yet confirmed with the business.",
@@ -2452,18 +2537,68 @@ async function showGoalPopover(button) {
   card.hidden = false;
   const rect = button.getBoundingClientRect();
   card.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - card.offsetWidth - 8))}px`;
-  card.style.top = `${Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - card.offsetHeight - 8))}px`;
+  card.style.top = `${Math.max(8, Math.min(rect.bottom, window.innerHeight - card.offsetHeight - 8))}px`;
 }
 
+let goalHideTimer = 0;
+let activeGoalTrigger = null;
+let pinnedGoalTrigger = null;
+function hideGoalPopover() {
+  clearTimeout(goalHideTimer);
+  $("#goal-card").hidden = true;
+  activeGoalTrigger = null;
+  pinnedGoalTrigger = null;
+}
+document.addEventListener("mouseover", (e) => {
+  const button = e.target.closest("[data-goal-id]");
+  if (button && !button.contains(e.relatedTarget) && window.matchMedia("(hover: hover)").matches) {
+    clearTimeout(goalHideTimer);
+    $("#goal-card").dataset.goalId = button.dataset.goalId;
+    showGoalPopover(button);
+  }
+  if (e.target.closest("#goal-card")) clearTimeout(goalHideTimer);
+});
+document.addEventListener("mouseout", (e) => {
+  if (pinnedGoalTrigger) return;
+  const trigger = e.target.closest("[data-goal-id]");
+  if (trigger && !trigger.contains(e.relatedTarget) && !e.relatedTarget?.closest("#goal-card") && !e.relatedTarget?.closest("[data-goal-id]")) {
+    goalHideTimer = window.setTimeout(hideGoalPopover, 250);
+  }
+  if (e.target.closest("#goal-card") && !e.relatedTarget?.closest("#goal-card") && !e.relatedTarget?.closest("[data-goal-id]")) {
+    goalHideTimer = window.setTimeout(hideGoalPopover, 250);
+  }
+});
+document.addEventListener("focusin", (e) => {
+  const button = e.target.closest("[data-goal-id]");
+  if (button) {
+    clearTimeout(goalHideTimer);
+    $("#goal-card").dataset.goalId = button.dataset.goalId;
+    showGoalPopover(button);
+  }
+  if (e.target.closest("#goal-card")) clearTimeout(goalHideTimer);
+});
+document.addEventListener("focusout", (e) => {
+  if (!pinnedGoalTrigger && (e.target.closest("[data-goal-id], #goal-card"))
+    && !e.relatedTarget?.closest("#goal-card") && !e.relatedTarget?.closest("[data-goal-id]")) {
+    goalHideTimer = window.setTimeout(hideGoalPopover, 250);
+  }
+});
 document.addEventListener("click", async (e) => {
   const close = e.target.closest(".popover-close");
-  if (close) { close.closest(".detail-popover").hidden = true; return; }
+  if (close) {
+    if (close.closest("#biz-card")) hideBizCard();
+    else if (close.closest("#tech-card, #tech-card-sheet")) hideTechCard();
+    else hideGoalPopover();
+    return;
+  }
   const goalButton = e.target.closest("[data-goal-id]");
   if (goalButton) {
     e.preventDefault();
-    if ($("#goal-card").dataset.goalId === goalButton.dataset.goalId && !$("#goal-card").hidden) {
-      $("#goal-card").hidden = true;
+    if (pinnedGoalTrigger === goalButton) {
+      hideGoalPopover();
     } else {
+      pinnedGoalTrigger = goalButton;
+      clearTimeout(goalHideTimer);
       $("#goal-card").dataset.goalId = goalButton.dataset.goalId;
       await showGoalPopover(goalButton);
     }
@@ -2471,12 +2606,13 @@ document.addEventListener("click", async (e) => {
   }
   const draftButton = e.target.closest("[data-goal-draft]");
   if (draftButton) {
-    $("#goal-card").hidden = true;
+    hideGoalPopover();
     await openRoute(draftButton.dataset.slug, draftButton.dataset.goalDraft);
     return;
   }
-  if (!e.target.closest("#goal-card")) $("#goal-card").hidden = true;
+  if (!e.target.closest("#goal-card")) hideGoalPopover();
 });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideGoalPopover(); });
 
 async function openRoute(slug, id) {
   const c = await api(`/api/route/${slug}/${id}`);
@@ -2510,7 +2646,14 @@ async function openRoute(slug, id) {
     }).join("")}</dl>`;
   }
   h += `<h3>Decisions</h3><div class="thread">${knots(c.decisions)}</div>`;
-  h += `<h3>Sources</h3><ul class="list">${c.sources.filter((s) => s.kind !== "Reference").map((s) => `<li>${chip("plain", s.kind)} ${s.source_url ? link(s.source_url, s.text) : esc(s.text)}</li>`).join("") || "<li class='muted'>None.</li>"}</ul>`;
+  const sourceKind = { TasteProfile: "Taste profile", Finding: "Research finding", Reference: "Reference video", CollisionFlag: "Double Take flag", Audit: "Audit", Post: "Post" };
+  h += `<h3>Sources</h3><ul class="source-rows">${c.sources.filter((s) => s.kind !== "Reference").map((s) => {
+    const text = s.text || s.summary || s.hook || s.with_business || "Source detail";
+    const url = s.source_url || s.url;
+    const kind = sourceKind[s.kind] || String(s.kind || "Source").replace(/([a-z])([A-Z])/g, "$1 $2");
+    const linkText = s.kind === "Finding" ? "Read the research source" : s.kind === "Reference" ? "Watch the reference video" : `Open ${kind.toLowerCase()}`;
+    return `<li class="source-row"><span class="source-kind">${esc(kind)}</span><span>${esc(text)}</span>${url ? link(url, linkText) : ""}</li>`;
+  }).join("") || "<li class='muted'>None.</li>"}</ul>`;
   h += `<h3>Techniques</h3><ul class="tech-list">${c.techniques.map((t) => `<li>${techChip(t, kinds)}</li>`).join("")}</ul>`;
   h += `<h3>References <span class="muted">videos the Producer drew on</span></h3>${c.references.length
     ? `<ul class="refs">${c.references.map(refCard).join("")}</ul>`
@@ -2576,7 +2719,7 @@ $("#draft-form").addEventListener("submit", async (e) => {
   }
   $("#draft-mobile-warning").hidden = true;
   const btn = e.target.querySelector("button[type=submit]");
-  btn.disabled = true;
+  if (btn) btn.disabled = true;
   try {
     const r = await api("/api/try/draft", { method: "POST", body: JSON.stringify({ client: $("#draft-client").value, technique_ids: ids }) });
     const results = [...(r.results || [])].sort((a, b) => (b.risk || 0) - (a.risk || 0));
@@ -2612,10 +2755,20 @@ $("#draft-form").addEventListener("submit", async (e) => {
     }
   }
   finally {
-    btn.disabled = false;
+    if (btn) btn.disabled = false;
     $("#draft-result").scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "nearest" });
   }
 });
+
+let draftPreviewTimer = 0;
+function scheduleDraftPreview() {
+  clearTimeout(draftPreviewTimer);
+  draftPreviewTimer = window.setTimeout(() => {
+    const ids = [...document.querySelectorAll("#tech-pick input:checked")];
+    if (ids.length) $("#draft-form").requestSubmit();
+    else $("#draft-result").innerHTML = "";
+  }, 250);
+}
 
 async function loadTechniques() {
   const ts = await api("/api/techniques");
@@ -2625,6 +2778,38 @@ async function loadTechniques() {
   ts.forEach((t) => (by[t.style] ||= []).push(t));
   $("#tech-pick").innerHTML = `<p class="rare-note"><span aria-hidden="true">●</span> Rare technique: few businesses use it.</p>${Object.entries(by).map(([s, list]) => `<h3>${esc(s)}</h3>${list.map((t) =>
     `<label><input type="checkbox" value="${esc(t.id)}"><span class="${typeof rare === "number" && t.rarity >= rare ? "rare" : ""}">${esc(t.name)}${typeof rare === "number" && t.rarity >= rare ? '<span class="sr-only">, rare</span>' : ""}</span></label>`).join("")}`).join("")}`;
+}
+
+async function loadDraftPresets() {
+  const root = $("#draft-presets");
+  if (!root) return;
+  try {
+    const analysis = await api("/api/analysis");
+    const top = (analysis.double_take || []).slice().sort((a, b) => (b.risk || 0) - (a.risk || 0))[0];
+    const signed = state.overview?.clients?.[0];
+    if (!top || !signed) return;
+    const detail = await api(`/api/doubletake/${encodeURIComponent(top.client_id)}/${encodeURIComponent(top.draft)}`);
+    const flag = detail.flags.find((item) => item.business?.id === top.with_business || item.business?.name === top.with_business)
+      || detail.flags.slice().sort((a, b) => (b.risk || 0) - (a.risk || 0))[0];
+    const idsFrom = (items) => (items || []).map((item) => typeof item === "string" ? item : item.id).filter(Boolean);
+    const presets = [
+      { title: "Reuse a neighbor's signature", note: "Try the blocked draft's shared moves.", client: detail.business.id, techniques: idsFrom(flag?.shared) },
+      { title: "The rewrite that cleared", note: "Try the revised draft's moves.", client: detail.business.id, techniques: idsFrom(detail.revision?.techniques) },
+      { title: "Only common moves", note: "Try the three least rare moves for a signed client.", client: signed.id, techniques: state.techniques.slice().sort((a, b) => (a.rarity || 0) - (b.rarity || 0)).slice(0, 3).map((item) => item.id) },
+    ];
+    root.innerHTML = presets.map((preset, index) => `<button type="button" class="draft-preset" data-draft-preset="${index}"><b>${esc(preset.title)}</b><small>${esc(preset.note)}</small></button>`).join("");
+    root.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-draft-preset]");
+      if (!button) return;
+      const preset = presets[Number(button.dataset.draftPreset)];
+      $("#draft-client").value = preset.client;
+      document.querySelectorAll("#tech-pick input").forEach((input) => { input.checked = preset.techniques.includes(input.value); });
+      if (!preset.techniques.length) return;
+      $("#draft-form").requestSubmit();
+    });
+  } catch (error) {
+    console.error("Could not load live post-check presets", error);
+  }
 }
 
 function setTryTab(tab) {
@@ -2644,16 +2829,24 @@ function updateTryMobileFlow() {
   const isLead = state.tryTab === "lead";
   const steps = isLead ? 3 : 2;
   const checkStep = isLead ? 2 : 1;
+  const resultStep = checkStep + 1;
   workbench.dataset.activeTool = state.tryTab;
   workbench.dataset.mobileStep = String(state.mobileTryStep);
   $("#try-mobile-progress-line").style.width = `${Math.min(1, state.mobileTryStep / steps) * 100}%`;
-  $("#try-mobile-next").textContent = state.mobileTryStep >= checkStep ? "Check" : "Next";
+  $("#try-mobile-next").textContent = state.mobileTryStep >= resultStep
+    ? "Edit inputs"
+    : state.mobileTryStep >= checkStep ? "See result" : "Next";
 }
 
 document.querySelectorAll("[data-try-tab]").forEach((button) => button.addEventListener("click", () => setTryTab(button.dataset.tryTab)));
 $("#try-mobile-next").addEventListener("click", () => {
   const isLead = state.tryTab === "lead";
   const checkStep = isLead ? 2 : 1;
+  if (state.mobileTryStep > checkStep) {
+    state.mobileTryStep = 0;
+    updateTryMobileFlow();
+    return;
+  }
   if (state.mobileTryStep < checkStep) {
     if (isLead && state.mobileTryStep === 1 && state.leadPreset === "own" && !$("#lead-form").reportValidity()) return;
     if (isLead && state.mobileTryStep === 0 && state.leadPreset !== "own") state.mobileTryStep = 2;
@@ -2661,7 +2854,8 @@ $("#try-mobile-next").addEventListener("click", () => {
     updateTryMobileFlow();
     return;
   }
-  (state.tryTab === "lead" ? $("#lead-form") : $("#draft-form")).requestSubmit();
+  state.mobileTryStep = checkStep + 1;
+  updateTryMobileFlow();
 });
 document.addEventListener("change", (e) => {
   if (e.target.name === "lead-preset") {
@@ -2676,7 +2870,11 @@ document.addEventListener("change", (e) => {
     scheduleLeadPreview();
     return;
   }
-  if (e.target.matches("#tech-pick input")) $("#draft-mobile-warning").hidden = true;
+  if (e.target.matches("#tech-pick input")) {
+    $("#draft-mobile-warning").hidden = true;
+    scheduleDraftPreview();
+  }
+  if (e.target.matches("#draft-client")) scheduleDraftPreview();
   if (e.target.closest("#lead-form")) scheduleLeadPreview();
 });
 document.addEventListener("input", (e) => {
@@ -2685,6 +2883,7 @@ document.addEventListener("input", (e) => {
 
 refresh().then(async () => {
   await loadTechniques();
+  await loadDraftPresets();
   updateTryMobileFlow();
   if (isAnalysisView()) await loadAnalysisFromLocation();
 });

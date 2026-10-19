@@ -149,8 +149,8 @@
 <section class="studio-tab try-tab" id="tab-try" data-tab="try">
   <header class="tab-heading"><p class="label">Live checks</p><h1>Try it</h1></header>
   <nav class="try-tabs" aria-label="Try it tools">
-    <button type="button" data-try-tab="lead" aria-selected="true">Would we take this client?</button>
-    <button type="button" data-try-tab="draft" aria-selected="false">Would this post look like someone else's?</button>
+    <button type="button" data-try-tab="lead" aria-selected="true">Screen a lead</button>
+    <button type="button" data-try-tab="draft" aria-selected="false">Check a post</button>
   </nav>
   <div class="try-workbench" id="try-workbench" data-mobile-step="0">
     <div class="try-mobile-progress" aria-hidden="true"><span id="try-mobile-progress-line"></span></div>
@@ -167,7 +167,6 @@
         </div>
         <fieldset id="aud-sliders"><legend>Customer groups</legend></fieldset>
         <p class="try-form-warning" id="lead-mobile-warning" hidden></p>
-        <div class="mobile-tool-actions"><button type="submit" class="btn primary">Check this client</button></div>
       </form>
       </div>
       <section class="try-readout" aria-labelledby="lead-readout-heading"><p class="label" id="lead-readout-heading">READOUT / SCOUT'S CALL</p><div id="lead-result" aria-live="polite"></div></section>
@@ -175,15 +174,15 @@
 
     <section class="try-tool" data-try-tool="draft" aria-labelledby="draft-h" hidden>
       <div class="try-inputs">
-      <h2 class="label" id="draft-h">DOUBLE TAKE'S POST CHECK</h2>
-      <p class="panel-sub">Pick a client and the techniques a draft would use. Double Take compares it with every other business that reaches the same people.</p>
+      <h2 id="draft-h">Check a post</h2>
+      <p class="panel-sub">Pick a business and the moves a post would use. Double Take says if it would be blocked.</p>
+      <div class="draft-presets" id="draft-presets" aria-label="Live post-check examples"></div>
       <form id="draft-form" class="form">
         <label class="field">For <select name="client" id="draft-client"></select></label>
         <fieldset><legend>Techniques in the draft</legend><div class="tech-pick" id="tech-pick"></div><p class="try-form-warning" id="draft-mobile-warning" hidden></p></fieldset>
-        <div class="mobile-tool-actions"><button type="submit" class="btn primary">Check this post</button></div>
       </form>
       </div>
-      <section class="try-readout post-readout" aria-labelledby="draft-readout-heading"><p class="label" id="draft-readout-heading">READOUT / DOUBLE TAKE</p><div id="draft-result" aria-live="polite"></div></section>
+      <section class="try-readout post-readout" aria-labelledby="draft-readout-heading"><p class="label" id="draft-readout-heading">Live result</p><div id="draft-result" aria-live="polite"></div></section>
     </section>
     <div class="try-mobile-controls"><button type="button" class="btn ink" id="try-mobile-next">Next</button></div>
   </div>
@@ -194,7 +193,7 @@
     <p class="label">Today's activity</p>
     <h2 class="log-section-title" id="dayloop-h">Agents at work</h2>
     <section class="dayloop" id="dayloop" aria-label="Studio activity">
-      <p class="muted dayloop-note">Agents do the routine work each day on their own and stop at anything that needs you.</p>
+      <p class="muted dayloop-note">First run is the agents' initial pass; each Next day adds a day.</p>
       <ol class="days" id="days" aria-live="polite"></ol>
     </section>
   </section>

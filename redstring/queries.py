@@ -240,7 +240,7 @@ OPTIONAL MATCH (dec)-[:DECIDED_BY]->(a:Agent)
 OPTIONAL MATCH (dec)-[:BASED_ON]->(src)
 OPTIONAL MATCH (d)-[:INSPIRED_BY]->(r:Reference)
 RETURN d.hook AS draft, d.status AS status, d.kind AS format, g.id AS goal_id, g.text AS goal, g.status AS goal_status,
-       collect(DISTINCT {decision: dec.text, by: a.name, at: dec.at, rationale: dec.rationale}) AS decisions,
+       collect(DISTINCT {decision: dec.text, by: a.name, at: dec.at, day: coalesce(dec.day, 0), rationale: dec.rationale}) AS decisions,
        collect(DISTINCT {kind: labels(src)[0], text: coalesce(src.text, src.url, src.summary, src.hook, src.with_business), source_url: src.source_url}) AS sources,
        d.spec AS spec,
        collect(DISTINCT {id: r.id, url: r.url, creator: r.creator, category: r.category}) AS references
