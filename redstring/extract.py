@@ -1,7 +1,7 @@
 """Map Instinct or other analyzer exports onto the closed technique vocabulary.
 
 Rarity only works if the vocabulary is closed, so extraction returns technique ids only. Anything that
-doesn't fit goes to a proposed queue (data/proposed_techniques.json) for Yaz to approve once; extraction
+doesn't fit goes to a proposed queue (data/proposed_techniques.json) for the board to approve once; extraction
 never mints a Technique on its own. After approving additions to data/techniques.json, re-run the import.
 
 Input: a CSV or JSON export with at least url and analysis; creator, platform, format, category, city,

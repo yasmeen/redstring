@@ -1,13 +1,11 @@
 const $ = (s) => document.querySelector(s);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const VERDICT_LABELS = {
-  decline: "Decline: competes nearby",
   pursue: "Pitch",
   pursue_differentiated: "Pitch with a distinct angle",
   borderline: "Board call",
 };
 const VERDICT_HELP = {
-  decline: "Same category as a signed client in the same neighborhood.",
   pursue: "Little audience overlap with signed clients.",
   pursue_differentiated: "Reaches the same people as a client; pitch only with a different creative angle.",
   borderline: "Partial overlap; the board decides.",
@@ -15,8 +13,8 @@ const VERDICT_HELP = {
 const STATUS_LABELS = { passed: "Passed", vetoed: "Vetoed" };
 const status = (kind, text) => `<span class="status s-${esc(kind)}"><i></i>${esc(text)}</span>`;
 const statusKind = (value) => {
-  if (["decline", "flagged", "blocked", "vetoed"].includes(value)) return "red";
-  if (["borderline", "pursue_differentiated", "conditional"].includes(value)) return "amber";
+  if (["flagged", "blocked", "vetoed"].includes(value)) return "red";
+  if (["borderline", "pursue_differentiated", "conditional", "hypothesized"].includes(value)) return "amber";
   if (["pursue", "pitched", "signed", "cleared", "approved", "active", "ready"].includes(value)) return "green";
   return "ink";
 };
@@ -77,7 +75,7 @@ const isAnalysisView = () => document.body.dataset.view === "analysis";
 function syncViewFromLocation() {
   const view = location.pathname === "/analysis" ? "analysis" : "studio";
   document.body.dataset.view = view;
-  $("#sidebar-view-label").textContent = view.toUpperCase();
+  $("#sidebar-view-label").textContent = view === "analysis" ? "Analysis" : "Studio";
   viewLinks.forEach((link) => {
     if (link.dataset.viewLink === view) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
@@ -86,14 +84,23 @@ function syncViewFromLocation() {
 }
 
 const STUDIO_TABS = ["today", "pipeline", "double-take", "try", "log"];
+function businessRouteFromLocation() {
+  const parts = decodeURIComponent(location.hash.slice(1)).split("/");
+  return parts[0] === "business" && parts[1]
+    ? { slug: parts[1], section: parts[2] || "overview" }
+    : null;
+}
 function studioTabFromHash() {
   const hash = decodeURIComponent(location.hash.slice(1));
   if (hash.startsWith("double-take/")) return "double-take";
+  if (hash.startsWith("business/")) return "business";
   return STUDIO_TABS.includes(hash) ? hash : "today";
 }
 function syncStudioTab() {
   const tab = studioTabFromHash();
   document.body.dataset.tab = tab;
+  const businessPage = $("#business-page");
+  if (businessPage) businessPage.hidden = tab !== "business";
   document.querySelectorAll("[data-tab]").forEach((section) => {
     section.dataset.active = String(section.dataset.tab === tab);
   });
@@ -113,7 +120,16 @@ async function viewChanged() {
   if (view === "studio") syncStudioTab();
   if (!state.overview) await refresh();
   if (view === "analysis") await loadAnalysisFromLocation();
-  else if (state.selected) await openBusiness(state.selected, { quiet: true });
+  else {
+    const route = businessRouteFromLocation();
+    if (route) {
+      state.selected = route.slug;
+      await openBusiness(route.slug, { quiet: true });
+      scrollBusinessSection(route.section);
+    } else if (state.selected && $("#drawer").classList.contains("open")) {
+      await openBusiness(state.selected, { quiet: true });
+    }
+  }
 }
 
 syncViewFromLocation();
@@ -131,12 +147,21 @@ document.querySelectorAll("[data-studio-tab]").forEach((link) => link.addEventLi
   syncStudioTab();
   window.scrollTo({ top: 0, behavior: reduceMotion.matches ? "auto" : "smooth" });
 }));
-window.addEventListener("hashchange", () => {
+window.addEventListener("hashchange", async () => {
   if (isAnalysisView()) loadAnalysisFromLocation();
   else {
     const tab = syncStudioTab();
     if (tab === "double-take") loadDoubleTakeFromLocation();
-    window.scrollTo({ top: 0, behavior: reduceMotion.matches ? "auto" : "smooth" });
+    if (tab === "business") {
+      const route = businessRouteFromLocation();
+      if (route) {
+        state.selected = route.slug;
+        await openBusiness(route.slug, { quiet: true });
+        scrollBusinessSection(route.section);
+      }
+    } else {
+      window.scrollTo({ top: 0, behavior: reduceMotion.matches ? "auto" : "smooth" });
+    }
   }
 });
 const icon = (name, cls = "") => ICON_PATHS[name]
@@ -168,52 +193,161 @@ function bizName(b, { link = true } = {}) {
     ? `<button type="button" class="biz-link" data-pick="${esc(b.id)}"${id}>${content}</button>`
     : `<span class="biz-name-inline"${id}>${content}</span>`;
 }
-const techChip = (name, kinds = {}) => `<span class="chip plain tech"${kinds[name] ? ` title="${esc(kinds[name])}"` : ""}>${icon(TECHNIQUE_ICONS[kinds[name]] || "")}${esc(name)}</span>`;
+const techChip = (name, kinds = {}) => `<button type="button" class="chip plain tech" data-tech-name="${esc(name)}" aria-haspopup="dialog"${kinds[name] ? ` title="${esc(kinds[name])}"` : ""}>${icon(TECHNIQUE_ICONS[kinds[name]] || "")}${esc(name)}</button>`;
 
 let bizCardTimer = 0;
+let activeBizTrigger = null;
+let pinnedBizTrigger = null;
 function hideBizCard() {
   clearTimeout(bizCardTimer);
   $("#biz-card").hidden = true;
+  activeBizTrigger = null;
+  pinnedBizTrigger = null;
 }
-function scheduleBizCard(target) {
+function showBizCard(target) {
   clearTimeout(bizCardTimer);
-  if (!window.matchMedia("(hover: hover)").matches || isAnalysisView()) return;
-  bizCardTimer = window.setTimeout(() => {
-    const b = bizById(target.dataset.bizCard);
-    if (!b) return;
-    const client = state.overview?.clients?.find((c) => c.id === b.id);
-    const meta = [b.category, hoodOf(b) || client?.neighborhood].filter(Boolean).join(" · ");
-    const detail = b.status === "signed"
-      ? client?.goals?.[0]?.text || ""
-      : displayStudioCopy(b.reason || "").replace(/\s*\(conflict [^)]*\)/gi, "").trim();
-    const stateTag = verdictStatus(b.verdict || b.status, b.status === "signed" ? "Signed" : undefined);
-    const tip = $("#biz-card");
-    tip.innerHTML = `<div class="biz-card-head">${avatar(b, "lg")}<span><b>${esc(b.name)}</b><span>${esc(meta)}</span>${stateTag}</span></div>${detail ? `<p>${esc(detail)}</p>` : ""}`;
-    tip.hidden = false;
-    const rect = target.getBoundingClientRect();
-    const left = Math.max(8, Math.min(rect.left, window.innerWidth - tip.offsetWidth - 8));
-    const top = Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - tip.offsetHeight - 8));
-    tip.style.left = `${left}px`;
-    tip.style.top = `${top}px`;
-  }, 250);
+  if (isAnalysisView()) return;
+  const b = bizById(target.dataset.bizCard);
+  if (!b) return;
+  const client = state.overview?.clients?.find((c) => c.id === b.id);
+  const meta = [b.category, hoodOf(b) || client?.neighborhood].filter(Boolean).join(" · ");
+  const detail = b.status === "signed"
+    ? client?.goals?.[0]?.text || ""
+    : displayStudioCopy(b.reason || "").replace(/\s*\(conflict [^)]*\)/gi, "").trim();
+  const stateTag = verdictStatus(b.verdict || b.status, b.status === "signed" ? "Signed" : undefined);
+  const tip = $("#biz-card");
+  tip.innerHTML = `<div class="biz-card-head">${avatar(b, "lg")}<span><div class="popover-head"><b>${esc(b.name)}</b><button type="button" class="popover-close" aria-label="Close business details">×</button></div>
+    <span>${esc(meta)}</span>${stateTag}</span></div>${detail ? `<p>${esc(detail)}</p>` : ""}`;
+  tip.hidden = false;
+  activeBizTrigger = target;
+  const rect = target.getBoundingClientRect();
+  const left = Math.max(8, Math.min(rect.left, window.innerWidth - tip.offsetWidth - 8));
+  const top = Math.max(8, Math.min(rect.bottom, window.innerHeight - tip.offsetHeight - 8));
+  tip.style.left = `${left}px`;
+  tip.style.top = `${top}px`;
 }
 document.addEventListener("mouseover", (e) => {
   const target = e.target.closest("[data-biz-card]");
-  if (target && !target.contains(e.relatedTarget)) scheduleBizCard(target);
+  if (target && !target.contains(e.relatedTarget) && window.matchMedia("(hover: hover)").matches) showBizCard(target);
+  if (e.target.closest("#biz-card")) clearTimeout(bizCardTimer);
 });
 document.addEventListener("mouseout", (e) => {
   const target = e.target.closest("[data-biz-card]");
-  if (target && !target.contains(e.relatedTarget)) hideBizCard();
+  if (target && !target.contains(e.relatedTarget) && !e.relatedTarget?.closest("#biz-card") && target !== pinnedBizTrigger) {
+    bizCardTimer = window.setTimeout(hideBizCard, 250);
+  }
+  if (e.target.closest("#biz-card") && !e.relatedTarget?.closest("#biz-card") && !e.relatedTarget?.closest("[data-biz-card]") && !pinnedBizTrigger) {
+    bizCardTimer = window.setTimeout(hideBizCard, 250);
+  }
 });
 document.addEventListener("focusin", (e) => {
   const target = e.target.closest("[data-biz-card]") || e.target.closest("button, summary")?.querySelector("[data-biz-card]");
-  if (target) scheduleBizCard(target);
+  if (target) showBizCard(target);
+  if (e.target.closest("#biz-card")) clearTimeout(bizCardTimer);
 });
 document.addEventListener("focusout", (e) => {
-  if (e.target.closest("[data-biz-card]") || e.target.closest("button, summary")?.querySelector("[data-biz-card]")) hideBizCard();
+  if ((e.target.closest("[data-biz-card]") || e.target.closest("button, summary")?.querySelector("[data-biz-card]"))
+    && !e.relatedTarget?.closest("#biz-card") && !e.relatedTarget?.closest("[data-biz-card]") && !pinnedBizTrigger) {
+    bizCardTimer = window.setTimeout(hideBizCard, 250);
+  }
+});
+document.addEventListener("click", (e) => {
+  const target = e.target.closest("[data-biz-card]");
+  if (e.target.closest("#biz-card .popover-close")) { hideBizCard(); return; }
+  if (target) {
+    pinnedBizTrigger = pinnedBizTrigger === target ? null : target;
+    if (pinnedBizTrigger) showBizCard(target);
+    else hideBizCard();
+  } else if (!e.target.closest("#biz-card")) hideBizCard();
 });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideBizCard(); });
 window.addEventListener("scroll", hideBizCard, true);
+
+let activeTechTrigger = null;
+let pinnedTechTrigger = null;
+let techHideTimer = 0;
+function techniquePopoverFor(target) {
+  return target.closest("#card-body") ? $("#tech-card-sheet") : $("#tech-card");
+}
+function hideTechCard() {
+  clearTimeout(techHideTimer);
+  $("#tech-card").hidden = true;
+  $("#tech-card-sheet").hidden = true;
+  activeTechTrigger = null;
+  pinnedTechTrigger = null;
+}
+async function showTechCard(target) {
+  activeTechTrigger = target;
+  let technique = state.techniques.find((item) => item.name === target.dataset.techName || item.id === target.dataset.techName);
+  if (!technique) {
+    state.techniques = await api("/api/techniques");
+    technique = state.techniques.find((item) => item.name === target.dataset.techName || item.id === target.dataset.techName);
+  }
+  if (!technique || activeTechTrigger !== target) return;
+  const card = techniquePopoverFor(target);
+  const examples = technique.examples || [];
+  const exampleHtml = examples.length
+    ? examples.map((reference) => {
+      const creator = String(reference.creator || "").replace(/^@/, "");
+      return `<li><a href="${esc(reference.url)}" target="_blank" rel="noopener">${esc(`${creator ? `@${creator}` : "Reference"}${reference.category ? ` · ${reference.category}` : ""}`)}</a></li>`;
+    }).join("")
+    : `<li><a href="https://www.youtube.com/results?search_query=${encodeURIComponent(`${technique.name} video technique`)}" target="_blank" rel="noopener">Search examples on YouTube</a></li>`;
+  card.innerHTML = `<div class="popover-head"><b>${esc(technique.name)}</b><button type="button" class="popover-close" aria-label="Close technique details">×</button></div>
+    <p>${esc(technique.category)} · ${esc(technique.style)}</p><p>Rarity ${n(technique.rarity, 2)}</p>
+    <p>${esc(technique.description || "No description available.")}</p><h4>Examples</h4><ul>${exampleHtml}</ul>`;
+  card.hidden = false;
+  activeTechTrigger = target;
+  const rect = target.getBoundingClientRect();
+  card.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - card.offsetWidth - 8))}px`;
+  card.style.top = `${Math.max(8, Math.min(rect.bottom, window.innerHeight - card.offsetHeight - 8))}px`;
+}
+document.addEventListener("mouseover", (e) => {
+  const target = e.target.closest("[data-tech-name]");
+  if (target && !target.contains(e.relatedTarget)) {
+    clearTimeout(techHideTimer);
+    if (window.matchMedia("(hover: hover)").matches) showTechCard(target);
+  }
+  if (e.target.closest(".detail-popover")) clearTimeout(techHideTimer);
+});
+document.addEventListener("mouseout", (e) => {
+  if (pinnedTechTrigger) return;
+  if (e.target.closest("[data-tech-name]") && !e.relatedTarget?.closest(".detail-popover") && !e.relatedTarget?.closest("[data-tech-name]")) {
+    techHideTimer = window.setTimeout(hideTechCard, 250);
+  }
+  const card = e.target.closest(".detail-popover");
+  if (card && !card.contains(e.relatedTarget) && !e.relatedTarget?.closest("[data-tech-name]")) {
+    techHideTimer = window.setTimeout(hideTechCard, 250);
+  }
+});
+document.addEventListener("focusin", (e) => {
+  const target = e.target.closest("[data-tech-name]");
+  if (target) showTechCard(target);
+  if (e.target.closest(".detail-popover")) clearTimeout(techHideTimer);
+});
+document.addEventListener("focusout", (e) => {
+  if (!pinnedTechTrigger && !e.relatedTarget?.closest(".detail-popover") && !e.relatedTarget?.closest("[data-tech-name]")) {
+    if (e.target.closest("[data-tech-name], .detail-popover")) techHideTimer = window.setTimeout(hideTechCard, 250);
+  }
+});
+document.addEventListener("click", (e) => {
+  if (e.target.closest("#tech-card .popover-close, #tech-card-sheet .popover-close")) {
+    hideTechCard();
+    return;
+  }
+  const target = e.target.closest("[data-tech-name]");
+  if (target) {
+    e.preventDefault();
+    if (pinnedTechTrigger === target) hideTechCard();
+    else {
+      pinnedTechTrigger = target;
+      showTechCard(target);
+    }
+    return;
+  }
+  if (!e.target.closest(".detail-popover")) hideTechCard();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideTechCard(); });
+window.addEventListener("scroll", hideTechCard, true);
 
 function mediaOf(r) {
   const u = r.url || "";
@@ -293,9 +427,20 @@ $("#intro-got-it").addEventListener("click", () => {
 $("#intro-see-draft").addEventListener("click", async () => {
   const hit = firstBlocked();
   if (!hit) return;
-  await select(hit.business_id);
+  selectDoubleTakePair(hit.business_id, hit.draft_id);
   dismissIntro();
-  $("#dossier-h")?.focus();
+});
+$("#intro-see-pitch").addEventListener("click", async (e) => {
+  const candidates = (state.overview?.businesses || [])
+    .filter((business) => business.status === "pitched" || business.status === "signed");
+  for (const business of candidates) {
+    const dossier = await api(`/api/business/${business.id}`);
+    const pitch = dossier.pitches?.[0];
+    if (pitch) {
+      await openPitch(business.id, pitch.id);
+      return;
+    }
+  }
 });
 
 // Short names for the step knots. The full label from the server stays in the title, aria-label and "Next" line.
@@ -327,6 +472,7 @@ async function refresh() {
   renderLog(o.log);
   renderBoard(o);
   renderAttention(o);
+  renderAbout(o);
   renderPipelineRegister(o);
   renderDoubleTakePairs(o);
   $("#intro-see-draft").hidden = !firstBlocked();
@@ -348,7 +494,14 @@ async function refresh() {
   if (studioTabFromHash() === "double-take") await loadDoubleTakeFromLocation();
 
   $("#follow").hidden = true;
-  if (state.selected && $("#drawer").classList.contains("open")) await openBusiness(state.selected, { quiet: true });
+  const businessRoute = businessRouteFromLocation();
+  if (businessRoute) {
+    state.selected = businessRoute.slug;
+    await openBusiness(businessRoute.slug, { quiet: true });
+    scrollBusinessSection(businessRoute.section);
+  } else if (state.selected && $("#drawer").classList.contains("open")) {
+    await openBusiness(state.selected, { quiet: true });
+  }
   else drawString(false);
 }
 
@@ -452,10 +605,10 @@ function needsEntries(o) {
       n: 1, kind: "Board call", icon: "gavel", biz: b,
       q: "Pursue this lead?",
       what: `${evidence} Pursue opens its research; Pass takes it off the pipeline for 90 days.`,
-      actions: ro ? `<span class="focus-wait">Waiting on the board</span><button type="button" class="btn ghost big" data-pick="${esc(i.business_id)}">See the screening</button>`
+      actions: ro ? `<span class="focus-wait">Waiting on the board</span><button type="button" class="btn ghost big" data-pick="${esc(i.business_id)}" data-business-section="screening">See the screening</button>`
         : `<button type="button" class="btn primary big" data-lead-decision="pursue" data-slug="${esc(i.business_id)}">Pursue lead</button><button type="button" class="btn ghost big" data-lead-decision="pass" data-slug="${esc(i.business_id)}">Pass</button>`,
-      more: ro ? "" : `<button type="button" class="text-button" data-pick="${esc(i.business_id)}">See the screening first →</button>`,
-      row: `<button type="button" class="focus-row" data-pick="${esc(i.business_id)}"><span class="label">ROW_NUM — New lead</span><span class="focus-row-text"><span class="focus-row-title">Pursue ${bizName(b, { link: false })}?</span><small>Partial overlap with a signed client · board call</small></span>${cta("Review")}</button>`,
+      more: ro ? "" : `<button type="button" class="text-button" data-pick="${esc(i.business_id)}" data-business-section="screening">See the screening first →</button>`,
+      row: `<button type="button" class="focus-row" data-pick="${esc(i.business_id)}" data-business-section="screening"><span class="focus-item-kind">${icon("gavel")}New lead</span><span class="focus-row-text"><span class="focus-row-title">Pursue ${bizName(b, { link: false })}?</span><small>Partial overlap with a signed client · board call</small></span>${cta("Review")}</button>`,
     });
   });
   items.filter((i) => i.type === "pitch").forEach((i) => {
@@ -466,7 +619,7 @@ function needsEntries(o) {
       q: "Approve this pitch?",
       what: "Account Manager assembled it from spec posts that cleared Double Take. Nothing is sent until you approve.",
       actions: `<button type="button" class="btn primary big" ${attrs}>Review and decide</button>`,
-      row: `<button type="button" class="focus-row" ${attrs}><span class="label">ROW_NUM — Pitch</span><span class="focus-row-text"><span class="focus-row-title">Approve ${bizName(b, { link: false })}'s pitch</span><small>Assembled from spec posts that cleared Double Take</small></span>${cta("Review")}</button>`,
+      row: `<button type="button" class="focus-row" ${attrs}><span class="focus-item-kind">${icon("send")}Pitch</span><span class="focus-row-text"><span class="focus-row-title">Approve ${bizName(b, { link: false })}'s pitch</span><small>Assembled from spec posts that cleared Double Take</small></span>${cta("Review")}</button>`,
     });
   });
   const posts = items.filter((i) => i.type === "approve_posts");
@@ -478,7 +631,7 @@ function needsEntries(o) {
       q: `Approve ${plural(total, "post", "posts")}?`,
       what: `All cleared Double Take. Pick a client to review ${posts.length === 1 ? "its" : "their"} posts.`,
       actions: `<span class="focus-chips">${chips}</span>`,
-      row: `<div class="focus-row multi"><span class="label">ROW_NUM — Posts</span><button type="button" class="focus-row-text" data-draft="${esc(posts[0].draft_ids[0])}" data-slug="${esc(posts[0].business_id)}">Approve ${plural(total, "post", "posts")}<small>All cleared by Double Take</small></button><span class="focus-chips">${chips}</span></div>`,
+      row: `<div class="focus-row"><span class="focus-item-kind">${icon("circle-check")}Posts</span><div class="focus-row-middle"><button type="button" class="focus-row-text" data-draft="${esc(posts[0].draft_ids[0])}" data-slug="${esc(posts[0].business_id)}"><span class="focus-row-title">Approve ${plural(total, "post", "posts")}</span><small>All cleared by Double Take</small></button><span class="focus-chips">${chips}</span></div><span class="focus-row-right" aria-hidden="true"></span></div>`,
     });
   }
   const ready = items.find((i) => i.type === "ready");
@@ -489,7 +642,7 @@ function needsEntries(o) {
       q: `${plural(k, "screened lead is", "screened leads are")} cleared to pitch`,
       what: "Scout found no clash with a signed client. Open one in the pipeline to pursue it.",
       actions: `<button type="button" class="btn primary big" data-reveal-lane="screened">See them in the pipeline</button>`,
-      row: `<button type="button" class="focus-row" data-reveal-lane="screened"><span class="label">ROW_NUM — Leads</span><span class="focus-row-text">${plural(k, "lead is", "leads are")} cleared to pitch<small>Scout found no clash with a signed client</small></span>${cta("Review")}</button>`,
+      row: `<button type="button" class="focus-row" data-reveal-lane="screened"><span class="focus-item-kind">${icon("sparkles")}Leads</span><span class="focus-row-text">${plural(k, "lead is", "leads are")} cleared to pitch<small>Scout found no clash with a signed client</small></span>${cta("Review")}</button>`,
     });
   }
   const unscreened = items.filter((i) => i.type === "unscreened");
@@ -500,7 +653,7 @@ function needsEntries(o) {
       q: `${plural(k, "new lead is", "new leads are")} waiting for Scout`,
       what: "Run the next step and Scout screens them against every signed client.",
       actions: `<button type="button" class="btn primary big" data-reveal-lane="lead">See them in the pipeline</button>`,
-      row: `<button type="button" class="focus-row" data-reveal-lane="lead"><span class="label">ROW_NUM — Leads</span><span class="focus-row-text">${plural(k, "new lead is", "new leads are")} waiting for Scout<small>Run the next step to screen them</small></span>${cta("Review")}</button>`,
+      row: `<button type="button" class="focus-row" data-reveal-lane="lead"><span class="focus-item-kind">${icon("users")}Leads</span><span class="focus-row-text">${plural(k, "new lead is", "new leads are")} waiting for Scout<small>Run the next step to screen them</small></span>${cta("Review")}</button>`,
     });
   }
   return entries;
@@ -513,7 +666,7 @@ function renderAttention(o) {
   const count = entries.length;
   const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
   const countWord = count < words.length ? words[count] : String(count);
-  $("#today-kicker").textContent = `TODAY / ${String(count).padStart(2, "0")} DECISIONS`;
+  $("#today-kicker").textContent = `${count} ${count === 1 ? "decision" : "decisions"} today`;
   $("#today-title").textContent = count ? "Your call." : "All clear.";
   $("#today-summary").textContent = count === 0
     ? "The agents ran overnight. Nothing needs you right now."
@@ -522,7 +675,7 @@ function renderAttention(o) {
       : `The agents ran overnight. These ${countWord} need your judgment before anything moves.`;
   $("#needs-you-heading").textContent = count ? `${plural(count, "decision", "decisions")} waiting` : "All clear";
   const kindLabel = {
-    "Board call": "New lead · board call",
+    "Board call": "New lead",
     "Pitch to approve": "Pitch",
     "Posts to approve": "Posts",
     "Cleared to pitch": "Leads",
@@ -530,15 +683,14 @@ function renderAttention(o) {
   };
   $("#needs-you").innerHTML = first
     ? `<div class="focus-item">
-        <p class="focus-item-kind label">01 — ${esc(kindLabel[first.kind] || first.kind)}</p>
+        <p class="focus-item-kind">${icon(first.icon)}${esc(kindLabel[first.kind] || first.kind)}</p>
         ${first.biz ? `<div class="focus-biz">${bizName(first.biz)}<span>${esc([first.biz.category, hoodOf(first.biz)].filter(Boolean).join(" · "))}</span></div>` : ""}
         <h3 class="focus-q">${esc(first.q)}</h3><p class="focus-what">${first.what}</p>
         <div class="focus-actions">${first.actions}</div>${first.more || ""}
-      </div>${rest.length ? `<div class="focus-rows">${rest.map((entry, index) => entry.row.replaceAll("ROW_NUM", String(index + 2).padStart(2, "0"))).join("")}</div>` : ""}`
+      </div>${rest.length ? `<div class="focus-rows">${rest.map((entry) => entry.row).join("")}</div>` : ""}`
     : `<div class="needs-empty"><img class="needs-empty-image" src="/static/img/empty-all-clear.webp" width="720" height="720" alt="A tidy corkboard beside a cup of coffee." loading="lazy" decoding="async"><p>All clear: nothing needs you right now.</p></div>`;
   const blocked = (o.needs_you || []).filter((i) => i.type === "blocked").sort((a, z) => (z.risk || 0) - (a.risk || 0));
-  const caughtCount = String(blocked.length).padStart(2, "0");
-  $("#caught-count").textContent = caughtCount;
+  $("#caught-count").textContent = String(blocked.length);
   const caughtRows = blocked.map((i) => `<button type="button" class="caught-row" data-draft="${esc(i.draft_id)}" data-slug="${esc(i.business_id)}">
       <span class="caught-who"><b>${bizName(byId[i.business_id] || { id: i.business_id, name: i.business }, { link: false })}</b>
         <span class="caught-lookalikes"><span>looked like</span>${[i.with_business, ...(i.also_like || [])].map((name, index) => `${index ? "<span>and</span>" : ""}<span class="caught-name">${bizName(bizByName(name), { link: false })}</span>`).join("")}</span>
@@ -550,6 +702,28 @@ function renderAttention(o) {
   $("#caught").innerHTML = caughtRows;
   $("#tab-count-today").textContent = String(count);
   $("#tab-count-double-take").textContent = String(new Set(blocked.map((i) => i.draft_id)).size);
+}
+
+function renderAbout(o) {
+  const clients = (o.businesses || []).filter((business) => business.status === "signed");
+  const neighborhoods = [...new Set(clients.map(hoodOf).filter(Boolean))];
+  const categories = [...new Set(clients.map((business) => business.category).filter(Boolean))];
+  const meta = [
+    plural(clients.length, "client", "clients"),
+    neighborhoods.length ? plural(neighborhoods.length, "neighborhood", "neighborhoods") : "",
+    categories.join(", "),
+  ].filter(Boolean).join(" · ");
+  $("#about-summary").textContent = `We make short-form video for local family businesses${meta ? ` · ${meta}` : ""}.`;
+  const workflow = [
+    ["user-round", "Leads"], ["search", "Research"], ["clapperboard", "Spec posts"],
+    ["send", "Pitch"], ["circle-check", "Signed"], ["calendar-days", "Monthly posts"],
+  ];
+  $("#studio-workflow").innerHTML = workflow.map(([name, label]) =>
+    `<li>${icon(name)}<span>${label}</span></li>`).join("");
+  const pitchClient = (o.businesses || []).find((business) => business.status === "pitched" || business.status === "signed");
+  const pitchButton = $("#intro-see-pitch");
+  pitchButton.hidden = !pitchClient;
+  pitchButton.dataset.slug = pitchClient?.id || "";
 }
 
 document.addEventListener("click", (e) => {
@@ -568,7 +742,7 @@ function renderBoard(o) {
     if ((title === "Passed" || title === "Lead") && !items.length) return "";
     let extra = 0;
     if (title === "Screened") {
-      const order = { pursue: 0, pursue_differentiated: 1, borderline: 2, decline: 3 };
+      const order = { pursue: 0, pursue_differentiated: 1, borderline: 2 };
       items.sort((a, z) => (order[a.verdict] ?? 4) - (order[z.verdict] ?? 4) || a.name.localeCompare(z.name));
       const sel = items.findIndex((b) => b.id === state.selected);
       if (!state.showAllScreened && items.length > 5 && sel < 5) extra = items.length - 4;
@@ -586,12 +760,12 @@ function renderBoard(o) {
 
 function renderPipelineRegister(o) {
   const stageRows = STAGES.map(([title, test]) => ({ title, items: o.businesses.filter(test) })).filter((row) => row.items.length);
-  $("#pipeline-kicker").textContent = `PIPELINE / ${String(o.businesses.length).padStart(2, "0")} BUSINESSES`;
+  $("#pipeline-kicker").textContent = `Pipeline · ${o.businesses.length} businesses`;
   $("#pipeline-stage-bar").style.gridTemplateColumns = stageRows.map((row) => `${row.items.length}fr`).join(" ") || "1fr";
   $("#pipeline-stage-bar").innerHTML = stageRows.map((row) => `<button type="button" class="pipeline-stage${state.pipelineStage === row.title.toLowerCase() ? " selected" : ""}" data-pipeline-stage="${esc(row.title.toLowerCase())}" aria-pressed="${state.pipelineStage === row.title.toLowerCase()}"><span class="pipeline-stage-count">${row.items.length}</span><span>${esc(row.title)}</span></button>`).join("");
   const screening = state.analysis?.screening || [];
   const visible = o.businesses.filter((b) => !state.pipelineStage || (STAGES.find(([title, test]) => test(b))?.[0].toLowerCase() === state.pipelineStage));
-  $("#pipeline-register").innerHTML = `<div class="register-head label"><span>BUSINESS</span><span>STAGE</span><span>STATUS</span><span>OVERLAP</span></div>${visible.map((b) => {
+  $("#pipeline-register").innerHTML = `<div class="register-head label"><span>Business</span><span>Stage</span><span>Status</span><span>Overlap</span></div>${visible.map((b) => {
     const stage = STAGES.find(([title, test]) => test(b))?.[0] || b.status;
     const result = screening.find((row) => row.id === b.id);
     const overlap = b.max_conflict ?? result?.max_conflict;
@@ -625,13 +799,13 @@ function doubleTakeRoute() {
 function renderDoubleTakePairs(o = state.overview) {
   if (!o || !$("#dt-pairs")) return;
   const pairs = blockedPairs(o);
-  $("#doubletake-kicker").textContent = `DOUBLE TAKE / ${String(pairs.length).padStart(2, "0")} BLOCKED DRAFTS`;
+  $("#doubletake-kicker").textContent = `${pairs.length} blocked drafts`;
   $("#tab-count-double-take").textContent = String(pairs.length);
   const route = doubleTakeRoute();
   $("#dt-pairs").innerHTML = pairs.map((pair, index) => {
     const selected = pair.business_id === route.slug && pair.draft_id === route.draft;
     return `<button type="button" class="dt-pair${selected ? " selected" : ""}" data-dt-slug="${esc(pair.business_id)}" data-dt-draft="${esc(pair.draft_id)}" aria-pressed="${selected}">
-      <span class="label">${String(index + 1).padStart(2, "0")} / ${esc(pair.business || pair.business_id)} draft ≈ ${esc(pair.with_business || "another client")}</span>
+      <span class="label">${esc(pair.business || pair.business_id)} draft versus ${esc(pair.with_business || "another client")}</span>
       <span class="dt-pair-risk">${n(pair.risk)}</span>
     </button>`;
   }).join("") || `<p class="empty-row">No blocked drafts in this run.</p>`;
@@ -680,7 +854,7 @@ function selectDoubleTakePair(slug, draft) {
 function dtNodeMarkup(node, index, suffix = "") {
   const sub = node.hook ? `<span class="dt-node-hook">${esc(node.hook)}</span>` : "";
   const flagged = node.data?.flag ? " dt-node-flagged" : "";
-  return `<button type="button" class="dt-node dt-node-${esc(node.type)}${flagged}" id="dt-node-${index}${suffix}" data-dt-node-index="${index}" aria-pressed="${state.doubleTake.node?.id === node.id}">
+  return `<button type="button" class="dt-node dt-node-${esc(node.type)}${flagged}" id="dt-node-${index}${suffix}" data-dt-node-index="${index}"${node.type === "technique" ? ` data-tech-name="${esc(node.name)}"` : ""} aria-pressed="${state.doubleTake.node?.id === node.id}">
     <span class="dt-node-type">${esc(node.label)}</span><b>${esc(node.name)}</b>${sub}
   </button>`;
 }
@@ -729,18 +903,22 @@ function renderDoubleTakeGraph() {
   $("#dt-graph-box").dataset.version = v2 ? "2" : "1";
   $("#dt-graph-box").innerHTML = `<div class="dt-canvas">
     <svg class="dt-edge-svg" aria-hidden="true"></svg>
-    <p class="label dt-label-top">WHAT THE DRAFT REUSES</p>
+    <p class="label dt-label-top">What the draft reuses</p>
     <div class="dt-slot dt-slot-draft">${dtNodeMarkup(nodes[draftIndex], draftIndex)}</div>
     <div class="dt-slot dt-slot-tech">${techIndices.map((index) => dtNodeMarkup(nodes[index], index)).join("") || `<span class="muted">No techniques listed</span>`}</div>
     <div class="dt-slot dt-slot-proof">${dtNodeMarkup(nodes[fingerprintIndex], fingerprintIndex)}</div>
     <div class="dt-slot dt-slot-target">${businessIndices.map((index) => dtNodeMarkup(nodes[index], index)).join("")}</div>
-    <p class="label dt-label-bottom">WHO WILL SEE IT</p>
+    <p class="label dt-label-bottom">Who will see it</p>
     <div class="dt-slot dt-slot-own">${dtNodeMarkup(nodes[ownIndex], ownIndex)}</div>
     <div class="dt-slot dt-slot-audiences">${audienceIndices.map((index) => dtNodeMarkup(nodes[index], index)).join("") || `<span class="muted">No shared audiences returned</span>`}</div>
   </div>`;
   renderDoubleTakeInspector();
   renderDoubleTakeHistory();
   requestAnimationFrame(drawDoubleTakeEdges);
+}
+
+function dtFact(label, value, hint, className = "") {
+  return `<div class="dt-fact${className ? ` ${className}` : ""}"><div class="dt-fact-copy"><span>${esc(label)}</span><small>${esc(hint)}</small></div><b class="mono">${esc(value)}</b></div>`;
 }
 
 function renderDoubleTakeInspector() {
@@ -751,25 +929,43 @@ function renderDoubleTakeInspector() {
   if (node.type === "technique") {
     const { technique, shared } = node.data;
     facts = [
-      ["Rarity", n(technique.rarity)],
-      ...(shared ? [["Used in references", `${shared.ref_count} / ${state.doubleTake.referenceCount ?? "—"}`], ["Business signature share", shared.signature_share == null ? "—" : n(shared.signature_share)]] : []),
-    ].map(([key, value]) => `<div class="dt-fact"><span>${esc(key)}</span><b class="mono">${esc(value)}</b></div>`).join("");
+      dtFact("Rarity", n(technique.rarity), "How strongly Double Take weighs this move as uncommon."),
+      ...(shared ? [
+        dtFact("Used in references", `${shared.ref_count} of ${state.doubleTake.referenceCount ?? "—"}`, "How many reference videos in the library show this move."),
+        dtFact("Business signature share", shared.signature_share == null ? "—" : n(shared.signature_share), `How much of ${detail.business.name}'s signature uses this move.`),
+      ] : []),
+    ].join("");
   } else if (node.type === "fingerprint") {
     const items = node.data.version === 2 ? [] : node.data.flag?.evidence || [];
-    facts = items.length ? `<ul class="dt-evidence">${items.map((item) => `<li><span>${esc(item.hook)}</span>${item.views == null ? "" : `<b class="mono">${esc(item.views)} views</b>`}</li>`).join("")}</ul>` : `<p class="muted">${node.data.version === 2 ? "No matching business post uses the revision's techniques." : "No evidence posts returned."}</p>`;
+    const total = Math.max(items.length, Number(node.data.flag?.evidence_total_posts) || 0);
+    facts = dtFact("Fingerprint evidence", `${items.length} of ${total} posts`, "Posts Double Take found that use these techniques.")
+      + (items.length ? `<ul class="dt-evidence">${items.map((item) => `<li><span>${esc(item.hook)}</span>${item.views == null ? "" : `<small>Views: <b class="mono">${esc(item.views)}</b></small>`}</li>`).join("")}</ul>`
+        : `<p class="muted">${node.data.version === 2 ? "No matching business post uses the revision's techniques." : "No evidence posts returned."}</p>`);
   } else if (node.type === "audience") {
     const audience = node.data.audience;
     const paths = audience.paths || [audience.path || []];
-    facts = `<div class="dt-fact"><span>Draft business · max</span><b class="mono">${n(audience.mine)}</b></div><div class="dt-fact"><span>${esc(node.data.flag.business.name)} · max</span><b class="mono">${n(audience.theirs)}</b></div><div class="dt-fact dt-audience-paths"><span>Paths</span><b class="mono">${paths.map((path) => esc(path.join(" → "))).join("<br>")}</b></div>`;
+    const weight = (value) => value == null ? "—" : Number(value).toFixed(2);
+    const names = detail.audience_names || {};
+    const pathLabel = (path) => path.map((id, index) => `${index ? "overlaps with " : ""}${names[id] || "Audience"}`).join(" → ");
+    facts = dtFact("Draft audience share", weight(audience.mine), `How much of ${detail.business.name}'s audience is this group: ${weight(audience.mine)} (0 = none, 1 = all).`)
+      + dtFact("Other business audience share", weight(audience.theirs), `How much of ${node.data.flag.business.name}'s audience is this group: ${weight(audience.theirs)} (0 = none, 1 = all).`)
+      + `<div class="dt-fact dt-audience-paths"><div class="dt-fact-copy"><span>Audience paths</span><small>How the two businesses' audience groups connect.</small></div><b>${paths.map((path) => `<span>${esc(pathLabel(path))}</span>`).join("")}</b></div>`;
   } else if (node.type === "business") {
     const { business, flag } = node.data;
-    facts = `<div class="dt-fact"><span>Status</span><b>${esc(business.status)}</b></div>${flag ? `<div class="dt-fact dt-risk-equation"><span>Risk math</span><b class="mono">similarity ${n(flag.similarity)} × overlap ${n(flag.overlap)} = risk ${n(flag.risk)} · limit ${n(flag.limit)}</b></div>` : ""}`;
+    facts = dtFact("Status", business.status, "This business's current place in the agency pipeline.", "dt-fact-no-mono");
+    if (flag) {
+      facts += `<div class="dt-fact dt-risk-equation"><div class="dt-fact-copy"><span>Risk math</span><small>How Double Take combines the draft match and audience connection.</small></div>
+        <div class="dt-risk-terms"><span><b>Similarity</b><b>${n(flag.similarity)}</b></span><span><b>Audience overlap</b><b>${n(flag.overlap)}</b></span>
+        <span><b>Risk</b><b>${n(flag.risk)}</b></span><span><b>Block limit</b><b>${n(flag.limit)}</b></span></div></div>`;
+    }
   } else {
     const draft = node.data;
-    facts = `<div class="dt-fact"><span>Version</span><b class="mono">${esc(draft.version)}</b></div><div class="dt-fact"><span>Status</span><b>${esc(draft.status)}</b></div><div class="dt-fact dt-draft-hook"><span>Hook</span><b>${esc(draft.hook)}</b></div>`;
+    facts = dtFact("Version", draft.version, "Which version of the draft is shown.")
+      + dtFact("Status", draft.status, "Whether Double Take blocked or cleared this version.", "dt-fact-no-mono")
+      + `<div class="dt-fact dt-draft-hook"><div class="dt-fact-copy"><span>Hook</span><small>The opening line that frames this post.</small></div><b>${esc(draft.hook)}</b></div>`;
   }
   $("#dt-inspector").innerHTML = `<p class="label">${esc(node.label)}</p><h2>${esc(node.name)}</h2><div class="dt-facts">${facts}</div>
-    <section class="dt-query"><p class="label">FOUND BY Q2 · double_take</p><pre>${esc(detail.query?.cypher || "")}</pre></section>`;
+    <section class="dt-query"><p class="label">Found by the Double Take query</p><pre>${esc(detail.query?.cypher || "")}</pre></section>`;
 }
 
 function formatDecisionSentence(decision, business) {
@@ -790,10 +986,9 @@ function renderDoubleTakeHistory() {
   const detail = state.doubleTake.detail;
   if (!detail) return;
   const decisions = (detail.next || []).map((item) => {
-    const at = item.at ? new Date(item.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }) : "";
-    return `<li class="dt-history-row"><span class="dt-history-icon">${agentIcon(item.by || "")}</span><span><span class="label">${esc(item.by || "Agent")}</span><span class="dt-history-sentence">${esc(formatDecisionSentence(item, detail.business))}</span>${item.rationale ? `<small>${esc(displayStudioCopy(item.rationale))}</small>` : ""}</span><time class="mono">${esc(at)}</time></li>`;
+    return `<li class="dt-history-row"><span class="dt-history-icon">${agentIcon(item.by || "")}</span><span><span class="label">${esc(item.by || "Agent")}</span><span class="dt-history-sentence">${esc(formatDecisionSentence(item, detail.business))}</span>${item.rationale ? `<small>${esc(displayStudioCopy(item.rationale))}</small>` : ""}</span><time datetime="${esc(item.at || "")}" title="${esc(fullDateTime(item.at))}">${runDayLabel(item.day)}</time></li>`;
   }).join("");
-  const later = (detail.later_blocks || []).map((item) => `<li><button type="button" class="dt-later-row" data-dt-slug="${esc(item.client_id)}" data-dt-draft="${esc(item.draft_id)}"><span class="label">LATER</span><span>Later: ${esc(item.client)}'s draft was blocked against ${esc(detail.business.name)}${item.shared?.length ? ` (shared ${esc(item.shared.join(", "))}` : ""}${item.shared?.length && typeof item.risk === "number" ? ", " : ""}${typeof item.risk === "number" ? `risk ${n(item.risk)}` : ""}${item.shared?.length ? ")" : ""}.</span><b class="mono">${typeof item.risk === "number" ? n(item.risk) : ""}</b></button></li>`).join("");
+  const later = (detail.later_blocks || []).map((item) => `<li><button type="button" class="dt-later-row" data-dt-slug="${esc(item.client_id)}" data-dt-draft="${esc(item.draft_id)}"><span class="label">Later</span><span>Later: ${esc(item.client)}'s draft was blocked against ${esc(detail.business.name)}${item.shared?.length ? ` (shared ${esc(item.shared.join(", "))}` : ""}${item.shared?.length && typeof item.risk === "number" ? ", " : ""}${typeof item.risk === "number" ? `risk ${n(item.risk)}` : ""}${item.shared?.length ? ")" : ""}.</span><b class="mono">${typeof item.risk === "number" ? n(item.risk) : ""}</b></button></li>`).join("");
   $("#dt-history").innerHTML = `<h2>What happened next</h2><ol class="dt-history-list">${decisions || `<li class="muted">No later decisions returned.</li>`}${later}</ol>`;
 }
 
@@ -825,7 +1020,7 @@ function drawDoubleTakeEdges() {
   const label = (text, x, y, anchor = "middle") => {
     paths.push(`<text class="dt-edge-label" text-anchor="${anchor}" x="${x}" y="${y}">${esc(text)}</text>`);
   };
-  const fanOut = (source, destinations, caption = "") => {
+  const fanOut = (source, destinations, caption = "", captionOffset = 0) => {
     const sourceRect = rectOf(source);
     const destinationRects = destinations.map(rectOf).filter(Boolean);
     if (!sourceRect || !destinationRects.length) return;
@@ -835,7 +1030,10 @@ function drawDoubleTakeEdges() {
     if (Math.max(...ys) > Math.min(...ys)) d += ` M${busX},${Math.min(...ys)} V${Math.max(...ys)}`;
     destinationRects.forEach((rect) => { d += ` M${busX},${rect.centerY} H${rect.left}`; });
     path(d);
-    if (caption) label(caption, busX, Math.min(...destinationRects.map((rect) => rect.top)) - 4);
+    if (caption) {
+      const destinationY = destinationRects.reduce((sum, rect) => sum + rect.centerY, 0) / destinationRects.length;
+      label(caption, busX, (sourceRect.centerY + destinationY) / 2);
+    }
   };
   const fanIn = (sources, destination, caption = "", captionPosition = "top") => {
     const sourceRects = sources.map(rectOf).filter(Boolean);
@@ -847,16 +1045,11 @@ function drawDoubleTakeEdges() {
     sourceRects.forEach((rect) => { d += ` M${rect.right},${rect.centerY} H${busX}`; });
     d += ` M${busX},${destinationRect.centerY} H${destinationRect.left}`;
     path(d);
-    if (caption) {
-      const captionY = captionPosition === "bottom"
-        ? Math.max(...sourceRects.map((rect) => rect.bottom)) + 16
-        : Math.min(...sourceRects.map((rect) => rect.top)) - 4;
-      label(caption, busX, captionY);
-    }
+    if (caption) label(caption, busX, (destinationRect.centerY + Math.min(...sourceRects.map((rect) => rect.centerY))) / 2);
   };
   if (draft && techniques.length && fingerprint) {
-    fanOut(draft, techniques, "USES");
-    fanIn(techniques, fingerprint, "EVIDENCE");
+    fanOut(draft, techniques, "Uses");
+    fanIn(techniques, fingerprint, "Evidence");
   }
   if (fingerprint && targets.length && $("#dt-graph-box").dataset.version === "1") fanOut(fingerprint, targets);
   if (draft && own) {
@@ -864,47 +1057,58 @@ function drawDoubleTakeEdges() {
     const destination = rectOf(own);
     if (source && destination) {
       path(`M${source.centerX},${source.bottom} V${destination.top}`);
-      label("OF", source.centerX - 8, (source.bottom + destination.top) / 2, "end");
+      label("Of", source.centerX + 12, (source.bottom + destination.top) / 2, "start");
     }
   }
   if (own && audiences.length && targets.length) {
-    fanOut(own, audiences, "TARGETS");
-    fanIn(audiences, targets[0], "OVERLAP", "bottom");
+    fanOut(own, audiences, "Targets");
+    fanIn(audiences, targets[0], "Overlap", "bottom");
   }
   svg.setAttribute("viewBox", `0 0 ${canvas.scrollWidth} ${canvas.scrollHeight}`);
   svg.innerHTML = paths.join("");
 }
 
 const dayDate = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+const runDayLabel = (day) => Number(day || 0) === 0 ? "First run" : `Day ${Number(day)}`;
+const fullDateTime = (iso) => {
+  const date = new Date(iso || "");
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleString([], { dateStyle: "full", timeStyle: "long" });
+};
+const goalDueLabel = (value) => {
+  if (!value) return "not set";
+  const date = new Date(`${value}T12:00:00`);
+  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+};
 
 async function renderDays() {
   const a = await api("/api/activity");
   $("#dayloop").hidden = false;
   $("#next-day").hidden = !a.can_advance;
-  $("#day-label").textContent = a.day ? `Day ${a.day} · ${dayDate(a.date)}` : "Agent run";
+  $("#day-label").textContent = `${runDayLabel(a.day)} · ${dayDate(a.date)}`;
   const today = a.days.find((d) => d.day === a.day);
-  const did = (today?.entries || []).filter((e) => e.agent !== "Yaz").length;
-  $("#day-summary").textContent = a.day ? `Agents did ${plural(did, "thing", "things")} today on their own.` : "Press Next day and the agents start working.";
+  const did = (today?.entries || []).filter((e) => e.agent !== "Board").length;
+  const runActivityCount = (a.days || []).reduce((count, day) => count + day.entries.length, 0);
+  $("#day-summary").textContent = !a.can_advance
+    ? `Read-only copy: this is what the agents did in this run. ${plural(runActivityCount, "action", "actions")} recorded.`
+    : a.day ? `Agents did ${plural(did, "thing", "things")} today on their own.` : "Press Next day and the agents start working.";
   const left = a.feed_left.length;
   $("#day-feed").textContent = left ? `${left} new ${left === 1 ? "lead" : "leads"} still to arrive.` : "";
   const byId = Object.fromEntries((state.overview?.businesses || []).map((b) => [b.id, b]));
-  const days = a.days.filter((d) => d.day > 0);
-  $("#days").innerHTML = days.map((d) => `<li class="day"><h3 class="day-h">Day ${d.day} <span class="muted">· ${esc(dayDate(d.date))}</span><span class="day-count">${d.entries.length} ${d.entries.length === 1 ? "action" : "actions"}</span></h3>
+  const days = a.days;
+  $("#days").innerHTML = days.map((d) => `<li class="day"><h3 class="day-h">${runDayLabel(d.day)} <span class="muted">· ${esc(dayDate(d.date))}</span><span class="day-count">${d.entries.length} ${d.entries.length === 1 ? "action" : "actions"}</span></h3>
     <ul class="day-entries">${d.entries.slice().reverse().map((e) => {
-      const date = new Date(e.at || 0);
-      const time = Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
       const blocked = /blocked/i.test(e.text || "");
-      const board = e.agent === "Yaz";
-      const kind = blocked ? "DOUBLE TAKE" : (e.kind || "AGENT UPDATE").replace(/_/g, " ").toUpperCase();
+      const board = e.agent === "Board";
+      const kind = blocked ? "Double Take" : "Agent update";
       return `<li class="feed-entry${blocked ? " is-blocked" : ""}${board ? " is-board" : ""}">
-        <time class="feed-time mono">${esc(time)}</time><span class="feed-icon" title="${esc(e.agent)}" aria-label="${esc(e.agent)}">${agentIcon(e.agent)}</span>
-        <div class="feed-copy"><span class="label${blocked ? " blocked-kind" : ""}">${esc(e.agent)} · ${esc(kind)}</span>
+        <span class="feed-icon" title="${esc(e.agent)}" aria-label="${esc(e.agent)}">${agentIcon(e.agent)}</span>
+        <div class="feed-copy"><time class="feed-time" datetime="${esc(e.at || "")}" title="${esc(fullDateTime(e.at))}"></time><span class="label${blocked ? " blocked-kind" : ""}">${esc(e.agent)} · ${esc(kind)}</span>
           ${e.business_id ? `<span class="activity-business">${bizName(byId[e.business_id], { link: false })}</span>` : ""}
           <p>${esc(displayStudioCopy(e.text))}</p>${e.rationale ? `<small>${esc(displayStudioCopy(e.rationale))}</small>` : ""}
         </div>
       </li>`;
     }).join("")}</ul></li>`).join("")
-    || `<li class="day empty muted">Day 0. Press Next day and the agents start working.</li>`;
+    || `<li class="day empty muted">No agent activity yet.</li>`;
 }
 
 const LEAD_PRESETS = [
@@ -966,7 +1170,11 @@ function leadReadoutMarkup(result) {
   const conflicts = (result.clients || []).map((client) => client.conflict).filter((value) => typeof value === "number");
   const max = Math.max(1, ...conflicts, thresholds.borderline || 0, thresholds.differentiate || 0);
   const marker = (value) => typeof value === "number" ? `left:${(value / max) * 100}%` : "";
-  return `<div class="lead-verdict">${verdictStatus(verdict, verdictLabel)}<h3>${esc(verdictLabel)}</h3></div>
+  const tickLegend = [
+    typeof thresholds.borderline === "number" ? `<span><i class="client-bar-swatch borderline"></i>Board-call line <b class="mono">${n(thresholds.borderline)}</b></span>` : "",
+    typeof thresholds.differentiate === "number" ? `<span><i class="client-bar-swatch differentiate"></i>Distinct-angle line <b class="mono">${n(thresholds.differentiate)}</b></span>` : "",
+  ].filter(Boolean).join("");
+  return `<div class="lead-verdict"><h3><span class="status s-${statusKind(verdict)}" aria-hidden="true"><i></i></span>${esc(verdictLabel)}</h3></div>
     <p class="lead-reason">${esc(displayCopy(result.reason || ""))}</p>
     <div class="client-bars">${(result.clients || []).map((client) => `<div class="client-bar-row">
       <span>${esc(client.client)}</span><div class="client-bar" role="img" aria-label="${esc(client.client)} conflict ${n(client.conflict)}">
@@ -974,7 +1182,7 @@ function leadReadoutMarkup(result) {
         ${typeof thresholds.borderline === "number" ? `<i class="client-bar-marker borderline" style="${marker(thresholds.borderline)}" title="Board-call line ${n(thresholds.borderline)}"></i>` : ""}
         ${typeof thresholds.differentiate === "number" ? `<i class="client-bar-marker differentiate" style="${marker(thresholds.differentiate)}" title="Differentiate line ${n(thresholds.differentiate)}"></i>` : ""}
       </div><b class="mono">${n(client.conflict)}</b></div>`).join("") || `<p class="muted">No client conflict returned.</p>`}
-      <p class="client-bar-legend mono">${typeof thresholds.borderline === "number" ? `Board call ${n(thresholds.borderline)}` : ""}${typeof thresholds.differentiate === "number" ? ` · Distinct angle ${n(thresholds.differentiate)}` : ""}</p>
+      <div class="client-bar-legend"><p>Each bar number is the conflict score with that client, using Scout's screening calculation.</p><div class="client-bar-legend-lines">${tickLegend}</div></div>
     </div>`;
 }
 
@@ -1066,18 +1274,18 @@ async function feed() {
     const name = b?.name || b?.id || "this business";
     let m;
     if ((m = text.match(/^Screened ([\w-]+): (.+)$/i))) {
-      const verdict = ({ borderline: "board call", pursue_differentiated: "pursue with a distinct angle", decline: "declined", pursue: "cleared to pursue" })[m[2]] || m[2];
+      const verdict = ({ borderline: "board call", pursue_differentiated: "pursue with a distinct angle", pursue: "cleared to pursue" })[m[2]] || m[2];
       return `Scout screened ${name}: ${verdict}.`;
     }
     if ((m = text.match(/^Draft v\d+: (.+)$/))) return `Producer wrote '${cleanHook(m[1])}'.`;
     if ((m = text.match(/^Double Take: blocked, resembles (.+)$/i))) return `Double Take blocked a draft: it looked like ${m[1]}'s work.`;
     if (/^Double Take: cleared$/i.test(text)) return "Double Take cleared the draft.";
-    if (/^Board approve: Pitch$/i.test(text)) return "Yaz approved the pitch.";
-    if (/^Status: signed$/i.test(text) || new RegExp(`\\b${b?.id || "____"} is now signed\\b`, "i").test(text)) return `Yaz signed ${name}.`;
+    if (/^Board approve: Pitch$/i.test(text)) return "The board approved the pitch.";
+    if (/^Status: signed$/i.test(text) || new RegExp(`\\b${b?.id || "____"} is now signed\\b`, "i").test(text)) return `The board signed ${name}.`;
     if (/^Status: pitched$/i.test(text) || new RegExp(`\\b${b?.id || "____"} is now pitched\\b`, "i").test(text)) return `Account Manager pitched ${name}.`;
     if (/^Status: pursued$/i.test(text) || new RegExp(`\\b${b?.id || "____"} is now pursued\\b`, "i").test(text)) return `Scout pursued ${name}.`;
     if (/^Pitch angle:/i.test(text)) return `Account Manager prepared a pitch for ${name}.`;
-    if (/^Retired goal$/i.test(text)) return "Yaz retired a goal.";
+    if (/^Retired goal$/i.test(text)) return "The board retired a goal.";
     if (/^Goal \(hypothesized\):/i.test(text)) return "Researcher recorded a goal hypothesis.";
     if (/^Recorded (channel|competitor|audience) finding$/i.test(text)) return `Researcher recorded a ${text.match(/^Recorded (\w+)/i)[1]} finding.`;
     if (/^Audited \d+ posts$/i.test(text)) return `Auditor ${text.toLowerCase()}.`;
@@ -1113,23 +1321,20 @@ async function feed() {
       } else collapsed.push({ ...entry, count: 1 });
     });
     const title = group.biz ? bizName(group.biz) : `<h3>Across the agency</h3>`;
-    let previousDay = "";
+    let previousDay = null;
     const list = collapsed.map((entry, i) => {
       const record = entry.records[0];
-      const date = new Date(record.at || 0);
-      const day = Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
-      const dayLabel = Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
-      const newDay = day && day !== previousDay;
-      previousDay = day || previousDay;
-      const time = Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+      const day = Number(record.day || 0);
+      const newDay = day !== previousDay;
+      previousDay = day;
       const blocked = entry.records.some((item) => /blocked/i.test(item.text || ""));
-      const board = ["yaz", "board"].includes(String(entry.by).toLowerCase());
+      const board = String(entry.by).toLowerCase() === "board";
       const kind = blocked ? "Double Take" : record.affects?.[0] || "Update";
       const rationale = [...new Set(entry.records.map((item) => item.rationale).filter(Boolean))][0];
-      return `${newDay ? `<li class="feed-day-head${i >= 5 ? " feed-extra" : ""}"${i >= 5 ? " hidden" : ""}><span class="label">${esc(dayLabel)}</span></li>` : ""}
+      return `${newDay ? `<li class="feed-day-head${i >= 5 ? " feed-extra" : ""}"${i >= 5 ? " hidden" : ""}><span class="label">${runDayLabel(day)}</span></li>` : ""}
         <li class="feed-entry${i >= 5 ? " feed-extra" : ""}${blocked ? " is-blocked" : ""}${board ? " is-board" : ""}"${i >= 5 ? " hidden" : ""}>
-          <time class="feed-time mono">${esc(time)}</time><span class="feed-icon">${agentIcon(entry.by || record.by || "")}</span>
-          <div class="feed-copy"><span class="label${blocked ? " blocked-kind" : ""}">${esc(entry.by || record.by || "Agent")} · ${esc(kind)}</span>
+          <span class="feed-icon">${agentIcon(entry.by || record.by || "")}</span>
+          <div class="feed-copy"><time class="feed-time" datetime="${esc(record.at || "")}" title="${esc(fullDateTime(record.at))}"></time><span class="label${blocked ? " blocked-kind" : ""}">${esc(entry.by || record.by || "Agent")} · ${esc(kind)}</span>
             <p>${esc(entry.sentence)}${entry.count > 1 ? ` <span class="feed-count">×${entry.count}</span>` : ""}</p>
             ${rationale ? `<small>${esc(displayStudioCopy(rationale))}</small>` : ""}
           </div>
@@ -1178,7 +1383,11 @@ async function loadAnalysisFromLocation() {
 
 // ---------------------------------------------------------------- analysis: a visual tour of the graph
 
-const pretty = (id) => String(id || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+const pretty = (id) => ({
+  scout: "Scout", researcher: "Researcher", producer: "Producer", standards: "Standards",
+  style_director: "Style director", strategist: "Strategist", account_manager: "Account manager",
+  board: "Board", auditor: "Auditor",
+}[String(id || "")] || String(id || "").replace(/_/g, " "));
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 const SVGNS = "http://www.w3.org/2000/svg";
 
@@ -1288,7 +1497,7 @@ function renderScreening(analysis, overview) {
   }
   $("#lead-picker").innerHTML = [...leads].sort((a, z) => (z.max_conflict || 0) - (a.max_conflict || 0))
     .map((row) => `<button type="button" class="lead-chip" data-lead="${esc(row.id)}" aria-pressed="${row.id === state.netLead}"><span class="lead-chip-name">${bizName(bizById(row.id) || { id: row.id, name: row.name }, { link: false })}</span>${verdictStatus(row.verdict)}</button>`).join("");
-  $("#screening-legend").textContent = `Conflict is the sum of path weights to one client. At ${n(t.borderline)} or more it is a board call; at ${n(t.differentiate)} or more Scout only pitches with a distinct angle. Same category in the same neighborhood is an automatic decline.`;
+  $("#screening-legend").textContent = `Conflict is the sum of path weights to one client. At ${n(t.borderline)} or more it is a board call; at ${n(t.differentiate)} or more Scout recommends a distinct content angle.`;
   $("#screening-table").innerHTML = `<caption class="sr-only">Conflict between each lead and each signed client</caption>
     <thead><tr><th scope="col">Lead</th>${clients.map((c) => `<th scope="col">${esc(c.name)}</th>`).join("")}<th scope="col">Verdict</th></tr></thead>
     <tbody>${leads.map((row) => {
@@ -1326,7 +1535,7 @@ function renderNet() {
   (row?.clients || []).forEach((c) => {
     clientScore[c.client_id] = c.conflict;
     (c.paths || []).forEach((p) => {
-      const parts = p.via.split(" -> ").map((x) => audName[x]);
+      const parts = p.via.split(/(?: -> | → overlaps with )/).map((x) => audName[x] || x);
       if (parts.some((x) => !x)) return;
       const [first, last] = [parts[0], parts[parts.length - 1]];
       add(`t:${row.id}:${first}`, p.conflict); onA.add(first); onA.add(last);
@@ -1424,7 +1633,7 @@ function renderDoubleTake(analysis) {
       <div class="dt-graph">
         <svg class="dt-svg" aria-hidden="true"></svg>
         <div class="dt-col"><div class="dt-node draft"><span class="k">Blocked draft</span><b>${bizName(bizByName(g.client), { link: false })}</b><span class="hook">“${esc(g.draft_hook || g.draft)}”</span></div></div>
-        <div class="dt-col dt-techs">${techs.map((x) => `<span class="dt-tech" data-tech="${esc(x)}">${esc(x)}</span>`).join("")}</div>
+        <div class="dt-col dt-techs">${techs.map((x) => `<span class="dt-tech" data-tech="${esc(x)}">${techChip(x)}</span>`).join("")}</div>
         <div class="dt-col">${g.flags.map((f) => `<div class="dt-node other" data-shared="${esc((f.shared || []).join("|"))}"><span class="k">Looks like</span><b>${bizName(bizByName(f.with_business), { link: false })}</b><span class="hook">${plural((f.evidence || []).length, "piece", "pieces")} of its work already use${(f.evidence || []).length === 1 ? "s" : ""} these</span></div>`).join("")}</div>
       </div>
       <ul class="dt-risk">${g.flags.map((f) => `<li>
@@ -1474,30 +1683,76 @@ function renderTerritory(analysis, overview) {
   $("#territory-all").hidden = cols.length <= defaultCount;
   $("#territory-all").textContent = state.territoryAll ? `Show the top ${defaultCount}` : `Show all ${cols.length} techniques`;
   $("#signatures-table").innerHTML = `<caption class="sr-only">Signature techniques by business</caption>
-    <thead><tr><td></td>${visibleCols.map((c) => `<th scope="col" class="col${hotCols.has(c.name) ? " contested" : ""}" title="rarity ${n(c.rarity)}, claimed by ${c.by.size}"><span>${esc(c.name)}</span></th>`).join("")}</tr></thead>
+    <thead><tr><td></td>${visibleCols.map((c) => `<th scope="col" class="col${hotCols.has(c.name) ? " contested" : ""}" title="rarity ${n(c.rarity)}, claimed by ${c.by.size}">${techChip(c.name)}</th>`).join("")}</tr></thead>
     <tbody>${visibleRows.map(([id, name]) => `<tr class="${status[id] === "signed" ? "signed" : ""}"><th scope="row">${esc(name)}<small>${label[status[id]] || ""}</small></th>${visibleCols.map((c) => {
       const v = share[`${id}|${c.name}`];
       const d = v ? Math.round(8 + v * 16) : 0;
-      return `<td class="${hotCols.has(c.name) ? "contested" : ""}">${v ? `<span class="dot${hotCells.has(`${id}|${c.name}`) ? " hot" : ""}" style="width:${d}px;height:${d}px" title="${esc(name)}: ${esc(c.name)} in ${Math.round(v * 100)}% of its work"></span><span class="sr-only">${Math.round(v * 100)}%</span>` : ""}</td>`;
+      return `<td class="${hotCols.has(c.name) ? "contested" : ""}">${v ? `<button type="button" class="dot-button" data-tech-name="${esc(c.name)}" aria-label="${esc(name)} uses ${esc(c.name)} in ${Math.round(v * 100)}% of its work"><span class="dot${hotCells.has(`${id}|${c.name}`) ? " hot" : ""}" style="width:${d}px;height:${d}px"></span></button><span class="sr-only">${Math.round(v * 100)}%</span>` : ""}</td>`;
     }).join("")}</tr>`).join("") || `<tr><td class="muted" colspan="${visibleCols.length + 1}">No signatures in these techniques.</td></tr>`}</tbody>`;
 }
 
 // 5. agents and the named queries they are allowed to call
 function renderAccess(analysis) {
-  const qs = analysis.queries;
+  const byQuery = new Map();
+  analysis.queries.forEach((q) => {
+    let entry = byQuery.get(q.query);
+    if (!entry) {
+      entry = { ...q, tools: [], cypher: [] };
+      byQuery.set(q.query, entry);
+    }
+    if (!entry.tools.includes(q.tool)) entry.tools.push(q.tool);
+    q.cypher.forEach((c) => {
+      if (!entry.cypher.some((known) => known.constant === c.constant)) entry.cypher.push(c);
+    });
+  });
+  const qs = [...byQuery.values()];
   const agents = Object.entries(analysis.agents);
+  const agentJobs = {
+    scout: "Screens new leads against signed clients.",
+    researcher: "Finds evidence and proposes measurable goals.",
+    producer: "Turns research into spec posts and revisions.",
+    standards: "Checks each draft for risky overlap before it can ship.",
+    style_director: "Finds open creative territory to guide revisions.",
+    strategist: "Shapes measurable campaign goals from the research.",
+    account_manager: "Prepares pitches and monthly client work.",
+    board: "Board = you. Approves, vetoes, and retires goals.",
+    auditor: "Reviews existing posts for strengths and opportunities.",
+  };
+  const queryNames = {
+    Q0: "Signature check", Q1: "Same-area client check", Q2: "Double Take check",
+    Q3: "Open territory", Q4: "Post history", Q5: "Stale drafts", P1: "Project techniques",
+  };
+  const queryDescriptions = {
+    P1: "Records the techniques used by each draft.",
+    Q0: "Finds the techniques that define each business’s usual style.",
+    Q1: "Shows how a new lead’s audience overlaps with signed clients.",
+    Q2: "Checks whether a draft shares creative moves with businesses reaching the same audience.",
+    Q3: "Finds creative moves not already claimed by businesses reaching the same audience.",
+    Q4: "Explains what shaped a draft, including its goal, findings, sources, and decisions.",
+    Q5: "Finds drafts that still serve a goal the Board retired.",
+  };
+  const toolNames = {
+    check_draft: "Check and flag a draft (uses Q2)",
+  };
+  let context = $("#analysis-context");
+  if (!context) {
+    context = document.createElement("div");
+    context.id = "analysis-context";
+    $("#analysis-agents").parentElement.before(context);
+  }
+  context.innerHTML = `<div class="agent-job-list">${agents.map(([agent]) =>
+    `<article><div class="agent-job-heading">${agentIcon(agent)}<b>${esc(pretty(agent))}</b></div><p>${esc(agentJobs[agent] || "Handles its assigned work for the studio.")}</p></article>`).join("")}</div>
+    <div class="query-glossary"><h3>Query glossary</h3>${qs.map((q) => `<article class="query-glossary-row">
+      <div class="query-glossary-name"><span class="qtag">${esc(q.query)}</span><b>${esc(queryNames[q.query] || q.tool)}</b></div>
+      <div class="query-glossary-detail"><p>${esc(queryDescriptions[q.query] || queryNames[q.query] || q.tool)}</p>
+        <details><summary>Show the query</summary><ul>${q.cypher.map((c) => `<li>${esc(c.constant)}</li>`).join("")}</ul></details>
+      </div></article>`).join("")}</div>`;
   $("#analysis-agents").innerHTML = `<caption class="sr-only">Which agent can call which named query</caption>
-    <thead><tr><td></td>${qs.map((q) => `<th scope="col"><span class="qtag">${esc(q.query)}</span>${esc(q.tool)}</th>`).join("")}<th scope="col">Other tools</th></tr></thead>
+    <thead><tr><td></td>${qs.map((q) => `<th scope="col"><span class="access-heading"><span>${esc(queryNames[q.query] || q.tool)}</span><small>${esc(q.query)}</small></span></th>`).join("")}<th scope="col">Other tools</th></tr></thead>
     <tbody>${agents.map(([agent, tools]) => {
-      const named = qs.filter((q) => tools.includes(q.tool)).length;
-      return `<tr><th scope="row"><span class="agent-name">${agentIcon(agent)}${esc(pretty(agent))}</span></th>${qs.map((q) => `<td>${tools.includes(q.tool) ? `<span class="yes" title="${esc(pretty(agent))} can call ${esc(q.tool)}"></span><span class="sr-only">yes</span>` : ""}</td>`).join("")}<td class="other">${tools.length - named}</td></tr>`;
+      const other = tools.filter((tool) => !qs.some((q) => q.tool === tool));
+      return `<tr><th scope="row"><span class="agent-name">${agentIcon(agent)}${esc(pretty(agent))}</span></th>${qs.map((q) => `<td>${q.tools.some((tool) => tools.includes(tool)) ? `<span class="yes" title="${esc(pretty(agent))} can call ${esc(queryNames[q.query] || q.tool)}"></span><span class="sr-only">yes</span>` : ""}</td>`).join("")}<td class="other">${other.map((tool) => `<span>${esc(toolNames[tool] || pretty(tool))}</span>`).join("") || `<span class="muted">—</span>`}</td></tr>`;
     }).join("")}</tbody>`;
-  $("#queries").innerHTML = qs.map((q) => `<article class="query-card">
-    <h3><span class="qtag">${esc(q.query)}</span>${esc(q.tool)}</h3>
-    <p>${esc(q.description.replace(/^[PQ]\d\.\s*/, ""))}</p>
-    <p class="muted">Called by ${q.agents.map((a) => esc(pretty(a))).join(", ") || "no agent"}</p>
-    ${q.cypher.map((c) => `<details><summary>${esc(c.constant)}</summary><pre>${esc(c.text.trim())}</pre></details>`).join("")}
-  </article>`).join("");
 }
 
 function redrawAnalysis() {
@@ -1561,7 +1816,7 @@ function renderIntroProof(analysis, overview) {
         <div class="vs-side"><span class="vs-names">${lookalikes.map((name, i) => `${i ? " and " : ""}${bizName(bizByName(name), { link: false })}`).join("")}</span><span>already ${lookalikes.length === 1 ? "does" : "do"} this</span></div>
       </div>
       <q class="vs-hook">${esc(top.draft_hook || "Draft without a hook")}</q>
-      <p class="vs-chips" aria-label="Shared techniques">${top.techs.map((tech) => `<span>${esc(tech)}</span>`).join("")}</p>
+      <p class="vs-chips" aria-label="Shared techniques">${top.techs.map((tech) => techChip(tech)).join("")}</p>
       <div class="vs-meter"><b>risk ${n(risk)}</b>
         <span class="vs-track" role="img" aria-label="Risk ${n(risk)}; blocked at ${n(cutoff)}"><span class="vs-fill" style="width:${pct(risk)}%"></span><span class="vs-tick" style="left:${pct(cutoff)}%"></span></span>
         <span>limit ${n(cutoff)}</span></div>`;
@@ -1591,7 +1846,7 @@ function renderIntroProof(analysis, overview) {
 // Each chapter leads with what this run found; the static heading stays as the fallback.
 function renderFindings(analysis) {
   const rows = (analysis.screening || []).map((r) => ({ r, top: [...(r.clients || [])].sort((x, z) => z.conflict - x.conflict)[0] }))
-    .filter((x) => x.top && x.r.verdict !== "decline").sort((x, z) => z.top.conflict - x.top.conflict);
+    .filter((x) => x.top).sort((x, z) => z.top.conflict - x.top.conflict);
   if (rows[0]) $("#screening-heading").innerHTML = `<em>${esc(rows[0].r.name)}</em> competes with ${esc(rows[0].top.client)} for the same people`;
   const list = blockedDrafts(analysis);
   $("#double-take-heading").innerHTML = list.length
@@ -1640,7 +1895,7 @@ const TOUR = [
     body: (a) => {
       const t = a.thresholds || {};
       const rows = (a.screening || []).map((r) => ({ r, top: [...(r.clients || [])].sort((x, z) => z.conflict - x.conflict)[0] }))
-        .filter((x) => x.top && x.r.verdict !== "decline").sort((x, z) => z.top.conflict - x.top.conflict);
+        .filter((x) => x.top).sort((x, z) => z.top.conflict - x.top.conflict);
       const ex = rows[0];
       return `Each button is a new lead, scored against each client the agency already has. Higher numbers mean they compete for the same people.${ex ? ` ${ex.r.name} scores ${n(ex.top.conflict)} against ${ex.top.client}, past the ${n(t.differentiate)} cutoff, so it can only be pitched with a distinct angle.` : ""}`;
     },
@@ -1784,14 +2039,21 @@ $("#dt-version-toggle").addEventListener("click", (e) => {
   state.doubleTake.node = { type: "business", id: "business-0" };
   renderDoubleTakeGraph();
 });
-$("#dt-graph-box").addEventListener("click", (e) => {
-  const button = e.target.closest("[data-dt-node-index]");
+function inspectDoubleTakeNode(button) {
   if (!button) return;
   const index = Number(button.dataset.dtNodeIndex);
   state.doubleTake.node = state.doubleTake.nodes?.[index];
   $("#dt-graph-box").querySelectorAll(".dt-node").forEach((node) => node.setAttribute("aria-pressed", String(Number(node.dataset.dtNodeIndex) === index)));
   renderDoubleTakeInspector();
+}
+$("#dt-graph-box").addEventListener("click", (e) => {
+  inspectDoubleTakeNode(e.target.closest("[data-dt-node-index]"));
 });
+$("#dt-graph-box").addEventListener("mouseover", (e) => {
+  const button = e.target.closest("[data-dt-node-index]");
+  if (button && !button.contains(e.relatedTarget)) inspectDoubleTakeNode(button);
+});
+$("#dt-graph-box").addEventListener("focusin", (e) => inspectDoubleTakeNode(e.target.closest("[data-dt-node-index]")));
 window.addEventListener("resize", () => requestAnimationFrame(drawDoubleTakeEdges));
 
 const pulseTimers = new WeakMap();
@@ -1819,6 +2081,21 @@ function revealStage(name) {
   });
 }
 
+async function openBusinessPage(slug, section = "overview") {
+  state.selected = slug;
+  history.pushState({}, "", `/#business/${encodeURIComponent(slug)}/${encodeURIComponent(section)}`);
+  syncStudioTab();
+  await openBusiness(slug, { quiet: true });
+  scrollBusinessSection(section);
+}
+
+function scrollBusinessSection(section = "overview") {
+  requestAnimationFrame(() => {
+    const target = document.getElementById(`business-section-${section}`) || $("#business-page");
+    target?.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "start" });
+  });
+}
+
 async function select(slug) {
   const changed = slug !== state.selected;
   state.selected = slug;
@@ -1829,6 +2106,8 @@ async function select(slug) {
 
 async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   const panel = $("#drawer");
+  const page = $("#business-page");
+  const fullPage = studioTabFromHash() === "business";
   if (panel.dataset.slug !== slug) state.dossierTab = "overview";
   let d;
   try { d = await api(`/api/business/${slug}`); }
@@ -1839,17 +2118,25 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   const b = d.business;
   const ro = state.overview?.readonly;
   const hood = hoodOf(b);
-  let h = `<div class="dossier-meta"><span class="dossier-cat">${categoryIcon(b.category)}${esc(b.category)}${hood ? ` · ${esc(hood)}` : ""}</span>
-      <button type="button" class="btn small dossier-close" data-dossier-close>Close</button></div>
+  let h = fullPage
+    ? `<header class="business-page-header"><a class="back-link" href="/#pipeline">← Pipeline</a><div class="business-head-row"><div>
+        <div class="business-name-row">${avatar(b, "lg")}<h1>${esc(b.name)}</h1></div>
+        <p class="business-meta-line"><span>${esc(b.category)}</span>${hood ? ` · <span>${esc(hood)}</span>` : ""} · <span class="business-status ${statusKind(b.status)}"><i aria-hidden="true"></i>${esc(b.status)}</span>${b.voice ? ` · <span>Voice: ${esc(b.voice)}</span>` : ""}</p>
+      </div>${b.status === "lead" && d.screening?.verdict === "borderline" && !ro ? `<div class="business-primary-actions"><button type="button" class="btn primary" data-lead-decision="pursue" data-slug="${esc(slug)}">Pursue lead</button><button type="button" class="btn" data-lead-decision="pass" data-slug="${esc(slug)}">Pass</button></div>` : ""}</div></header>`
+    : `<div class="dossier-meta"><span class="dossier-cat">${categoryIcon(b.category)}${esc(b.category)}${hood ? ` · ${esc(hood)}` : ""}</span>
+      <a class="text-button" href="/#business/${encodeURIComponent(slug)}/overview">Open full page</a><button type="button" class="btn small dossier-close" data-dossier-close>Close</button></div>
     <div class="dossier-title"><h2 class="name" id="dossier-h" tabindex="-1">${bizName(b, { link: false })}</h2></div>
     <div class="status-row">${verdictStatus(b.status)}${b.voice ? `<span class="muted">Voice: ${esc(b.voice)}</span>` : ""}</div>`;
 
   let overview = "";
+  let goalsMarkup = "";
+  let pitchMarkup = "";
+  let screening = `<p class="muted">Scout has not screened this business yet.</p>`;
   if (b.status === "lead" && d.screening?.verdict === "borderline") {
     overview += ro
       ? `<section class="decide waiting" aria-label="Waiting on the board">
           <p class="decide-kicker">Waiting on the board</p>
-          <p class="decide-what">The board will decide whether to pursue ${esc(b.name)}.</p></section>`
+          <p class="decide-what">You decide whether to pursue ${esc(b.name)}.</p></section>`
       : `<section class="decide" aria-labelledby="lead-decide-q">
           <p class="decide-kicker">Needs your decision</p>
           <p class="decide-q" id="lead-decide-q">Pursue ${esc(b.name)}?</p>
@@ -1862,15 +2149,16 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   }
   if (d.screening && d.screening.verdict) {
     const s = d.screening;
-    overview += `<h3>Scout's screening</h3><div class="thread"><div class="knot"><div class="who">${who(s.by || "Scout")} ${verdictStatus(s.verdict)}</div><p>${esc(displayStudioCopy(s.reason))}</p></div>
+    const screeningPathLabel = (path) => String(path || "").split(/\s*,\s*|\s*->\s*|\s*→ overlaps with\s*/).filter(Boolean).join(" → overlaps with ");
+    screening = `<div class="thread"><div class="knot"><div class="who">${who(s.by || "Scout")} ${verdictStatus(s.verdict)}</div><p>${esc(displayStudioCopy(s.reason))}</p></div>
       ${(s.paths || []).map((c) => {
         const ps = [...(c.paths || [])].sort((a, z) => z.conflict - a.conflict);
-        const pill = (p) => `<li>${esc(p.via)} <span class="metric">· ${n(p.conflict)}</span></li>`;
+        const pill = (p) => `<li>${esc(screeningPathLabel(p.via))} <span class="metric">· ${n(p.conflict)}</span></li>`;
         return `<div class="knot minor"><div class="who">${avatar(bizByName(c.client), "xs")}${esc(c.client)} <span class="metric">· conflict ${n(c.conflict)}</span>${c.same_category ? " · same category" : ""}</div>
-          ${ps.length ? `<p class="muted">via ${ps.slice(0, 2).map((p) => esc(p.via)).join(", ")}</p><p class="muted mono metric">Path contributions: ${ps.slice(0, 2).map((p) => `${esc(p.via)} ${n(p.conflict, 3)}`).join(" · ")}</p>` : ""}
+          ${ps.length ? `<p class="muted">via ${ps.slice(0, 2).map((p) => esc(screeningPathLabel(p.via))).join(", ")}</p><p class="muted mono metric">Path contributions: ${ps.slice(0, 2).map((p) => `${esc(screeningPathLabel(p.via))} ${n(p.conflict, 3)}`).join(" · ")}</p>` : ""}
           ${ps.length > 2 ? `<details class="metric"><summary>All ${ps.length} audience paths</summary><ul class="paths">${ps.map(pill).join("")}</ul></details>` : ""}</div>`;
       }).join("")}</div>`;
-    overview += `<p class="analysis-bridge-row"><a class="analysis-bridge" href="/analysis?lead=${encodeURIComponent(slug)}#ch-screening" data-analysis-link>How was this decided?</a></p>`;
+    screening += `<p class="analysis-bridge-row"><a class="analysis-bridge" href="/analysis?lead=${encodeURIComponent(slug)}#ch-screening" data-analysis-link>How was this decided?</a></p>`;
   }
 
   if (d.has_graph && d.flags && d.flags.length) {
@@ -1898,24 +2186,57 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
     <h3>Signature moves <span class="muted">rare elsewhere, common in its work</span></h3>${d.signatures.length ? `<ul class="sig-list">${d.signatures.map((s) => `<li>${esc(s.technique)}<span class="metric"> ${Math.round(s.share * 100)}%</span></li>`).join("")}</ul>` : "<p class='muted'>None yet.</p>"}`;
   if (d.has_graph) {
     if (d.stale.length) overview += `<div class="warnbox"><b><span class="metric">${d.stale.length} </span>stale drafts</b> serve a retired goal: ${d.stale.map((s) => esc(s.hook)).join("; ")}</div>`;
-    overview += `<h3>Goals</h3><ul class="list">${d.goals.map((g) => `<li><div class="goal-line">${chip(g.status)} <b>${esc(g.text)}</b></div>
-      <div class="goal-meta metric">${esc(g.metric)} → ${esc(g.target)} by ${esc(g.due)}</div>
-      ${g.status === "active" && !ro ? `<div class="btn-row"><button type="button" class="btn small" data-retire="${esc(g.id)}" data-slug="${esc(slug)}">Retire goal</button></div>` : ""}</li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
-    if (d.pitches.length) overview += `<h3>Pitches</h3><ul class="list">${d.pitches.map((p) =>
-      `<li><button type="button" class="row-btn" data-pitch="${esc(p.id)}" data-slug="${esc(slug)}">${chip(p.status)} <b>${esc(p.angle)}</b></button></li>`).join("")}</ul>`;
-    draftsTab += `<h3>Drafts</h3><ul class="list">${d.drafts.map((x) =>
+    const goalStatus = {
+      active: { label: "Active", explanation: "Currently guiding the work." },
+      hypothesized: { label: "Hypothesized", explanation: "Proposed, not yet approved." },
+      retired: { label: "Retired", explanation: "No longer guiding new work." },
+    };
+    goalsMarkup = `<ul class="list">${d.goals.map((g) => {
+      const currentStatus = goalStatus[g.status] || { label: String(g.status || "Unknown"), explanation: "Goal status recorded." };
+      return `<li class="business-goal"><div class="goal-line"><b>${esc(g.text)}</b></div>
+      <p class="goal-status-line">${status(g.status, currentStatus.label)}<span class="goal-status-explanation">${esc(currentStatus.explanation)}</span></p>
+      <div class="goal-meta">Measure: ${esc(g.metric || "not set")} · Target: ${esc(g.target || "not set")} · Due ${esc(goalDueLabel(g.due))}</div>
+      <p class="goal-meta">${g.created_by ? `Set by ${esc(g.created_by)}` : "Creator not recorded"}${g.created_at ? ` · <time datetime="${esc(g.created_at)}" title="${esc(fullDateTime(g.created_at))}">${esc(runDayLabel(g.created_day))}</time>` : ""}</p>
+      <div class="goal-support"><b>Findings behind it</b>${(g.findings || []).map((finding) => `<p>${esc(finding.text)}${finding.source_url ? ` · ${link(finding.source_url, `Read ${finding.kind || "finding"} source`)}` : ""}</p>`).join("") || "<p class='muted'>No linked findings.</p>"}</div>
+      <div class="goal-support"><b>Drafts serving it</b>${(g.drafts || []).map((draft) => `<p><button type="button" class="row-btn" data-draft="${esc(draft.id)}" data-slug="${esc(slug)}">${esc(draft.hook)}</button></p>`).join("") || "<p class='muted'>No serving drafts.</p>"}</div>
+      ${g.status === "active" && !ro ? `<div class="btn-row"><button type="button" class="btn small" data-retire="${esc(g.id)}" data-slug="${esc(slug)}">Retire goal</button></div>` : ""}</li>`;
+    }).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
+    pitchMarkup = `<ul class="list">${d.pitches.map((p) =>
+      `<li><button type="button" class="row-btn" data-pitch="${esc(p.id)}" data-slug="${esc(slug)}">${chip(p.status)} <b>${esc(p.angle)}</b></button></li>`).join("") || "<li class='muted'>No pitch yet.</li>"}</ul>`;
+    draftsTab += `<ul class="list">${d.drafts.map((x) =>
       `<li><button type="button" class="row-btn" data-draft="${esc(x.id)}" data-slug="${esc(slug)}">${chip(x.status)}${chip("plain", x.kind)} <b><span class="metric">v${esc(x.version)} · </span>${esc(x.hook)}</b></button></li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
     if (d.taste_profile && d.taste_profile.id) draftsTab += `<h3>Taste profile <span class="muted metric">v${esc(d.taste_profile.version)}</span></h3><p>${esc(d.taste_profile.summary)}</p>
       <p class="muted" style="margin-top:6px">Prefers: ${d.taste_profile.prefers.map((p) => esc(p.name)).join(", ")}${d.taste_profile.avoids.length ? `<br>Avoids: ${d.taste_profile.avoids.map((p) => esc(p.name)).join(", ")}` : ""}</p>`;
-    research += `<h3>Findings <span class="muted">each with its source</span></h3><ul class="list">${d.findings.map((f) => `<li>${chip("plain", f.kind)} ${f.kind === "audit" ? `${esc(f.text)} <span class="muted">From the audit of past posts.</span>` : f.source_url ? link(f.source_url, f.text) : `${esc(f.text)} ${link(f.source_url)}`}</li>`).join("") || "<li class='muted'>None yet.</li>"}</ul>`;
+    const findingGroups = new Map();
+    (d.findings || []).forEach((finding) => {
+      if (!findingGroups.has(finding.kind)) findingGroups.set(finding.kind, []);
+      findingGroups.get(finding.kind).push(finding);
+    });
+    const findingGroupNames = { audience: "Audience", competitor: "Competitors", channel: "Channels", audit: "Post audit" };
+    const findingMarkup = [...findingGroups].map(([kind, findings]) => `<section class="finding-group">
+      <h4>${esc(findingGroupNames[kind] || kind)}</h4><ul class="finding-rows">${findings.map((finding) => {
+        let source = "Source";
+        try { source = `Source: ${new URL(finding.source_url).hostname.replace(/^www\\./i, "")}`; } catch { source = "Source" }
+        const confidence = finding.confidence == null ? "" : `Confidence ${esc(finding.confidence)}`;
+        const sourceCopy = finding.kind === "audit" ? "From Auditor's post audit" : "From Researcher's research";
+        return `<li class="finding-row"><p class="finding-claim">${esc(finding.text)}</p><div class="finding-meta">
+          ${finding.source_url ? link(finding.source_url, source) : `<span class="muted">${sourceCopy}</span>`}
+          ${confidence ? `<span class="finding-confidence">${confidence}</span>` : ""}</div></li>`;
+      }).join("")}</ul></section>`).join("") || `<p class="muted">No findings yet.</p>`;
+    research += `<h3>Findings</h3>${findingMarkup}`;
     research += `<h3>Past posts</h3><ul class="list">${d.posts.map((p) => `<li>${esc(p.hook)} <span class="muted metric">${(p.views ?? 0).toLocaleString()} views · ${(p.saves ?? 0).toLocaleString()} saves</span></li>`).join("") || "<li class='muted'>Not loaded.</li>"}</ul>`;
   } else {
     overview += `<div class="warnbox"><b>No private graph yet.</b> Scout creates one when it pursues this lead.</div>`;
   }
 
-  const tabs = [{ id: "overview", label: "Overview", content: overview }];
+  const tabs = [
+    { id: "overview", label: "Overview", content: overview },
+    { id: "screening", label: "Screening", content: screening },
+  ];
+  if (d.has_graph) tabs.push({ id: "goals", label: "Goals", content: goalsMarkup });
   if (d.has_graph) tabs.push({ id: "drafts", label: "Drafts", content: draftsTab });
   tabs.push({ id: "research", label: "Research", content: research });
+  if (d.has_graph && d.pitches?.length) tabs.push({ id: "pitch", label: "Pitch", content: pitchMarkup });
   if (d.has_graph && d.decisions && d.decisions.length) {
     tabs.push({
       id: "activity",
@@ -1926,27 +2247,53 @@ async function openBusiness(slug, { quiet = false, animate = false } = {}) {
   }
   if (!tabs.some((tab) => tab.id === state.dossierTab)) state.dossierTab = "overview";
   tabs[0].content = tabs[0].content.replace('class="thread"', 'class="thread lead"');
-  h += `<div class="dossier-tabs" role="tablist" aria-label="${esc(b.name)} dossier">`;
-  h += tabs.map((tab) => {
-    const selected = tab.id === state.dossierTab;
-    const tabId = `dossier-${slug}-${tab.id}-tab`;
-    const panelId = `dossier-${slug}-${tab.id}-panel`;
-    return `<button type="button" role="tab" id="${esc(tabId)}" aria-controls="${esc(panelId)}" aria-selected="${selected}" tabindex="${selected ? "0" : "-1"}" data-dossier-tab="${esc(tab.id)}">${esc(tab.label)}</button>`;
-  }).join("");
-  h += `</div>`;
-  h += tabs.map((tab) => {
-    const selected = tab.id === state.dossierTab;
-    const tabId = `dossier-${slug}-${tab.id}-tab`;
-    const panelId = `dossier-${slug}-${tab.id}-panel`;
-    return `<section class="dossier-panel" role="tabpanel" id="${esc(panelId)}" aria-labelledby="${esc(tabId)}" tabindex="0"${selected ? "" : " hidden"}>${tab.content}</section>`;
-  }).join("");
+  if (fullPage) {
+    const sectionNav = `<nav class="business-section-nav" aria-label="Business sections">${tabs.map((tab) =>
+      `<a href="#business-section-${esc(tab.id)}" data-business-nav="${esc(tab.id)}">${esc(tab.label)}</a>`).join("")}</nav>`;
+    page.innerHTML = `<div class="business-page-shell">${h}${sectionNav}${tabs.map((tab) =>
+      `<section class="business-section" id="business-section-${esc(tab.id)}"><h2>${esc(tab.label)}</h2>${tab.content}</section>`
+    ).join("")}</div>`;
+    page.querySelectorAll("[data-business-nav]").forEach((item) => item.addEventListener("click", (event) => {
+      event.preventDefault();
+      document.getElementById(`business-section-${item.dataset.businessNav}`)?.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "start" });
+    }));
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        page.querySelectorAll("[data-business-nav]").forEach((item) => {
+          if (item.dataset.businessNav === entry.target.id.replace("business-section-", "")) item.setAttribute("aria-current", "location");
+          else item.removeAttribute("aria-current");
+        });
+      }), { rootMargin: "-20% 0px -65% 0px" });
+      page.querySelectorAll(".business-section").forEach((section) => observer.observe(section));
+    }
+    page.hidden = false;
+    $("#drawer-body").innerHTML = "";
+    closeOverlay();
+  } else {
+    page.hidden = true;
+    h += `<div class="dossier-tabs" role="tablist" aria-label="${esc(b.name)} dossier">`;
+    h += tabs.map((tab) => {
+      const selected = tab.id === state.dossierTab;
+      const tabId = `dossier-${slug}-${tab.id}-tab`;
+      const panelId = `dossier-${slug}-${tab.id}-panel`;
+      return `<button type="button" role="tab" id="${esc(tabId)}" aria-controls="${esc(panelId)}" aria-selected="${selected}" tabindex="${selected ? "0" : "-1"}" data-dossier-tab="${esc(tab.id)}">${esc(tab.label)}</button>`;
+    }).join("");
+    h += `</div>`;
+    h += tabs.map((tab) => {
+      const selected = tab.id === state.dossierTab;
+      const tabId = `dossier-${slug}-${tab.id}-tab`;
+      const panelId = `dossier-${slug}-${tab.id}-panel`;
+      return `<section class="dossier-panel" role="tabpanel" id="${esc(panelId)}" aria-labelledby="${esc(tabId)}" tabindex="0"${selected ? "" : " hidden"}>${tab.content}</section>`;
+    }).join("");
 
-  const keepScroll = !animate && panel.dataset.slug === slug ? panel.scrollTop : 0;
-  $("#drawer-body").innerHTML = h;
-  panel.dataset.slug = slug;
-  panel.scrollTop = keepScroll;
+    const keepScroll = !animate && panel.dataset.slug === slug ? panel.scrollTop : 0;
+    $("#drawer-body").innerHTML = h;
+    panel.dataset.slug = slug;
+    panel.scrollTop = keepScroll;
+  }
   if (!quiet) $("#sr-status").textContent = `Showing ${b.name}`;
-  if (!isSplit() && !quiet) openOverlay();
+  if (!fullPage && !isSplit() && !quiet) openOverlay();
   drawString(animate);
 }
 
@@ -2091,8 +2438,6 @@ document.addEventListener("click", async (e) => {
   }
   const lane = e.target.closest("[data-reveal-lane]");
   if (lane) { revealStage(lane.dataset.revealLane); return; }
-  const pick = e.target.closest("[data-pick]");
-  if (pick) { select(pick.dataset.pick); return; }
   const dr = e.target.closest("[data-draft][data-slug]");
   if (dr) openRoute(dr.dataset.slug, dr.dataset.draft);
   const pi = e.target.closest("[data-pitch]");
@@ -2112,6 +2457,21 @@ document.addEventListener("click", async (e) => {
     bd.dataset.label === "Pitch" ? openPitch(bd.dataset.slug, bd.dataset.id) : openRoute(bd.dataset.slug, bd.dataset.id);
     refresh();
   }
+});
+
+document.addEventListener("click", async (e) => {
+  const pick = e.target.closest("[data-pick]");
+  if (!pick || isAnalysisView()) return;
+  const slug = pick.dataset.pick;
+  if (document.body.dataset.tab === "pipeline") {
+    if (pick.closest("#board, #pipeline-register")) return;
+    e.preventDefault();
+    await select(slug);
+    return;
+  }
+  e.preventDefault();
+  const section = pick.dataset.businessSection || (pick.closest(".focus-row") ? "screening" : "overview");
+  await openBusinessPage(slug, section);
 });
 
 // ---------------------------------------------------------------- route cards (threads) and pitch cards
@@ -2171,13 +2531,112 @@ function decisionBar(label, id, slug, c) {
 function showSheet(h, title) {
   $("#card-body").innerHTML = `<div class="sheet">${h}</div>`;
   $("#card").setAttribute("aria-label", title);
+  $("#goal-card").hidden = true;
+  $("#tech-card-sheet").hidden = true;
   if (!$("#card").open) $("#card").showModal();
 }
+
+async function showGoalPopover(button) {
+  activeGoalTrigger = button;
+  const card = $("#goal-card");
+  const slug = button.dataset.slug;
+  const goalId = button.dataset.goalId;
+  const goal = await api(`/api/goal/${encodeURIComponent(slug)}/${encodeURIComponent(goalId)}`);
+  if (activeGoalTrigger !== button) return;
+  const statusCopy = {
+    active: "Active · tracked as a current client goal.",
+    hypothesized: "Hypothesized · an evidence-based guess, not yet confirmed with the business.",
+    retired: "Retired · no longer guides current work.",
+  };
+  card.innerHTML = `<div class="popover-head"><b>Goal</b><button type="button" class="popover-close" aria-label="Close goal details">×</button></div>
+    <p class="goal-popover-text">${esc(goal.text)}</p><p class="goal-popover-status">${esc(statusCopy[goal.status] || goal.status)}</p>
+    <p class="goal-popover-meta">${goal.created_by ? `Set by ${esc(goal.created_by)}` : "Who set this goal was not recorded."}${goal.created_at ? ` · <time datetime="${esc(goal.created_at)}" title="${esc(fullDateTime(goal.created_at))}">${esc(runDayLabel(goal.created_day))}</time>` : ""}</p>
+    <h4>Findings behind it</h4><ul>${(goal.findings || []).map((finding) => `<li>${esc(finding.text)}${finding.source_url ? ` ${link(finding.source_url, `${finding.kind || "Finding"} source`)}` : ""}</li>`).join("") || "<li>No linked findings.</li>"}</ul>
+    <h4>Drafts serving it</h4><ul>${(goal.drafts || []).map((draft) => `<li><button type="button" class="goal-draft-link" data-goal-draft="${esc(draft.id)}" data-slug="${esc(slug)}">${esc(draft.hook)}</button></li>`).join("") || "<li>No drafts serve this goal yet.</li>"}</ul>`;
+  card.hidden = false;
+  const rect = button.getBoundingClientRect();
+  card.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - card.offsetWidth - 8))}px`;
+  card.style.top = `${Math.max(8, Math.min(rect.bottom, window.innerHeight - card.offsetHeight - 8))}px`;
+}
+
+let goalHideTimer = 0;
+let activeGoalTrigger = null;
+let pinnedGoalTrigger = null;
+function hideGoalPopover() {
+  clearTimeout(goalHideTimer);
+  $("#goal-card").hidden = true;
+  activeGoalTrigger = null;
+  pinnedGoalTrigger = null;
+}
+document.addEventListener("mouseover", (e) => {
+  const button = e.target.closest("[data-goal-id]");
+  if (button && !button.contains(e.relatedTarget) && window.matchMedia("(hover: hover)").matches) {
+    clearTimeout(goalHideTimer);
+    $("#goal-card").dataset.goalId = button.dataset.goalId;
+    showGoalPopover(button);
+  }
+  if (e.target.closest("#goal-card")) clearTimeout(goalHideTimer);
+});
+document.addEventListener("mouseout", (e) => {
+  if (pinnedGoalTrigger) return;
+  const trigger = e.target.closest("[data-goal-id]");
+  if (trigger && !trigger.contains(e.relatedTarget) && !e.relatedTarget?.closest("#goal-card") && !e.relatedTarget?.closest("[data-goal-id]")) {
+    goalHideTimer = window.setTimeout(hideGoalPopover, 250);
+  }
+  if (e.target.closest("#goal-card") && !e.relatedTarget?.closest("#goal-card") && !e.relatedTarget?.closest("[data-goal-id]")) {
+    goalHideTimer = window.setTimeout(hideGoalPopover, 250);
+  }
+});
+document.addEventListener("focusin", (e) => {
+  const button = e.target.closest("[data-goal-id]");
+  if (button) {
+    clearTimeout(goalHideTimer);
+    $("#goal-card").dataset.goalId = button.dataset.goalId;
+    showGoalPopover(button);
+  }
+  if (e.target.closest("#goal-card")) clearTimeout(goalHideTimer);
+});
+document.addEventListener("focusout", (e) => {
+  if (!pinnedGoalTrigger && (e.target.closest("[data-goal-id], #goal-card"))
+    && !e.relatedTarget?.closest("#goal-card") && !e.relatedTarget?.closest("[data-goal-id]")) {
+    goalHideTimer = window.setTimeout(hideGoalPopover, 250);
+  }
+});
+document.addEventListener("click", async (e) => {
+  const close = e.target.closest(".popover-close");
+  if (close) {
+    if (close.closest("#biz-card")) hideBizCard();
+    else if (close.closest("#tech-card, #tech-card-sheet")) hideTechCard();
+    else hideGoalPopover();
+    return;
+  }
+  const goalButton = e.target.closest("[data-goal-id]");
+  if (goalButton) {
+    e.preventDefault();
+    if (pinnedGoalTrigger === goalButton) {
+      hideGoalPopover();
+    } else {
+      pinnedGoalTrigger = goalButton;
+      clearTimeout(goalHideTimer);
+      $("#goal-card").dataset.goalId = goalButton.dataset.goalId;
+      await showGoalPopover(goalButton);
+    }
+    return;
+  }
+  const draftButton = e.target.closest("[data-goal-draft]");
+  if (draftButton) {
+    hideGoalPopover();
+    await openRoute(draftButton.dataset.slug, draftButton.dataset.goalDraft);
+    return;
+  }
+  if (!e.target.closest("#goal-card")) hideGoalPopover();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideGoalPopover(); });
 
 async function openRoute(slug, id) {
   const c = await api(`/api/route/${slug}/${id}`);
   let h = sheetTop(`<span class="studio-only">Thread</span><span class="analysis-only">Thread · client:${esc(slug)} · ${esc(id)}</span>`) +
-    `<h2>${esc(c.draft)}</h2><p class="serves">${chip(c.status)} ${c.goal ? `serves ${chip(c.goal_status)} <b>${esc(c.goal)}</b>` : ""}</p>` + decisionBar("Draft", id, slug, c);
+    `<h2>${esc(c.draft)}</h2><p class="serves">${chip(c.status)} ${c.goal ? `serves ${chip(c.goal_status)} <button type="button" class="goal-link" data-goal-id="${esc(c.goal_id)}" data-slug="${esc(slug)}">${esc(c.goal)}</button>` : ""}</p>` + decisionBar("Draft", id, slug, c);
   const kinds = c.technique_kinds || {};
   const me = state.overview?.businesses.find((b) => b.id === slug);
   if (c.status === "flagged" && c.flags.length) h += c.flags.map((f) => `<div class="flagbox"><b>Double Take blocked this draft.</b> It resembles ${esc(f.with_business)}'s work too closely.
@@ -2206,7 +2665,14 @@ async function openRoute(slug, id) {
     }).join("")}</dl>`;
   }
   h += `<h3>Decisions</h3><div class="thread">${knots(c.decisions)}</div>`;
-  h += `<h3>Sources</h3><ul class="list">${c.sources.filter((s) => s.kind !== "Reference").map((s) => `<li>${chip("plain", s.kind)} ${s.source_url ? link(s.source_url, s.text) : esc(s.text)}</li>`).join("") || "<li class='muted'>None.</li>"}</ul>`;
+  const sourceKind = { TasteProfile: "Taste profile", Finding: "Research finding", Reference: "Reference video", CollisionFlag: "Double Take flag", Audit: "Audit", Post: "Post" };
+  h += `<h3>Sources</h3><ul class="source-rows">${c.sources.filter((s) => s.kind !== "Reference").map((s) => {
+    const text = s.text || s.summary || s.hook || s.with_business || "Source detail";
+    const url = s.source_url || s.url;
+    const kind = sourceKind[s.kind] || String(s.kind || "Source").replace(/([a-z])([A-Z])/g, "$1 $2");
+    const linkText = s.kind === "Finding" ? "Read the research source" : s.kind === "Reference" ? "Watch the reference video" : `Open ${kind.toLowerCase()}`;
+    return `<li class="source-row"><span class="source-kind">${esc(kind)}</span><span>${esc(text)}</span>${url ? link(url, linkText) : ""}</li>`;
+  }).join("") || "<li class='muted'>None.</li>"}</ul>`;
   h += `<h3>Techniques</h3><ul class="tech-list">${c.techniques.map((t) => `<li>${techChip(t, kinds)}</li>`).join("")}</ul>`;
   h += `<h3>References <span class="muted">videos the Producer drew on</span></h3>${c.references.length
     ? `<ul class="refs">${c.references.map(refCard).join("")}</ul>`
@@ -2216,11 +2682,41 @@ async function openRoute(slug, id) {
 
 async function openPitch(slug, id) {
   const c = await api(`/api/pitch/${slug}/${id}`);
-  const h = sheetTop(`<span class="studio-only">Pitch</span><span class="analysis-only">Pitch · client:${esc(slug)} · ${esc(id)}</span>`) +
-    `<h2>${esc(c.angle)}</h2><p class="serves">${chip(c.status)} argues for ${chip(c.goal_status)} <b>${esc(c.goal)}</b></p>${decisionBar("Pitch", id, slug, c)}
-    ${c.goal_status === "hypothesized" ? `<div class="warnbox"><b>The goal is a hypothesis.</b> It is the Researcher's inference, shown to the prospect as one.</div>` : ""}
-    <h3>Every claim, with its source</h3><ul class="list">${c.claims.map((f) => `<li>${chip("plain", f.kind)} ${f.kind === "audit" ? `${esc(f.text)} <span class="muted">From our audit of their posts.</span>` : f.source_url ? link(f.source_url, f.text) : `${esc(f.text)} ${link(f.source_url)}`}</li>`).join("")}</ul>
-    <h3>Spec posts</h3><ul class="list">${c.spec_posts.map((d) => `<li><button type="button" class="row-btn" data-draft="${esc(d.id)}" data-slug="${esc(slug)}">${chip(d.status)} <b>${esc(d.hook)}</b></button></li>`).join("")}</ul>
+  const [business, assets] = await Promise.all([
+    Promise.resolve(bizById(slug)),
+    Promise.all((c.spec_posts || []).map(async (post) => ({ post, detail: await api(`/api/route/${slug}/${post.id}`) }))),
+  ]);
+  const claimRows = (c.claims || []).map((finding) => {
+    let source = "source";
+    try { source = new URL(finding.source_url).hostname.replace(/^www\./i, ""); } catch {}
+    return `<li>${esc(finding.text)}${finding.source_url ? ` <span class="email-source">${link(finding.source_url, `Source: ${source}`)}</span>` : ""}</li>`;
+  }).join("");
+  const assetCards = assets.map(({ post, detail }) => {
+    const lines = String(detail.spec || "").split(/\r?\n/).filter(Boolean);
+    const format = lines.find((line) => /^Format:/i.test(line))?.replace(/^Format:\s*/i, "")
+      || (detail.format === "reel" ? "Vertical short-form video (reel)" : detail.format || "Short-form video");
+    const shots = lines.filter((line) => /^\d+ · /.test(line)).map((line) => line.replace(/^\d+ · [^·]+ · /, ""));
+    const references = (detail.references || []).map((reference) => link(reference.url, `@${String(reference.creator || "").replace(/^@/, "")} · ${reference.category || "Reference"}`)).join("");
+    return `<article class="pitch-asset"><p class="asset-kicker">Spec post</p><h4>${esc(post.hook)}</h4><p><b>Format</b> · ${esc(format)}</p><h5>Shot list</h5><ol>${shots.map((shot) => `<li>${esc(shot)}</li>`).join("")}</ol>${references ? `<div class="asset-references"><b>References</b>${references}</div>` : ""}</article>`;
+  }).join("");
+  const countWords = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"];
+  const countText = countWords[assets.length] || String(assets.length);
+  const subjectCount = ({ one: "One", two: "Two", three: "Three", four: "Four", five: "Five" })[countText] || countText;
+  const postLabel = `${countText} spec ${assets.length === 1 ? "post" : "posts"}`;
+  const businessName = business?.name || slug;
+  const emailStatus = c.status === "approved"
+    ? "Approved · ready to send"
+    : c.status === "vetoed" ? "Vetoed · won't be sent" : "Draft · not sent until you approve";
+  const emailStatusClass = c.status === "approved" ? "approved" : c.status === "vetoed" ? "vetoed" : "pending";
+  const h = sheetTop(`<span class="studio-only pitch-kicker">Pitch</span><span class="analysis-only">Pitch · client:${esc(slug)} · ${esc(id)}</span>`) +
+    `<h2>${esc(c.angle)}</h2><p class="serves">${chip(c.status)} argues for ${chip(c.goal_status)} <button type="button" class="goal-link" data-goal-id="${esc(c.goal_id)}" data-slug="${esc(slug)}">${esc(c.goal)}</button></p>${decisionBar("Pitch", id, slug, c)}
+    <section class="pitch-email"><p class="email-status ${emailStatusClass}">${emailStatus}</p><dl><div><dt>To</dt><dd>${esc(businessName)}</dd></div><div><dt>Subject</dt><dd>${esc(`${subjectCount} spec ${assets.length === 1 ? "post" : "posts"} for ${businessName}`)}</dd></div></dl>
+      <p>Hi ${esc(businessName)},</p>
+      <p>We put together ${esc(postLabel)} for ${esc(businessName)}, aimed at a goal we think fits you: <b>${esc(c.goal)}</b>.</p>
+      <p>Here are the findings that informed the ideas:</p><ul>${claimRows || "<li>No sourced findings are attached to this pitch.</li>"}</ul>
+      <p>Attached are these spec posts:</p><ul>${assets.map(({ post }) => `<li>${esc(post.hook)}</li>`).join("") || "<li>No spec posts attached.</li>"}</ul>
+      <p>Best,<br>Corkboard Studio</p></section>
+    <h3>Attached spec posts</h3><div class="pitch-assets">${assetCards || `<p class="muted">No spec posts attached.</p>`}</div>
     <h3>Decisions</h3><div class="thread">${knots(c.decisions)}</div>`;
   showSheet(h, `Pitch for ${slug}`);
 }
@@ -2243,7 +2739,7 @@ $("#draft-form").addEventListener("submit", async (e) => {
   }
   $("#draft-mobile-warning").hidden = true;
   const btn = e.target.querySelector("button[type=submit]");
-  btn.disabled = true;
+  if (btn) btn.disabled = true;
   try {
     const r = await api("/api/try/draft", { method: "POST", body: JSON.stringify({ client: $("#draft-client").value, technique_ids: ids }) });
     const results = [...(r.results || [])].sort((a, b) => (b.risk || 0) - (a.risk || 0));
@@ -2256,17 +2752,19 @@ $("#draft-form").addEventListener("submit", async (e) => {
     }).filter((item) => item.name);
     const sharedSet = new Set(shared.flatMap((item) => [item.id, item.name]));
     const selected = ids.map((id) => state.techniques.find((technique) => technique.id === id)).filter(Boolean);
-    const verdictLine = r.flagged ? "Would be blocked." : "Would clear.";
+    const verdictLabel = r.flagged ? "Would be blocked" : "Would clear";
     const ownMoves = selected.map((technique) => `<li class="${sharedSet.has(technique.name) || sharedSet.has(technique.id) ? "shared" : ""}">${esc(technique.name)}</li>`).join("");
     const commonMoves = shared.map((item) => `<li class="shared">${esc(item.name)}</li>`).join("");
-    const equation = closest ? `similarity ${n(closest.similarity)} × overlap ${n(closest.overlap)} = risk ${n(closest.risk)} · limit ${n(r.threshold)}` : `Flag limit ${n(r.threshold)}`;
+    const riskSummary = typeof closest?.risk === "number"
+      ? `risk ${n(closest.risk)}, blocked at ${n(r.threshold)}`
+      : `Blocked at ${n(r.threshold)} risk`;
     $("#draft-result").innerHTML = `<div class="post-result-box"><div class="post-compare">
-        <section class="post-side"><p class="label">YOUR DRAFT</p><h3>${esc($("#draft-client").selectedOptions[0]?.textContent || "")}</h3><ul class="post-moves">${ownMoves || `<li class="muted">No moves selected.</li>`}</ul></section>
-        <section class="post-side closest-side"><p class="label">CLOSEST MATCH</p><h3>${esc(closest?.business || "No close match returned")}</h3>
+        <section class="post-side"><p class="label">Your draft</p><h3>${esc($("#draft-client").selectedOptions[0]?.textContent || "")}</h3><ul class="post-moves">${ownMoves || `<li class="muted">No moves selected.</li>`}</ul></section>
+        <section class="post-side closest-side"><p class="label">Closest match</p><h3>${esc(closest?.business || "No close match returned")}</h3>
           <ul class="post-moves">${commonMoves || `<li class="muted">No shared moves returned.</li>`}</ul>
           ${closest ? `<p class="muted">The endpoint does not return the full closest-match move list; only the shared moves above are shown.</p>` : ""}
         </section>
-      </div><div class="post-verdict">${verdictStatus(r.flagged ? "blocked" : "cleared", verdictLine)}<b class="mono">${esc(equation)}</b></div></div>`;
+      </div><div class="post-verdict"><span class="status s-${statusKind(r.flagged ? "blocked" : "cleared")}" aria-hidden="true"><i></i></span><b>${esc(verdictLabel)} · ${esc(riskSummary)}</b></div></div>`;
     if (window.matchMedia("(max-width: 760px)").matches) {
       state.mobileTryStep = 2;
       updateTryMobileFlow();
@@ -2279,10 +2777,20 @@ $("#draft-form").addEventListener("submit", async (e) => {
     }
   }
   finally {
-    btn.disabled = false;
+    if (btn) btn.disabled = false;
     $("#draft-result").scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "nearest" });
   }
 });
+
+let draftPreviewTimer = 0;
+function scheduleDraftPreview() {
+  clearTimeout(draftPreviewTimer);
+  draftPreviewTimer = window.setTimeout(() => {
+    const ids = [...document.querySelectorAll("#tech-pick input:checked")];
+    if (ids.length) $("#draft-form").requestSubmit();
+    else $("#draft-result").innerHTML = "";
+  }, 250);
+}
 
 async function loadTechniques() {
   const ts = await api("/api/techniques");
@@ -2292,6 +2800,38 @@ async function loadTechniques() {
   ts.forEach((t) => (by[t.style] ||= []).push(t));
   $("#tech-pick").innerHTML = `<p class="rare-note"><span aria-hidden="true">●</span> Rare technique: few businesses use it.</p>${Object.entries(by).map(([s, list]) => `<h3>${esc(s)}</h3>${list.map((t) =>
     `<label><input type="checkbox" value="${esc(t.id)}"><span class="${typeof rare === "number" && t.rarity >= rare ? "rare" : ""}">${esc(t.name)}${typeof rare === "number" && t.rarity >= rare ? '<span class="sr-only">, rare</span>' : ""}</span></label>`).join("")}`).join("")}`;
+}
+
+async function loadDraftPresets() {
+  const root = $("#draft-presets");
+  if (!root) return;
+  try {
+    const analysis = await api("/api/analysis");
+    const top = (analysis.double_take || []).slice().sort((a, b) => (b.risk || 0) - (a.risk || 0))[0];
+    const signed = state.overview?.clients?.[0];
+    if (!top || !signed) return;
+    const detail = await api(`/api/doubletake/${encodeURIComponent(top.client_id)}/${encodeURIComponent(top.draft)}`);
+    const flag = detail.flags.find((item) => item.business?.id === top.with_business || item.business?.name === top.with_business)
+      || detail.flags.slice().sort((a, b) => (b.risk || 0) - (a.risk || 0))[0];
+    const idsFrom = (items) => (items || []).map((item) => typeof item === "string" ? item : item.id).filter(Boolean);
+    const presets = [
+      { title: "Reuse a neighbor's signature", note: "Try the blocked draft's shared moves.", client: detail.business.id, techniques: idsFrom(flag?.shared) },
+      { title: "The rewrite that cleared", note: "Try the revised draft's moves.", client: detail.business.id, techniques: idsFrom(detail.revision?.techniques) },
+      { title: "Only common moves", note: "Try the three least rare moves for a signed client.", client: signed.id, techniques: state.techniques.slice().sort((a, b) => (a.rarity || 0) - (b.rarity || 0)).slice(0, 3).map((item) => item.id) },
+    ];
+    root.innerHTML = presets.map((preset, index) => `<button type="button" class="draft-preset" data-draft-preset="${index}"><b>${esc(preset.title)}</b><small>${esc(preset.note)}</small></button>`).join("");
+    root.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-draft-preset]");
+      if (!button) return;
+      const preset = presets[Number(button.dataset.draftPreset)];
+      $("#draft-client").value = preset.client;
+      document.querySelectorAll("#tech-pick input").forEach((input) => { input.checked = preset.techniques.includes(input.value); });
+      if (!preset.techniques.length) return;
+      $("#draft-form").requestSubmit();
+    });
+  } catch (error) {
+    console.error("Could not load live post-check presets", error);
+  }
 }
 
 function setTryTab(tab) {
@@ -2311,16 +2851,24 @@ function updateTryMobileFlow() {
   const isLead = state.tryTab === "lead";
   const steps = isLead ? 3 : 2;
   const checkStep = isLead ? 2 : 1;
+  const resultStep = checkStep + 1;
   workbench.dataset.activeTool = state.tryTab;
   workbench.dataset.mobileStep = String(state.mobileTryStep);
   $("#try-mobile-progress-line").style.width = `${Math.min(1, state.mobileTryStep / steps) * 100}%`;
-  $("#try-mobile-next").textContent = state.mobileTryStep >= checkStep ? "Check" : "Next";
+  $("#try-mobile-next").textContent = state.mobileTryStep >= resultStep
+    ? "Edit inputs"
+    : state.mobileTryStep >= checkStep ? "See result" : "Next";
 }
 
 document.querySelectorAll("[data-try-tab]").forEach((button) => button.addEventListener("click", () => setTryTab(button.dataset.tryTab)));
 $("#try-mobile-next").addEventListener("click", () => {
   const isLead = state.tryTab === "lead";
   const checkStep = isLead ? 2 : 1;
+  if (state.mobileTryStep > checkStep) {
+    state.mobileTryStep = 0;
+    updateTryMobileFlow();
+    return;
+  }
   if (state.mobileTryStep < checkStep) {
     if (isLead && state.mobileTryStep === 1 && state.leadPreset === "own" && !$("#lead-form").reportValidity()) return;
     if (isLead && state.mobileTryStep === 0 && state.leadPreset !== "own") state.mobileTryStep = 2;
@@ -2328,7 +2876,8 @@ $("#try-mobile-next").addEventListener("click", () => {
     updateTryMobileFlow();
     return;
   }
-  (state.tryTab === "lead" ? $("#lead-form") : $("#draft-form")).requestSubmit();
+  state.mobileTryStep = checkStep + 1;
+  updateTryMobileFlow();
 });
 document.addEventListener("change", (e) => {
   if (e.target.name === "lead-preset") {
@@ -2343,7 +2892,11 @@ document.addEventListener("change", (e) => {
     scheduleLeadPreview();
     return;
   }
-  if (e.target.matches("#tech-pick input")) $("#draft-mobile-warning").hidden = true;
+  if (e.target.matches("#tech-pick input")) {
+    $("#draft-mobile-warning").hidden = true;
+    scheduleDraftPreview();
+  }
+  if (e.target.matches("#draft-client")) scheduleDraftPreview();
   if (e.target.closest("#lead-form")) scheduleLeadPreview();
 });
 document.addEventListener("input", (e) => {
@@ -2352,6 +2905,7 @@ document.addEventListener("input", (e) => {
 
 refresh().then(async () => {
   await loadTechniques();
+  await loadDraftPresets();
   updateTryMobileFlow();
   if (isAnalysisView()) await loadAnalysisFromLocation();
 });
